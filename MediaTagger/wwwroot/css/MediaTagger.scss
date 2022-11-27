@@ -1,0 +1,71 @@
+﻿body {
+  padding: 8px;
+}
+
+header {
+  position: absolute;
+  left:0;
+  right:0;
+  top:0;
+  height: 3rem;
+  border-bottom: 1px solid black;
+  background-color: #cccccc;
+  padding: 4px 8px;
+}
+
+footer {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 3rem;
+  padding: 4px 8px;
+  border-top: 1px solid black;
+  background-color: #cccccc;
+}
+
+#main-content {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 3rem;
+  top: 3rem;
+  padding: 4px 8px;
+  background-color: #ffffff;
+}
+
+#main-nav li {
+  display: inline-block;
+  padding-right: 2rem;
+  list-style: none;
+}
+
+#toggle-log {
+  position: absolute;
+  right: 2rem;
+}
+
+#log-container {
+  position: absolute;
+  top: 4rem;
+  bottom: 4rem;
+  left: 4rem;
+  right: 4rem;
+  background-color: #eeee00;
+  border: 1px solid black;
+  z-index: 100;
+  padding: 8px;
+  overflow: auto;
+}
+
+
+  #log-container .message {
+    display: block;
+    unicode-bidi: embed;
+    font-family: monospace;
+    white-space: pre;
+  }
+
+  .hidden {
+    display: none !important;
+  }

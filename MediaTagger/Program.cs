@@ -1,7 +1,15 @@
-var builder = WebApplication.CreateBuilder(args);
+using MediaTagger.Data;
+using Microsoft.EntityFrameworkCore;
+using System.Configuration;
+using MediaTagger.Controllers;
+using MediaTagger.Models;
 
+var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddRazorPages();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddDbContext<MediaTaggerContext>(options =>
+  options.UseSqlServer(builder.Configuration.GetConnectionString("MediaTaggerContext")));
 
 var app = builder.Build();
 
@@ -13,6 +21,15 @@ if (!app.Environment.IsDevelopment())
   app.UseHsts();
 }
 
+using (var scope = app.Services.CreateScope())
+{
+  var services = scope.ServiceProvider;
+
+  var context = services.GetRequiredService<MediaTaggerContext>();
+  context.Database.EnsureCreated();
+  // DbInitializer.Initialize(context);
+}
+
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 
@@ -21,5 +38,7 @@ app.UseRouting();
 app.UseAuthorization();
 
 app.MapRazorPages();
+app.UseDeveloperExceptionPage();
 
+app.MapTagEndpoints();
 app.Run();

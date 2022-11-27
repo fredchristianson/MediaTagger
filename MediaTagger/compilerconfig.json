@@ -1,0 +1,10 @@
+﻿[
+  {
+    "outputFile": "wwwroot/drjs/css/drjs.css",
+    "inputFile": "wwwroot/drjs/css/drjs.scss"
+  },
+  {
+    "outputFile": "wwwroot/css/MediaTagger.css",
+    "inputFile": "wwwroot/css/MediaTagger.scss"
+  }
+]
