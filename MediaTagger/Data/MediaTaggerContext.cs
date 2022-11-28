@@ -1,30 +1,29 @@
-﻿
-
-using MediaTagger.Models;
+﻿using MediaTagger.Modules.Settings;
+using MediaTagger.Modules.Tag;
 using Microsoft.EntityFrameworkCore;
 
 namespace MediaTagger.Data
 {
-  public class MediaTaggerContext : DbContext
+    public class MediaTaggerContext : DbContext
   {
     public MediaTaggerContext(DbContextOptions<MediaTaggerContext> options) : base(options)
     {
 
     }
 
-    public DbSet<Setting> Settings => Set<Setting>();
-    public DbSet<Tag> Tags=> Set<Tag>();
+    public DbSet<SettingModel> Settings => Set<SettingModel>();
+    public DbSet<TagModel> Tags=> Set<TagModel>();
 
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-      modelBuilder.Entity<Setting>()
+      modelBuilder.Entity<SettingModel>()
         .HasKey(s => new { s.Scope, s.Name });
-      modelBuilder.Entity<Setting>().ToTable("Setting");
+      modelBuilder.Entity<SettingModel>().ToTable("Setting");
 
-      modelBuilder.Entity<Tag>().HasIndex(t => t.Name).IsUnique();
-      modelBuilder.Entity<Tag>().ToTable("Tag");
+      modelBuilder.Entity<TagModel>().HasIndex(t => t.Name).IsUnique();
+      modelBuilder.Entity<TagModel>().ToTable("Tag");
     }
   }
 }

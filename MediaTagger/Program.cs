@@ -1,14 +1,15 @@
 using MediaTagger.Data;
 using Microsoft.EntityFrameworkCore;
-using System.Configuration;
-using MediaTagger.Controllers;
-using MediaTagger.Models;
 using MediaTagger.Services;
+using MediaTagger.Modules.Tag;
+using MediaTagger.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddRazorPages();
 builder.Services.AddEndpointsApiExplorer();
+
+builder.Services.RegisterModules();
 builder.Services.AddDbContext<MediaTaggerContext>(options =>
   options.UseSqlServer(builder.Configuration.GetConnectionString("MediaTaggerContext")));
 
@@ -43,7 +44,8 @@ app.UseAuthorization();
 app.MapRazorPages();
 app.UseDeveloperExceptionPage();
 
-app.MapTagEndpoints();
+//app.MapTagEndpoints();
+app.MapEndpoints();
 try
 {
   app.Run();

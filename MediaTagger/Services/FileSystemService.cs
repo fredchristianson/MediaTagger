@@ -17,22 +17,23 @@ namespace MediaTagger.Services
 
     public Task StartAsync(CancellationToken cancellationToken)
     {
-      return Task.Run(async () =>
+      Task.Run(async () =>
       {
 
         //_ = Task.Run(()=>ScanDirectory("x:\\photo_reorg", cancellationToken));
         var found = ScanDirectory("x:\\photo-reorg", Array.AsReadOnly(DefaultData.FileExtensions), cancellationToken);
         foreach(var file in found.Result)
         {
-          Console.WriteLine(file);
+         // Console.WriteLine(file);
         }
         while (!cancellationToken.IsCancellationRequested)
         {
-          Console.WriteLine($"Respponse from IHostedService - {DateTime.Now}");
+          //Console.WriteLine($"Respponse from IHostedService - {DateTime.Now}");
           await Task.Delay(1000);
         }
         return Task.CompletedTask;
       });
+      return Task.CompletedTask;
     }
 
     public Task StopAsync(CancellationToken cancellationToken)
