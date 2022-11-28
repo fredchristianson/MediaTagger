@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Configuration;
 using MediaTagger.Controllers;
 using MediaTagger.Models;
+using MediaTagger.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
@@ -11,6 +12,8 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddDbContext<MediaTaggerContext>(options =>
   options.UseSqlServer(builder.Configuration.GetConnectionString("MediaTaggerContext")));
 
+builder.Services.AddSingleton<IBackgroundMessageService,BackgroundMessageService>();
+builder.Services.AddHostedService<FileSystemService>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -41,4 +44,9 @@ app.MapRazorPages();
 app.UseDeveloperExceptionPage();
 
 app.MapTagEndpoints();
-app.Run();
+try
+{
+  app.Run();
+} catch(Exception ex) { 
+  Console.WriteLine(ex); 
+}
