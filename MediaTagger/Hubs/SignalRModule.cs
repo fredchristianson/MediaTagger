@@ -12,7 +12,9 @@ namespace MediaTagger.Hubs
 
         public IServiceCollection RegisterModule(IServiceCollection builder)
         {
-            throw new NotImplementedException();
+      builder.AddSignalR();
+      builder.AddScoped<ILogHub, LogHub>();
+      return builder;
         }
     }
 }

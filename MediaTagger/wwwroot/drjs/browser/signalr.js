@@ -5,7 +5,8 @@ import util from '../util.js';
 const log = Logger.create("SignalR");
 
 export class SignalRClient {
-    constructor() {
+  constructor(hubName) {
+    this.hubName = hubName;
     }
 
     addMessageHandler(hub, name, handler) {
@@ -13,8 +14,8 @@ export class SignalRClient {
 
 }
 
-function create() {
-  return new SignalRClient();
+function create(hubName) {
+  return new SignalRClient(hubName);
 }
 
 export default create;

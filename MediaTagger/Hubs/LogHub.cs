@@ -2,11 +2,16 @@
 
 namespace MediaTagger.Hubs
 {
-  public class LogHub : Hub
+  public abstract class ILogHub : Hub
   {
-    public async Task SendMessage(string message)
+    public abstract Task SendMessage(string message);
+  }
+  public class LogHub :  ILogHub
+  {
+    public async override Task SendMessage(string message)
     {
       await Clients.All.SendAsync("LogMessage", message);
     }
-  }
+
+    }
 }

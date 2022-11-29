@@ -1,4 +1,6 @@
-﻿using System.Collections;
+﻿using MediaTagger.Hubs;
+using Microsoft.AspNetCore.SignalR;
+using System.Collections;
 
 namespace MediaTagger.Data
 {
@@ -6,15 +8,25 @@ namespace MediaTagger.Data
   {
     void Add(string message);
     void Add(string message, Exception ex);
-  }
+    }
   /* messages from background tasks that will be displayed */
     public class BackgroundMessageService : IBackgroundMessageService
     {
-    public BackgroundMessageService() { }
+
+    private List<string> queuedMessages = new List<string>();
+        private IHubContext<ILogHub> hubContext;
+
+        public BackgroundMessageService(IHubContext<ILogHub> hubContext) {
+      this.hubContext = hubContext;
+      
+    }
 
     public void Add(string message)
     {
       queuedMessages.Add(message);
+      //var logHub = new LogHub();
+      //hubContext.Clients.All.SendMessage(message);
+      hubContext.Clients.All.SendAsync("log",message);
     }
 
     public void Add(string message, Exception ex)
@@ -22,6 +34,5 @@ namespace MediaTagger.Data
       queuedMessages.Add(message + ": " + ex.Message);
     }
 
-    private List<string> queuedMessages = new List<string>();
     }
 }
