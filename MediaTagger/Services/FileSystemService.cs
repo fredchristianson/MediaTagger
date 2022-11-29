@@ -1,4 +1,5 @@
 ﻿using MediaTagger.Data;
+using MediaTagger.Modules.MediaFile;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -6,13 +7,17 @@ using System.Threading;
 
 namespace MediaTagger.Services
 {
+
   public class FileSystemService : IHostedService
   {
     private IBackgroundMessageService messageService;
+        private IMediaFileService mediaFileService;
 
-    public FileSystemService(IBackgroundMessageService messageService)
+    public FileSystemService(IServiceProvider serviceProvider)// IBackgroundMessageService messageService, IMediaFileService mediaFileService)
     {
-      this.messageService = messageService;
+      var scope = serviceProvider.CreateScope();
+      messageService = scope.ServiceProvider.GetRequiredService<IBackgroundMessageService>();
+      mediaFileService = scope.ServiceProvider.GetRequiredService<IMediaFileService>();
     }
 
     public Task StartAsync(CancellationToken cancellationToken)
@@ -24,6 +29,7 @@ namespace MediaTagger.Services
         var found = ScanDirectory("x:\\photo-reorg", Array.AsReadOnly(DefaultData.FileExtensions), cancellationToken);
         foreach(var file in found.Result)
         {
+          this.mediaFileService.Process(file);
          // Console.WriteLine(file);
         }
         while (!cancellationToken.IsCancellationRequested)

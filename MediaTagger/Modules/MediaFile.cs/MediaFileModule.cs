@@ -1,20 +1,19 @@
 ﻿using MediaTagger.Interfaces;
-using MediaTagger.Modules.Settings;
 
-namespace MediaTagger.Modules.Setting
+namespace MediaTagger.Modules.MediaFile
 {
-  public class SettingModule : IModule
+  public class MediaFileModule : IModule
   {
-    public SettingModule() { }
+    public MediaFileModule() { }
 
     public IServiceCollection RegisterModule(IServiceCollection services)
     {
-      //services.AddSingleton(new OrderConfig());
+      services.AddScoped<IMediaFileService, MediaFileService>();
       return services;
     }
     public IEndpointRouteBuilder MapEndpoints(IEndpointRouteBuilder endpoints)
     {
-      SettingsEndpoints.MapEndpoints(endpoints);
+      MediaFileEndpoints.MapEndpoints(endpoints);
       return endpoints;
     }
 

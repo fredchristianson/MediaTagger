@@ -1,4 +1,7 @@
-﻿using MediaTagger.Modules.Settings;
+﻿using MediaTagger.Modules.FileSystem;
+using MediaTagger.Modules.MediaFile;
+using MediaTagger.Modules.MediaItem;
+using MediaTagger.Modules.Settings;
 using MediaTagger.Modules.Tag;
 using Microsoft.EntityFrameworkCore;
 
@@ -13,6 +16,9 @@ namespace MediaTagger.Data
 
     public DbSet<SettingModel> Settings => Set<SettingModel>();
     public DbSet<TagModel> Tags=> Set<TagModel>();
+    public DbSet<MediaItemModel> MediaItems => Set<MediaItemModel>();
+    public DbSet<MediaFileModel> MediaFiles => Set<MediaFileModel>();
+    public DbSet<PathModel> Paths => Set<PathModel>();
 
 
 
@@ -24,6 +30,21 @@ namespace MediaTagger.Data
 
       modelBuilder.Entity<TagModel>().HasIndex(t => t.Name).IsUnique();
       modelBuilder.Entity<TagModel>().ToTable("Tag");
+
+
+      modelBuilder.Entity<MediaFileModel>().HasKey(file => file.MediaFileId);
+      modelBuilder.Entity<MediaItemModel>().HasKey(file => file.MediaItemId);
+      modelBuilder.Entity<MediaFileModel>()
+        .HasOne(item => item.MediaItem)
+        .WithMany(item => item.Files)
+        .HasForeignKey(file => file.MediaItemForeignKey);
+      modelBuilder.Entity<MediaItemModel>().HasOne(item => item.ThumbnailFile);
+      modelBuilder.Entity<MediaItemModel>().HasOne(item => item.PrimaryFile);
+      modelBuilder.Entity<MediaItemModel>().ToTable("MediaItem");
+      modelBuilder.Entity<MediaFileModel>().ToTable("MediaFile");
+
+      modelBuilder.Entity<PathModel>().ToTable("FileSystemPath");
+
     }
   }
 }
