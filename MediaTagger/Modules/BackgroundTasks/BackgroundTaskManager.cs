@@ -12,7 +12,7 @@ namespace MediaTagger.Modules.BackgroundTasks
 {
   public interface IBackgroundTaskManager : IHostedService { }
 
-  public class BackgroundTaskManager : BackgroundService, IBackgroundTaskManager
+  public class BackgroundTaskManager : IBackgroundTaskManager
   {
     private IBackgroundTaskQueue queue;
     private ILogger<BackgroundTaskManager> logger;
@@ -23,12 +23,7 @@ namespace MediaTagger.Modules.BackgroundTasks
       this.logger = logger;
     }
 
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
-    {
-
-      await BackgroundProcessing(stoppingToken);
-    }
-
+    
     private async Task BackgroundProcessing(CancellationToken stoppingToken)
     {
       while (!stoppingToken.IsCancellationRequested)
@@ -48,11 +43,20 @@ namespace MediaTagger.Modules.BackgroundTasks
       }
     }
 
-    public override async Task StopAsync(CancellationToken stoppingToken)
+    public Task StartAsync(CancellationToken cancellationToken)
     {
-      logger.LogInformation("Queued Hosted Service is stopping.");
+      Task.Run(async () =>
+      {
+        await BackgroundProcessing(cancellationToken);
+        return Task.CompletedTask;
+      });
+      return Task.CompletedTask;
+    }
 
-      await base.StopAsync(stoppingToken);
+    public Task StopAsync(CancellationToken cancellationToken)
+    {
+
+      return Task.CompletedTask;
     }
   }
 }

@@ -1,11 +1,17 @@
-﻿using MediaTagger.Interfaces;
+﻿using MediaTagger.Hubs;
+using MediaTagger.Interfaces;
 using MediaTagger.Modules.Tag;
+using Microsoft.AspNetCore.SignalR;
 
 namespace MediaTagger.Modules.Setting
 {
   public class TagModule : IModule
   {
-    public TagModule() { }
+        private ILogHub logHub;
+        private IHubContext<ILogHub> hubContext;
+
+        public TagModule() { 
+    }
 
     public IServiceCollection RegisterModule(IServiceCollection builder)
     {

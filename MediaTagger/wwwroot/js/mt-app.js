@@ -6,6 +6,7 @@ import page from '../drjs/browser/page.js';
 import util from '../drjs/util.js';
 import DOMEvent from "../drjs/browser/dom-event.js";
 import DOM from "../drjs/browser/dom.js";
+import SignalR from "../drjs/browser/signalr.js";
 
 import { DomLogWriter } from '../drjs/browser/log-writer-dom.js';
 
@@ -50,6 +51,8 @@ export class MediaTaggerApp extends Application {
     if (gotoPage && gotoPage.length > 0) {
       this.loadMainContent(gotoPage);
     }
+
+    this.signalr = SignalR.create("/log").build();
 
   }
 
