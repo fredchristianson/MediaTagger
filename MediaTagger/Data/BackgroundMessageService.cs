@@ -1,5 +1,4 @@
-﻿using MediaTagger.Hubs;
-using Microsoft.AspNetCore.SignalR;
+﻿using Microsoft.AspNetCore.SignalR;
 using System.Collections;
 
 namespace MediaTagger.Data
@@ -14,19 +13,14 @@ namespace MediaTagger.Data
     {
 
     private List<string> queuedMessages = new List<string>();
-        private IHubContext<ILogHub> hubContext;
 
-        public BackgroundMessageService(IHubContext<ILogHub> hubContext) {
-      this.hubContext = hubContext;
+        public BackgroundMessageService() {
       
     }
 
     public void Add(string message)
     {
       queuedMessages.Add(message);
-      //var logHub = new LogHub();
-      //hubContext.Clients.All.SendMessage(message);
-      hubContext.Clients.All.SendAsync("log",message);
     }
 
     public void Add(string message, Exception ex)

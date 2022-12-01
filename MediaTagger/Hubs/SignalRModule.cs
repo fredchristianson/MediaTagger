@@ -6,14 +6,14 @@ namespace MediaTagger.Hubs
     {
         public IEndpointRouteBuilder MapEndpoints(IEndpointRouteBuilder endpoints)
         {
-      endpoints.MapHub<LogHub>("/log");
+      endpoints.MapHub<LogHub>("/hub/log");
+      endpoints.MapHub<ImageHub>("/hub/image");
       return endpoints;
         }
 
         public IServiceCollection RegisterModule(IServiceCollection builder)
         {
       builder.AddSignalR();
-      builder.AddScoped<ILogHub, LogHub>();
       return builder;
         }
     }

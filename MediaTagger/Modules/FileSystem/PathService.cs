@@ -22,12 +22,12 @@ namespace MediaTagger.Modules.FileSystem
     {
 
       var lowerPath = pathValue.ToLower();
-      PathModel path = null;
+      PathModel path;
       if (pathCache.TryGetValue(lowerPath,out path))
       {
         return path;
       }
-      path = dbContext.Paths.FirstOrDefault(row => row.Value == lowerPath);
+      path = await dbContext.Paths.FirstOrDefaultAsync(row => row.Value == lowerPath);
       if (path == null)
       {
         path = new PathModel();

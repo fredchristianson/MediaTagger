@@ -1,4 +1,5 @@
-﻿using MediaTagger.Modules.MediaItem;
+﻿using MediaTagger.Modules.FileSystem;
+using MediaTagger.Modules.MediaItem;
 using SqlExpress;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -16,8 +17,13 @@ namespace MediaTagger.Modules.MediaFile
     public DateTime Modified { get; set; } = DateTime.UtcNow;
     public DateTime Created { get; set; } = DateTime.UtcNow;
 
-    public MediaItemModel? MediaItem { get; set; }
-    public int MediaItemForeignKey { get; set; }
+    public virtual MediaItemModel? MediaItem { get; set; }
+    public int? MediaItemId { get; set; }
+
+    public virtual PathModel? Path { get; set; }
+    public int? PathId { get; set; }
+
+    public long FileSize { get; set; }
 
   }
 }

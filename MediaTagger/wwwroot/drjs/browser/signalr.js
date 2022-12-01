@@ -12,7 +12,7 @@ export class SignalRClient {
   }
 
   logMessage(msg) {
-    log.debug("LogMessage: ", message);
+    log.debug("LogMessage: ", msg);
   }
 
     addMessageHandler(hub, name, handler) {
@@ -20,8 +20,20 @@ export class SignalRClient {
 
   build() {
     this.connection = this.builder.build();
-    this.connection.on("LogMessage", (message) => this.logMessage(message));
     this.connection.start();
+    //this.connection.on("LogMessage", (message) => this.logMessage(message));
+    return this;
+  }
+
+  handle(method, handler) {
+    this.connection.on(method, (data) => {
+      try {
+        handler(data);
+      } catch (ex) {
+        log.error("failed to handle method ", method, ex);
+      }
+    });
+    return this;
   }
 }
 

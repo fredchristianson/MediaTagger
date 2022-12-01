@@ -52,7 +52,12 @@ export class MediaTaggerApp extends Application {
       this.loadMainContent(gotoPage);
     }
 
-    this.signalr = SignalR.create("/log").build();
+    this.signalr = SignalR.create("/hub/log").build().handle("LogMessage", (message) => log.debug("LogMessage", message))
+    .handle("Debug", (message) => log.debug("Debug", message))
+    .handle("Log", (message) =>
+      log.debug("Log", message)
+    );
+    this.signalrImage = SignalR.create("/hub/image").build().handle("Update", (message) => log.debug("Update", message));
 
   }
 

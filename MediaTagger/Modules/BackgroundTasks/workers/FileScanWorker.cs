@@ -21,15 +21,22 @@ namespace MediaTagger.Modules.BackgroundTasks.workers
 
     public override async void DoWork()
     {
-      logger.LogDebug("FileScanWorker");
+      logger.LogInformation("FileScanWorker starting");
       var files = await ScanDirectory("x:\\photo-reorg", Array.AsReadOnly(DefaultData.FileExtensions), TaskCancellationToken);
+      int count = 0;
       foreach (var file in files)
       {
-        this.mediaFileService.Process(file);
-        logger.LogDebug($"Processed {file}");
-        messageService.Add($"Processed {file}");
-        Task.Delay(1000).Wait();
+        _ = await this.mediaFileService.Process(file);
+        //logger.LogDebug($"Processed {file}");
+        //messageService.Add($"Processed {file}");
+        count += 1;
+        if ((count % 100) == 0)
+        {
+
+          logger.LogInformation($"file scan {count} out of {files.Count}");
+        }
       }
+      logger.LogInformation("FileScanWorker complete");
     }
 
 

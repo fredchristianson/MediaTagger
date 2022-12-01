@@ -3,7 +3,6 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using MediaTagger.Data;
 using Microsoft.EntityFrameworkCore;
-using MediaTagger.Hubs;
 using Microsoft.AspNetCore.SignalR;
 
 namespace MediaTagger.Modules.Tag
@@ -17,12 +16,19 @@ namespace MediaTagger.Modules.Tag
         public static void MapTagEndpoints(this IEndpointRouteBuilder routes)
         {
 
+      routes.MapGet(V1_URL_PREFIX + "/Tag", async (TagService service) =>
+      {
+        return await service.GetAllTags();
+      })
+    .WithName("GetAllTags");
 
-        routes.MapGet(V1_URL_PREFIX+"/Tag", async (MediaTaggerContext db, LogHub logHub, IHubContext hubContext) =>
+
+      routes.MapGet(V1_URL_PREFIX+"/xTag", async (MediaTaggerContext db, IHttpContextAccessor httpContextAccessor) =>
             {
+              var session = httpContextAccessor.HttpContext?.Session;
                 return await db.Tags.ToListAsync();
             })
-            .WithName("GetAllTags");
+            .WithName("GetAllTagsx");
 
             routes.MapGet(V1_URL_PREFIX+"/Tag/{id}", async (int ID, MediaTaggerContext db) =>
             {

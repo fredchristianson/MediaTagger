@@ -10,11 +10,11 @@ using MediaTagger.Modules.BackgroundTasks.workers;
 var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddRazorPages();
-builder.Services.AddSignalR();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSingleton<IBackgroundTaskQueue,BackgroundTaskQueue>();
 builder.Services.AddHostedService<BackgroundTaskManager>();
 builder.Services.RegisterModules();
+builder.Services.AddHttpContextAccessor();
 builder.Services.AddDbContext<MediaTaggerContext>(options =>
   options.UseSqlServer(builder.Configuration.GetConnectionString("MediaTaggerContext")));
 
@@ -37,8 +37,9 @@ using (var scope = app.Services.CreateScope())
   var services = scope.ServiceProvider;
 
   var context = services.GetRequiredService<MediaTaggerContext>();
+ 
   context.Database.EnsureCreated();
-  // DbInitializer.Initialize(context);
+  //DbInitializer.Initialize(context);
 }
 
 app.UseHttpsRedirection();
@@ -51,7 +52,6 @@ app.UseSession();
 app.MapRazorPages();
 app.UseDeveloperExceptionPage();
 
-//app.MapTagEndpoints();
 app.MapEndpoints();
 try
 {

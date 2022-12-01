@@ -16,8 +16,14 @@ namespace MediaTagger.Modules.MediaItem
     public DateTime Modified { get; set; } = DateTime.UtcNow;
     public DateTime Created { get; set; } = DateTime.UtcNow;
 
-    public MediaFileModel? PrimaryFile { get; set; }
-    public MediaFileModel? ThumbnailFile { get; set; }
-    public List<MediaFileModel>? Files { get; set; }
+    [ForeignKey("PrimaryFileId")]
+    public virtual MediaFileModel? PrimaryFile { get; set; }
+    public int PrimaryFileId { get; set; }
+
+    [ForeignKey("ThumbnailFileId")]
+    public virtual MediaFileModel? ThumbnailFile { get; set; }
+    public int? ThumbnailFileId { get; set; }
+
+    public virtual List<MediaFileModel> Files { get; set; } = new List<MediaFileModel>();
   }
 }
