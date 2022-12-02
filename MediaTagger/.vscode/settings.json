@@ -1,0 +1,18 @@
+{
+    "favorites.resources": [
+        {
+            "filePath": "wwwroot",
+            "group": "Default"
+        }
+    ],
+    "liveSassCompile.settings.showAnnouncements": null,
+    "liveSassCompile.settings.watchOnLaunch": true,
+    "liveSassCompile.settings.formats":[
+        // This is Default.
+        {
+            "format": "expanded",
+            "extensionName": ".css",
+            "savePath": null
+        }
+    ]
+}

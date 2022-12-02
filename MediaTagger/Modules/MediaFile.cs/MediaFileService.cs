@@ -30,7 +30,9 @@ namespace MediaTagger.Modules.MediaFile
 
     public async Task<MediaFileModel?> GetMediaFileById(int id)
     {
-      var mediaFile = await db.MediaFiles.FindAsync(id);
+      var mediaFile = await db.MediaFiles
+      .Include(e=>e.Path)
+      .FirstAsync(mf=>mf.MediaFileId==id);
       return mediaFile;
 
 
