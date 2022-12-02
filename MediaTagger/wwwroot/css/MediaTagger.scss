@@ -79,7 +79,7 @@
     .name {
       position: relative;
       z-index: 2;
-      background-color: #ffffff77;
+      background-color: #00444477;
     }
 
     img {
@@ -92,7 +92,7 @@
 
 
     }
-    .loading {
+    .loading,.load-waiting {
       display: block;
       width: 32px;
       height: 32px;
@@ -100,7 +100,12 @@
       top: 48px;
     }
     .error {
-      border: 1px solid red;
+      display: block;
+      width: 32px;
+      height: 32px;
+      left: 48px;
+      top: 48px;
+      background-color: red;
     }
   }
 }

@@ -78,7 +78,7 @@ body {
 .media-items .media-item .name {
   position: relative;
   z-index: 2;
-  background-color: rgba(255, 255, 255, 0.4666666667);
+  background-color: rgba(0, 68, 68, 0.4666666667);
 }
 .media-items .media-item img {
   position: absolute;
@@ -88,7 +88,7 @@ body {
   height: 128px;
   z-index: 1;
 }
-.media-items .media-item .loading {
+.media-items .media-item .loading, .media-items .media-item .load-waiting {
   display: block;
   width: 32px;
   height: 32px;
@@ -96,5 +96,10 @@ body {
   top: 48px;
 }
 .media-items .media-item .error {
-  border: 1px solid red;
+  display: block;
+  width: 32px;
+  height: 32px;
+  left: 48px;
+  top: 48px;
+  background-color: red;
 }/*# sourceMappingURL=MediaTagger.css.map */

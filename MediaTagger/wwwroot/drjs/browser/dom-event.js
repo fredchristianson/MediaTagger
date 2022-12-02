@@ -115,6 +115,7 @@ export class DOMEvent {
         list.forEach(listener=>{ listener.handler(value,sender)});
     }
 
+
     async onEvent(event) {
         var list = this.listeners[event.type];
         if (list != null) {

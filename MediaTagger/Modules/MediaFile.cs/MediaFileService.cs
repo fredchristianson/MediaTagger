@@ -12,6 +12,7 @@ namespace MediaTagger.Modules.MediaFile
     string GetFilePath(MediaFileModel file);
     Task<MediaFileModel?> GetMediaFileById(int id);
     Task<MediaFileModel?> Process(string path);
+    public bool IsWebImageType(MediaFileModel file);
   }
   public class MediaFileService : IMediaFileService
   {
@@ -118,6 +119,15 @@ namespace MediaTagger.Modules.MediaFile
     public string GetFileMimeType(MediaFileModel file)
     {
       return "image/jpeg";
+    }
+
+    public bool IsWebImageType(MediaFileModel file) {
+      var name = file.Name.ToLower();
+      return name.Contains("gif")
+      ||name.Contains("jpg")
+      || name.Contains("jpeg")
+      || name.Contains("png");
+      
     }
   }
 }

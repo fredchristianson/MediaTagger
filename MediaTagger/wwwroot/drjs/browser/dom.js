@@ -260,9 +260,15 @@ export class DOM {
     }
 
     append(parent,elements){
+        var children = [];
         this.toElementArrayrray(elements).forEach(element=>{
-            parent.appendChild(element);
+            children.push(parent.appendChild(element));
         });
+        if (Array.isArray(elements)) {
+            return children;
+        } else {
+            return children[0];
+        }
     }
 
     check(elements, checked=true){
