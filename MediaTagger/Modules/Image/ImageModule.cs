@@ -2,23 +2,23 @@
 using MediaTagger.Modules.Tag;
 using Microsoft.AspNetCore.SignalR;
 
-namespace MediaTagger.Modules.Tag
+namespace MediaTagger.Modules.Image
 {
-  public class TagModule : IModule
+  public class Image3odule : IModule
   {
 
-        public TagModule() { 
+        public Image3odule() { 
     }
 
     public IServiceCollection RegisterModule(IServiceCollection builder)
     {
-      builder.AddScoped<TagService>();
+      builder.AddScoped<ImageService>();
 
       return builder;
     }
     public IEndpointRouteBuilder MapEndpoints(IEndpointRouteBuilder endpoints)
     {
-      TagEndpoints.MapTagEndpoints(endpoints);
+      ImageEndpoints.MapTagEndpoints(endpoints);
       return endpoints;
     }
 

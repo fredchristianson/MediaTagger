@@ -2,14 +2,17 @@
 using MediaTagger.Modules.FileSystem;
 using MediaTagger.Modules.MediaItem;
 using Microsoft.EntityFrameworkCore;
+using System.Net.Http.Headers;
 
 namespace MediaTagger.Modules.MediaFile
 {
   public interface IMediaFileService
   {
+    string GetFileMimeType(MediaFileModel file);
+    string GetFilePath(MediaFileModel file);
+    Task<MediaFileModel?> GetMediaFileById(int id);
     Task<MediaFileModel?> Process(string path);
-  };
-
+  }
   public class MediaFileService : IMediaFileService
   {
     private MediaTaggerContext? db;
@@ -23,6 +26,14 @@ namespace MediaTagger.Modules.MediaFile
       this.logger = logger;
       this.pathService = path;
       this.mediaItemService = mediaItemService;
+    }
+
+    public async Task<MediaFileModel?> GetMediaFileById(int id)
+    {
+      var mediaFile = await db.MediaFiles.FindAsync(id);
+      return mediaFile;
+
+
     }
 
     public async Task<MediaFileModel?> Process(string path)
@@ -88,6 +99,23 @@ namespace MediaTagger.Modules.MediaFile
       fileModel.MediaItem = await mediaItemService.GetOrCreate(fileModel);
       //fileModel.MediaItem = await mediaItemService.Create(fileModel);
       return createdModel.Entity;
+    }
+
+    public string GetFilePath(MediaFileModel file)
+    {
+
+      if (file == null) {
+        throw new ArgumentException();
+      }
+      if (file.Path == null) {
+        db.Entry(file).Reference(f => f.Path).Load();
+      }
+      return Path.Combine(file.Path.Value, file.Name);
+    }
+
+    public string GetFileMimeType(MediaFileModel file)
+    {
+      return "image/jpeg";
     }
   }
 }
