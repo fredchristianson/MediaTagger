@@ -3,6 +3,10 @@
         {
             "filePath": "wwwroot",
             "group": "Default"
+        },
+        {
+            "filePath": "Modules",
+            "group": "Default"
         }
     ],
     "liveSassCompile.settings.showAnnouncements": null,

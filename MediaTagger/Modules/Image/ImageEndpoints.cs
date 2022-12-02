@@ -23,6 +23,9 @@ namespace MediaTagger.Modules.Image
       routes.MapGet("/image/{id}", async (IMediaFileService service, int id) =>
       {
         var file = await service.GetMediaFileById(id);
+        if (file == null) {
+          return Results.NotFound();
+        }
         var path = service.GetFilePath(file);
         return Results.File(path, service.GetFileMimeType(file));
 

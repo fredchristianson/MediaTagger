@@ -1,9 +1,6 @@
 using MediaTagger.Data;
 using Microsoft.EntityFrameworkCore;
-using MediaTagger.Services;
-using MediaTagger.Modules.Tag;
 using MediaTagger.Interfaces;
-using Microsoft.Extensions.Hosting.Internal;
 using MediaTagger.Modules.BackgroundTasks;
 using MediaTagger.Modules.BackgroundTasks.workers;
 
