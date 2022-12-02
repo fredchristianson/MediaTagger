@@ -31,6 +31,18 @@ namespace MediaTagger.Modules.Image
 
       });
 
+      routes.MapGet("/thumbnail/{id}", async (IMediaFileService service, int id) =>
+      {
+        var file = await service.GetMediaFileById(id);
+        if (file == null) {
+          return Results.NotFound();
+        }
+        var path = service.GetFilePath(file);
+        // todo: convert to correct size
+        return Results.File(path, service.GetFileMimeType(file));
+
+      });
+
 
     }
   }

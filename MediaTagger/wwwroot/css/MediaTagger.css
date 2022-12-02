@@ -53,5 +53,48 @@ body {
 
 #media {
   z-index: 1;
+  top: 4em;
+  right: 15rem;
+  bottom: 4em;
+  overflow: auto;
+  border: 4px solid white;
   background-color: black;
+  color: white;
+}
+
+.media-items {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+.media-items .media-item {
+  width: 128px;
+  height: 128px;
+  overflow: hidden;
+  border: 1px solid green;
+  flex-basis: auto;
+  position: relative;
+}
+.media-items .media-item .name {
+  position: relative;
+  z-index: 2;
+  background-color: rgba(255, 255, 255, 0.4666666667);
+}
+.media-items .media-item img {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 128px;
+  height: 128px;
+  z-index: 1;
+}
+.media-items .media-item .loading {
+  display: block;
+  width: 32px;
+  height: 32px;
+  left: 48px;
+  top: 48px;
+}
+.media-items .media-item .error {
+  border: 1px solid red;
 }/*# sourceMappingURL=MediaTagger.css.map */

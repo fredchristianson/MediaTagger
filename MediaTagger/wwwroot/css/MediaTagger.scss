@@ -27,7 +27,7 @@
 }
 
 #view-options {
-height: 4em;
+  height: 4em;
 }
 
 #tags {
@@ -51,7 +51,56 @@ height: 4em;
   top: unset;
   height: 4em;
 }
+
 #media {
   z-index: 1;
+  top: 4em;
+  right: 15rem;
+  bottom: 4em;
+  overflow: auto;
+  border: 4px solid white;
   background-color: black;
+  color: white;
+}
+
+.media-items {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+
+  .media-item {
+    width: 128px;
+    height: 128px;
+    overflow: hidden;
+    border: 1px solid green;
+    flex-basis: auto;
+    position: relative;
+
+    .name {
+      position: relative;
+      z-index: 2;
+      background-color: #ffffff77;
+    }
+
+    img {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 128px;
+      height: 128px;
+      z-index: 1;
+
+
+    }
+    .loading {
+      display: block;
+      width: 32px;
+      height: 32px;
+      left: 48px;
+      top: 48px;
+    }
+    .error {
+      border: 1px solid red;
+    }
+  }
 }

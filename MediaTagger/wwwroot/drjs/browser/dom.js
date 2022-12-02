@@ -7,11 +7,17 @@ const NO_SELECTION = "~-NOSEL-~";
 export class DOM {
     constructor(rootSelector = null) {
         this.rootSelector = rootSelector;
-        this.root = document.querySelector(rootSelector);
+        if (rootSelector == null) {
+            this.root = document;
+        } else if (rootSelector instanceof HTMLElement) {
+            this.root = rootSelector;
+        } else {
+            this.root = document.querySelector(rootSelector);
+        }
     }
 
     getParentAndSelector(opts) {
-        var parent=document;
+        var parent=this.root;
         var selector='*';
         // if 1 arg is passed parent is assumed to be the document
         // and the arg is the selector
@@ -68,19 +74,26 @@ export class DOM {
     }
 
     find(...opts) {
+        var result = [];
         const sel = this.getParentAndSelector(opts);
         if (sel.selector instanceof HTMLElement) {
             // a DOM element was passed as a selector, so return it
-            return [sel.selector];
+            result = [sel.selector];
         } else if (Array.isArray(sel.parent)) {
             const childLists = sel.parent.map(parent=>{
-                return Array.from(parent.querySelectorAll(sel.selector));
+                // if the parent matches, keep it
+                if (parent.matches(sel.selector)) {
+                    result.push(parent);
+                }
+                // also keep any decendants that match
+                result.push(...Array.from(parent.querySelectorAll(sel.selector)));
             });
-            return [].concat(...childLists);
+            
         } else {
             const elements = sel.parent.querySelectorAll(sel.selector);
-            return Array.from(elements);
+            result = Array.from(elements);
         }
+        return result;
         
     }
 

@@ -78,6 +78,24 @@ export class ClassValue extends TemplateValue {
     }
 }
 
+export class ReplaceTemplateValue extends TemplateValue {
+    constructor(oldValue, newValue) {
+        super(null);
+        this.oldValue = oldValue;
+        this.newValue = newValue;
+    }
+
+    set(element) {
+        element.innerText = element.innerText.replaceAll(this.oldValue,this.newValue);
+        var attrs = element.getAttributeNames();
+        attrs.forEach(name=>{
+            var val = element.getAttribute(name);
+            var rval = val.replaceAll(this.oldValue,this.newValue);
+            element.setAttribute(name,rval);
+        });
+    }
+}
+
 
 export class DataValue extends TemplateValue {
     constructor(attributeName, value=null) {
