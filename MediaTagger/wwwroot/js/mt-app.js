@@ -10,6 +10,7 @@ const log = Logger.create("MTApp", LOG_LEVEL.DEBUG);
 
 
 import MainComponent from './component/main.js';
+import SettingsComponent from './component/settings.js';
 
 
 export class MediaTaggerApp extends Application {
@@ -22,7 +23,7 @@ export class MediaTaggerApp extends Application {
     DOMEvent.listen('componentLoaded', this.onComponentLoaded.bind(this));
     
     
-    this.mainComponent = new MainComponent('#main-content');
+   this.mainComponent = new MainComponent('#main-content');
 
 
 

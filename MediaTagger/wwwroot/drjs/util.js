@@ -47,6 +47,7 @@ export class Util  {
         } else if (type === 'string') {
             return item;
         } else if (type === 'object') {
+            
             var seen = [];
             const deCycle = function(key,val) {
                 if (val != null && typeof val === 'object') {
@@ -58,7 +59,10 @@ export class Util  {
                 return val;
             };
 
-            const result = "\n"+JSON.stringify(item,deCycle,2)+"\n";
+            var result = "\n"+JSON.stringify(item,deCycle,2)+"\n";
+            if (item.message) {
+                result = item.message + result;
+            }
             seen = null;
             return result;
         } else if (typeof item.toString()) {

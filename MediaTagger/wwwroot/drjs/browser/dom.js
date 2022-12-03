@@ -242,6 +242,22 @@ export class DOM {
         });
     }
 
+    contains(top,inner) {
+        if (top == null || inner == null || !(inner instanceof HTMLElement)){
+            return false;
+        }
+        if (Array.isArray(top)) {
+            return top.find(e=>this.contains(e,inner));
+        } else {
+            var walk = inner;
+            while(walk != null && walk != top) {
+                walk = walk.parentNode;
+            }
+            return walk == top;
+        }
+    }
+
+
     remove(element) {
         if (element == null) {
             return ;

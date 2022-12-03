@@ -1,5 +1,4 @@
 import Logger from "../logger.js";
-import assert from '../assert.js';
 import env from '../env.js';
 const log = Logger.create("Application");
 export var app = null;

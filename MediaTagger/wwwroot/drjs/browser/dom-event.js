@@ -6,6 +6,32 @@ import DOM from './dom.js';
 const log = Logger.create("DOMEvent");
 
 const RESULT_HANDLED = "~HANDLED~";
+class ListenSelector {
+    constructor(rootElement, selector) {
+        if (!Array.isArray(rootElement)) {
+            assert.type(rootElement,HTMLElement,"Selector parent must be an HTMLElement");
+        }
+        this.rootElement = rootElement;
+        this.selector = selector;
+    }
+
+    match(target) {
+        if (Array.isArray(this.rootElement)) {
+            var matchOne = this.rootElement.find(e=>{
+                return e instanceof HTMLElement && DOM.contains(e,target);
+            });
+            if (!matchOne) { return false;}
+        } else {
+            if (!DOM.contains(this.rootElement,target)) {
+                return false;
+            }
+        }
+        return target.matches(this.selector);
+    }
+}
+export function Selector(parent,selector) {
+    return new ListenSelector(parent,selector);
+}
 class Listener {
     constructor(type,selector,handler,owner=null) {
         this.eventType = type;
@@ -25,6 +51,9 @@ class Listener {
             return target.matches(selector);
         }
         else {
+            if (selector instanceof ListenSelector) {
+                return selector.match(target);
+            }
             return target == selector; // works if selector is the document, body, or a node
         }
     }
@@ -194,9 +223,9 @@ export class DOMEvent {
             this.listeners[type] = filtered;
             return;            
         }
-        this.listeners.forEach(type=>{
+        Object.keys(this.listeners).forEach(type=>{
             var list = this.listeners[type];
-            if (removeType != null || removeType===type){
+            if (removeType == null || removeType===type){
                 var filtered = list.filter(item=>{
                     const match = !item.matchListener(selector,handler,owner);
                     if (!match) {
