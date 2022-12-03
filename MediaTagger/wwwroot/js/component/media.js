@@ -99,7 +99,7 @@ export class MediaComponent extends ComponentBase{
             log.debug("loading ",name," ",src);
             img.addEventListener('load',this.loadCompleteHandler);
             img.addEventListener('error',this.loadErrorHandler);
-            img.setAttribute('src',src);
+            img.setAttribute('src',src+"?v=1");
             if (img.loadComplete) {
                 this.dom.removeClass(img,'loading');
                 this.dom.removeClass(img,'load-waiting');

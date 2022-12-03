@@ -83,9 +83,9 @@ body {
 .media-items .media-item img {
   position: absolute;
   left: 0;
-  top: 0;
+  bottom: 0;
   width: 128px;
-  height: 128px;
+  max-height: 128px;
   z-index: 1;
 }
 .media-items .media-item .loading, .media-items .media-item .load-waiting {

@@ -49,18 +49,23 @@ namespace MediaTagger.Modules.Image
                     return Results.NotFound();
                 }
                 if (!service.IsWebImageType(file)) {
-                  return Results.LocalRedirect("~/image/unknownType.png");
+                 // return Results.LocalRedirect("~/image/unknownType.png");
                 }
                 var path = service.GetFilePath(file);
 
                 try
                 {
+                    
+                    var readSettings = new MagickReadSettings{
+                      //  Format=MagickFormat.Dcraw
+                    };
+                    
                     var responseStream = new MemoryStream();
-                    using (var img = new MagickImage(path))
+                    using (var img = new MagickImage(path,readSettings))
                     {
-                        img.Resize(256,256);
+                        img.Thumbnail(new MagickGeometry(255,255));
                         img.Write(responseStream, MagickFormat.Jpeg);
-                        var bytes = img.ToByteArray();
+                        var bytes = responseStream.ToArray();
                         return Results.Bytes(bytes, "image/jpeg");
                         //var thumb = Results.File(path, service.GetFileMimeType(file));
                         //return thumb;

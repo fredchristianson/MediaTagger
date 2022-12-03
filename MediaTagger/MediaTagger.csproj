@@ -16,7 +16,7 @@
 
   <ItemGroup>
     <PackageReference Include="BuildWebCompiler2022" Version="1.14.8" />
-    <PackageReference Include="Magick.NET-Q16-AnyCPU" Version="12.2.1" />
+    <PackageReference Include="Magick.NET-Q16-HDRI-AnyCPU" Version="12.2.1" />
     <PackageReference Include="Magick.NET.Core" Version="12.2.1" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.10" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Proxies" Version="6.0.10" />
