@@ -8,7 +8,7 @@ import UTIL from '../../drjs/util.js';
 const log = Logger.create("MediaComponent", LOG_LEVEL.DEBUG);
 import api from '../mt-api.js';
 
-var MAX_MEDIA_ITEMS = 1000;
+var MAX_MEDIA_ITEMS = 5000;
 
 export class MediaComponent extends ComponentBase{
     constructor(selector, htmlName='media') {

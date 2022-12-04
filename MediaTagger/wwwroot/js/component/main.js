@@ -11,15 +11,17 @@ import SettingsComponent from './settings.js';
 export class MainComponent extends ComponentBase{
     constructor(selector, htmlName='main') {
         super(selector,htmlName);
+        MainComponent.instance = this;
+    }
+
+    onHtmlInserted(parent) {
         this.viewOptions = new ViewOptionsComponent("#view-options");
         this.statusBar = new StatusBarComponent("#status-bar");
         this.tags = new TagsComponent("#tags");
         this.properties = new PropertiesComponent("#properties");
        // this.media = new MediaComponent("#media");
        this.showSettings();
-        MainComponent.instance = this;
     }
-
     showSettings() {
         this.media = new SettingsComponent("#media");
       }

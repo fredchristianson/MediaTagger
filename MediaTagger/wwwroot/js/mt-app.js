@@ -1,10 +1,9 @@
 ﻿import ENV from '../drjs/env.js';
 import Application from '../drjs/browser/application.js';
-import { LOG_LEVEL, Logger } from '../drjs/logger.js';
 import DOMEvent from "../drjs/browser/dom-event.js";
 
 //import { DomLogWriter } from '../drjs/browser/log-writer-dom.js';
-
+import { LOG_LEVEL, Logger } from '../drjs/logger.js';
 const log = Logger.create("MTApp", LOG_LEVEL.DEBUG);
 
 

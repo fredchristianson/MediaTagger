@@ -2,6 +2,7 @@ import assert from '../assert.js';
 import Logger from '../logger.js';
 import util from '../util.js';
 
+
 const log = Logger.create("DOM");
 const NO_SELECTION = "~-NOSEL-~";
 export class DOM {

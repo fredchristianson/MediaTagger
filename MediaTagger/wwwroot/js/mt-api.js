@@ -34,6 +34,17 @@ export class MediaTaggerApi  {
     return response;
   }
 
+  
+  async GetTopFolders() {
+    var response = await this.http.get("filesystem/folders",null,"json");
+    return response;
+  }
+
+  async GetAppSettings() {
+    var response = await this.http.get("settings/app",null,"json");
+    return response;
+  }
+
 
 
 }

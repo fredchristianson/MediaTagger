@@ -109,3 +109,34 @@
     }
   }
 }
+
+.name-value {
+  width: 100%;
+  > div {
+    margin-top: 1em;
+  }
+  label {
+    display: inline-block;
+    width: 12em;
+    margin-right: 2em;
+    vertical-align: top;
+  }
+  input,.value {
+    width: calc(100% - 15em);
+  }
+}
+.settings-component {
+  padding: 2rem;
+  background-color: white;
+  color: black; 
+  width: 100%;
+  height: 100%;
+}
+
+.tree {
+  display: inline-block;
+  border: 1px solid #dddddd;
+  padding: 1em;
+  max-height: calc(100% - 4rem);
+  height: 20rem;
+}

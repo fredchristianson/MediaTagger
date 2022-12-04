@@ -50,12 +50,14 @@ class Listener {
         if (target.matches && typeof selector == 'string') {
             return target.matches(selector);
         }
-        else {
-            if (selector instanceof ListenSelector) {
-                return selector.match(target);
-            }
-            return target == selector; // works if selector is the document, body, or a node
+        else if (selector instanceof ListenSelector) {
+            return selector.match(target);
+        } else if (Array.isArray(selector)) {
+            var match = selector.find(sel=> {return this.matchSelector(target,sel);});
+            return match;
         }
+        return target == selector; // works if selector is the document, body, or a node
+        
     }
     match(event) {
         if (this.type != null && this.type != "*" && this.type != event.eventType) { return false;}
@@ -64,6 +66,19 @@ class Listener {
         }
         return false;
     }
+
+    matchAndBubble(event) {
+        var target = event.target;
+        while (target != null) {
+            if (this.type != null && this.type != "*" && this.type != event.eventType) { return false;}
+            if (this.selector == "*" || this.matchSelector(target,this.selector)) {
+                return true;
+            }
+            target = target.parentElement;
+        }
+        return false;
+    }
+
 
     matchListener(selector,handler,owner) {
         if (owner != null && owner != this.owner) { return false;}
@@ -173,7 +188,7 @@ export class DOMEvent {
         var list = this.listeners[event.type];
         if (list != null) {
             await Promise.all(list.map(listener => {
-                if (listener.match(event)){
+                if (listener.matchAndBubble(event)){
                     return listener.handle(event);
                 }
             }));

@@ -136,6 +136,10 @@ export class ComponentBase {
     listen(type,selector,method) {
         DOMEvent.listen(type,Selector(this.parent,selector),method.bind(this),this);
     }
+
+    setValue(selector,value) {
+        this.dom.setValue(selector,value);
+    }
 }
 
 export class TemplateComponent extends ComponentBase {

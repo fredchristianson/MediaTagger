@@ -1,8 +1,7 @@
 ﻿using MediaTagger.Data;
-using MediaTagger.Modules.Tag;
 using Microsoft.EntityFrameworkCore;
 
-namespace MediaTagger.Modules.Settings
+namespace MediaTagger.Modules.Setting
 {
     public static  class SettingsEndpoints
     {
@@ -10,7 +9,7 @@ namespace MediaTagger.Modules.Settings
 
     public static void MapEndpoints(this IEndpointRouteBuilder routes)
     {
-
+      
       routes.MapGet(V1_URL_PREFIX + "/settings", async (MediaTaggerContext db) =>
             {
               return await db.Settings.ToListAsync();
@@ -21,6 +20,22 @@ namespace MediaTagger.Modules.Settings
         db.Settings.Add(setting);
         await db.SaveChangesAsync();
         return Results.Created($"/Settings/{setting.Scope}", setting);
+      });
+
+      routes.MapGet(V1_URL_PREFIX + "/settings/app", async (ISettingService settings) =>
+      {
+        return await settings.GetAppSettings();
+      });
+
+      routes.MapPost(V1_URL_PREFIX + "/settings/app", async (AppSettings appSettings, ISettingService settingService, MediaTaggerContext db) =>
+      {
+       await settingService.SaveAppSettings(appSettings);
+        return Results.Ok(appSettings);
+      });
+      routes.MapPut(V1_URL_PREFIX + "/settings/app", async (AppSettings appSettings, ISettingService settingService, MediaTaggerContext db) =>
+      {
+       await settingService.SaveAppSettings(appSettings);
+        return Results.Ok(appSettings);
       });
     }
   }

@@ -1,7 +1,7 @@
 ﻿using MediaTagger.Modules.FileSystem;
 using MediaTagger.Modules.MediaFile;
 using MediaTagger.Modules.MediaItem;
-using MediaTagger.Modules.Settings;
+using MediaTagger.Modules.Setting;
 using MediaTagger.Modules.Tag;
 using Microsoft.EntityFrameworkCore;
 

@@ -1,7 +1,6 @@
 ﻿using MediaTagger.Data;
 using MediaTagger.Hubs;
 using Microsoft.AspNetCore.SignalR;
-using Microsoft.EntityFrameworkCore;
 
 namespace MediaTagger.Modules.Setting
 {
@@ -12,9 +11,14 @@ namespace MediaTagger.Modules.Setting
     Task Set(string scope, string name, string value);
     Task<DateTime?> GetTime(string scope, string name);
     Task SetTime(string scope, string name, DateTime time);
+    Task<AppSettings> GetAppSettings();
+    Task SaveAppSettings(AppSettings settings);
   }
   public class SettingService : ISettingService
   {
+      private const string APP_SETTINGS_SCOPE = "application";
+  private const string APP_SETTINGS_NAME = "$app-settings$";
+
     private ILogger<SettingService> logger;
     private MediaTaggerContext dbContext;
 
@@ -51,11 +55,29 @@ namespace MediaTagger.Modules.Setting
             return null;
         }
 
+        public async Task<AppSettings> GetAppSettings()
+        {
+            string? text = await Get(APP_SETTINGS_SCOPE,APP_SETTINGS_NAME);
+            AppSettings result = new AppSettings();
+            if (!String.IsNullOrEmpty(text)) {
+              result = AppSettings.ParseJson(text);
+            }
+            return result;
+        }
+
+
+        public async Task SaveAppSettings(AppSettings settings)
+        {
+            string text = settings.ToJsonString();
+            await Set(APP_SETTINGS_SCOPE,APP_SETTINGS_NAME,text);
+            return;
+        }
+
         public async Task Set(string scope, string name, string value)
         {
             var setting = await dbContext.Settings.FindAsync(scope,name);
             if (setting == null) {
-              await dbContext.Settings.AddAsync(new Settings.SettingModel {Scope = scope, Name=name,Value=value});
+              await dbContext.Settings.AddAsync(new SettingModel {Scope = scope, Name=name,Value=value});
               dbContext.SaveChanges();
             } else {
               setting.Value = value;

@@ -10,6 +10,7 @@ namespace MediaTagger.Modules.BackgroundTasks.workers
         private IBackgroundMessageService messageService;
         private IMediaFileService mediaFileService;
         private ISettingService settingService;
+        private AppSettings? appSettings;
 
         public FileScanWorker(IBackgroundTaskQueue queue,
       ILogger<FileScanWorker> logger,
@@ -25,24 +26,35 @@ namespace MediaTagger.Modules.BackgroundTasks.workers
 
         public override async void DoWork()
         {
+            this.appSettings = await settingService.GetAppSettings();
             logger.LogInformation("FileScanWorker starting");
             DateTime lastScan = await GetLastScanTime();
             var startTime = DateTime.Now;
-            var files = await ScanDirectory("x:\\photo-reorg", lastScan, Array.AsReadOnly(DefaultData.FileExtensions), TaskCancellationToken);
-            int count = 0;
-            foreach (var file in files)
+            List<string> dirs = this.appSettings.MediaDirectories;
+            if (dirs.Count == 0)
             {
-                _ = await this.mediaFileService.Process(file);
-                //logger.LogDebug($"Processed {file}");
-                //messageService.Add($"Processed {file}");
-                count += 1;
-                if ((count % 100) == 0)
+                dirs.Add("x:\\photo-reorg");
+                appSettings.MediaDirectories = dirs;
+                await this.settingService.SaveAppSettings(appSettings);
+            }
+            foreach (var dir in dirs)
+            {
+                var files = await ScanDirectory(dir, lastScan, Array.AsReadOnly(DefaultData.FileExtensions), TaskCancellationToken);
+                int count = 0;
+                foreach (var file in files)
                 {
+                    _ = await this.mediaFileService.Process(file);
+                    //logger.LogDebug($"Processed {file}");
+                    //messageService.Add($"Processed {file}");
+                    count += 1;
+                    if ((count % 100) == 0)
+                    {
 
-                    logger.LogInformation($"file scan {count} out of {files.Count}");
+                        logger.LogInformation($"file scan {count} out of {files.Count}");
+                    }
                 }
             }
-            await settingService.SetTime("FileScanWorker", "lastscantime",startTime);
+            await settingService.SetTime("FileScanWorker", "lastscantime", startTime);
             logger.LogInformation("FileScanWorker complete");
         }
 
@@ -56,7 +68,7 @@ namespace MediaTagger.Modules.BackgroundTasks.workers
             return last.GetValueOrDefault();
         }
 
-        protected async Task<IList<string>> ScanDirectory(string path,DateTime after, IList<string> extensions, CancellationToken stoppingToken)
+        protected async Task<IList<string>> ScanDirectory(string path, DateTime after, IList<string> extensions, CancellationToken stoppingToken)
         {
             List<string> result = new List<string>();
             try
@@ -66,7 +78,7 @@ namespace MediaTagger.Modules.BackgroundTasks.workers
                 {
                     var file = new FileInfo(filePath);
                     // copy/pasting a file results in old write but new create time.  so test both
-                    return extensions.Contains(file.Extension.ToLower()) 
+                    return extensions.Contains(file.Extension.ToLower())
                     && (file.LastWriteTime > after || file.CreationTime > after);
                 }
                 );

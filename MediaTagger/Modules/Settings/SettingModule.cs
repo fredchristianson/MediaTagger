@@ -1,5 +1,4 @@
 ﻿using MediaTagger.Interfaces;
-using MediaTagger.Modules.Settings;
 
 namespace MediaTagger.Modules.Setting
 {
