@@ -6,7 +6,7 @@ import {Listeners} from "../../drjs/browser/event.js";
 
 import UTIL from '../../drjs/util.js';
 
-const log = Logger.create("MediaComponent", LOG_LEVEL.DEBUG);
+const log = Logger.create("MediaComponent", LOG_LEVEL.INFO);
 import api from '../mt-api.js';
 
 var MAX_MEDIA_ITEMS = 5000;

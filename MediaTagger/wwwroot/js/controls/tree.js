@@ -2,7 +2,7 @@ import dom, { DOM } from '../../drjs/browser/dom.js';
 import HtmlTemplate from '../../drjs/browser/html-template.js';
 import { LOG_LEVEL, Logger } from '../../drjs/logger.js';
 const log = Logger.create("Tree", LOG_LEVEL.DEBUG);
-import {Listeners, ClickHandler} from "../../drjs/browser/event.js";
+import {Listeners, BuildClickHandler, BuildInputHandler} from "../../drjs/browser/event.js";
 
 const ITEM_TEMPLATE = `
 <div class='tree-item'>
@@ -16,13 +16,25 @@ const TREE_ITEM_TYPE ={
 };
 
 export class TreeItem {
-    constructor(name,isTop=false) {
+    constructor(name,parent, isTop=false) {
         this.name = name;
+        this.parent = parent;
         this.type = TREE_ITEM_TYPE.NODE;
         this.isTop = isTop;
         this.children = null;
         this.isSelected = false;
         this.isChildSelected = false;
+    }
+
+    hasSelectedParent(){
+        var p = this.parent;
+        while(p !=null) {
+            if (p.isSelected) {
+                return true;
+            }
+            p = p.parent;
+        }
+        return false;
     }
 }
 
@@ -59,13 +71,47 @@ export class Tree {
                 selected: item.selected,
                 open: item.isSelected || item.isChildSelected
             };
+            item.element = element;
             //dom.addClass(added,'closed');
             this.setupElement(element);
-            this.listeners.push(new ClickHandler(added,
-                                        (event)=>{this.toggleOpen(added,item,event);}));
+            this.addClickHandler(added,item);
 
         });
     }
+
+    addClickHandler(element,item) {
+        this.listeners.push(BuildClickHandler()
+        .listenTo(element)
+        .setHandler(this,this.toggleOpen)
+        .exclude('input')
+        .setData(item)
+        .build(),
+        BuildInputHandler()
+        .listenTo(dom.first(element,'input[type="checkbox"]'))
+        .onChange(this,this.checkChange)
+        .onFocus(this)
+        .onBlur(this)
+        .setData(item)
+        .build()
+        );
+    }   
+
+    checkChange(checkbox,item,event,handler) {
+        item.isSelected = dom.getProperty(checkbox,"checked");
+        var checks = dom.find(item.element,'.children input[type="checkbox"]');
+        dom.setProperty(checks,'checked',item.isSelected);
+        dom.setProperty(checks,'disabled',item.isSelected);
+        
+    }
+    
+    onFocus(checkbox,item,event,handler) {
+        log.debug("checkbox focus ");
+    }
+    
+    onBlur(checkbox,item,event,handler) {
+        log.debug("checkbox blur ");
+    }
+    
 
     async toggleOpen(element, item) {
         log.debug("toggleopen");
@@ -77,6 +123,8 @@ export class Tree {
         }
         treeData.open = !treeData.open;
         this.setupElement(element);
+
+        
         
     }
 
@@ -90,7 +138,11 @@ export class Tree {
         dom.toggleClass(element,'closed',!treeData.open);
         dom.toggleClass(element,'open',treeData.open);
         if (treeData.open && treeData.children == null) {
-            await this.getChildren(element,treeData);
+            try {
+                await this.getChildren(element,treeData);
+            } catch(ex){
+                log.error(ex,"unable to get children");
+            }
         }
     }
 
@@ -105,15 +157,20 @@ export class Tree {
                 });
                 var added =dom.append(childContainer,child);
                 //dom.setData(added,"tree-item",item);
-                child.tree = {
+                added.tree = {
                     item: item,
                     selected: item.selected,
                     open: item.isSelected || item.isChildSelected
                 };
+                item.element = added;
+                if (item.hasSelectedParent()) {
+                    var check = dom.first(added,'input[type="checkbox"]');
+                    dom.setProperty(check,'checked',true);
+                    dom.setProperty(check,'disabled',true);
+                }
                 //dom.addClass(added,'closed');
-                this.setupElement(child);
-                this.listeners.push(new ClickHandler(added,
-                    (event)=>{this.toggleOpen(added,item,event);}));
+                this.setupElement(added);
+                this.addClickHandler(added,item);
 
     
             });

@@ -1,11 +1,12 @@
 import assert from '../assert.js';
+import { LOG_LEVEL } from '../logger-interface.js';
 import Logger from '../logger.js';
 import util from '../util.js';
 import componentLoader from './component-loader.js';
 import {default as dom, DOM} from './dom.js';
 import {EventEmitter, ObjectEventType} from './event.js';
 
-const log = Logger.create("Component");
+const log = Logger.create("Component",LOG_LEVEL.INFO);
 
 
 export var ComponentLoadedEvent = new ObjectEventType("componentLoaded");

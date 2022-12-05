@@ -1,176 +1,495 @@
-import assert from '../assert.js';
-import Logger from '../logger.js';
-import util from '../util.js';
-import dom from './dom.js';
-import DOM from './dom.js';
+import assert from "../assert.js";
+import Logger from "../logger.js";
+import Util from "../util.js";
+import dom from "./dom.js";
+import DOM from "./dom.js";
 
 const log = Logger.create("Event");
 
 export class HandlerResponse {}
-export class ResponseStop extends HandlerResponse {}
+export class ResponseStopPropagation extends HandlerResponse {}
+export class ResponseStopDefault extends HandlerResponse {}
+export class ResponseStopAll extends HandlerResponse {}
 export class ResponseContinue extends HandlerResponse {}
 
 export class Listeners extends Array {
-    constructor(...args) {
-        super();
-        args.forEach(arg=>{ this.push(arg);});
-    }
+  constructor(...args) {
+    super();
+    args.forEach((arg) => {
+      this.push(arg);
+    });
+  }
 
-    remove() {
-        this.forEach(listener=>{
-            listener.remove();
-        });
-        length = 0;
-    }
+  remove() {
+    this.forEach((listener) => {
+      listener.remove();
+    });
+    length = 0;
+  }
 }
-
-
 
 export class ObjectEventType {
-    constructor(name) {
-        this.name = name;
-    }
+  constructor(name) {
+    this.name = name;
+  }
 
-    getName() { return this.name;}
-
+  getName() {
+    return this.name;
+  }
 }
 
-export class EventHandler {
+export class HandlerMethod {
     constructor(...args) {
-        this.eventProcessor = this.eventProcessor.bind(this);
-        this.element = dom.getBody();
-        this.handlerObject = null;
-        this.handlerFunc = null;
-        this.typeName = null;
-        args.forEach(arg=>{
-            if (arg instanceof HTMLElement) {
-                this.element = arg;
-            } else if (arg instanceof ObjectEventType) {
-                this.typeName = arg.name;
-            } else if (typeof arg === 'object'){
-                this.handlerObject = arg;
-            } else if (typeof arg === 'function'){
-                this.handlerFunc = arg;
-            } else if (typeof arg === 'string') {
-                if (this.typeName == null) {
-                    this.typeName = arg;
-                }
+        args.forEach((arg) => {
+            if (typeof arg == "object") {
+              this.handlerObject = arg;
+            } else if (typeof arg == "function") {
+              this.handlerFunction = arg;
             }
-
         });
-        if (this.element != null && this.typeName != null) {
-            this.element.addEventListener(this.typeName,this.eventProcessor);
+    }
+
+    getMethod(defaultMethod){
+        var defName = null;
+        var defFunc = null;
+        if (typeof defaultMethod == 'object') {
+            defName = defaultMethod.defaultName || defaultMethod.default;
+            defFunc = defaultMethod.defaultFunction || defaultMethod.default;
+        } else if (typeof defaultMethod == 'function') {
+            defFunc = defaultMethod;
+        } else if (typeof defaultMethod == 'string') {
+            defName = defaultMethod;
+        }
+        var method = defFunc;
+
+        if (this.handlerObject) {
+            if (this.handlerFunction && typeof this.handlerFunction == 'function') {
+                method = this.handlerFunction;
+            } else if (typeof this.handlerFunction == 'string') {
+                method = this.handlerObject[this.handlerFunction];
+            } else if (defName != null && this.handlerObject[defName]) {
+                method = this.handlerObject[defName];
+            }
+            if (method) {
+                method = method.bind(this.handlerObject);
+            }
+        } else if (typeof this.handlerFunction == 'function') {
+            method = handlerFunction;
+        } 
+        return method;
+    }
+}
+
+export class EventHandlerBuilder {
+  constructor(eventHandlerClass) {
+    this.handlerClass = eventHandlerClass;
+    this.handler = new this.handlerClass();
+  }
+
+  listenTo(element) {
+    this.handler.listenElement = element;
+    return this;
+  }
+  setHandler(...args) {
+    args.forEach((arg) => {
+      if (typeof arg == "object") {
+        this.handler.setHandlerObject(arg);
+      } else if (typeof arg == "function") {
+        this.handler.setHandlerFunction(arg);
+      }
+    });
+    return this;
+  }
+  setHandlerObject(obj) {
+    this.handler.setHandlerObject(obj);
+    return this;
+  }
+  setData(data) {
+    this.handler.setData(data);
+    return this;
+  }
+  setHandlerFunction(func) {
+    this.handler.setHandlerFunctionfunc(func);
+    return this;
+  }
+  setTypeName(typeName) {
+    this.handler.setTypeName(typeName);
+    return this;
+  }
+  setSelector(sel) {
+    this.handler.setSelector(sel);
+    return this;
+  }
+  exclude(sel) {
+    this.handler.exclude(sel);
+    return this;
+  }
+
+  build() {
+    this.handler.listen();
+    return this.handler;
+  }
+}
+
+export class InputHandlerBuilder extends EventHandlerBuilder {
+    constructor(type) {
+        super(type || InputHandler);
+    }
+
+    onChange(...args) {
+        this.handler.setOnChange(new HandlerMethod(...args));
+        return this;
+    }
+    onBlur(...args) {
+        this.handler.setOnBlur(new HandlerMethod(...args));
+        return this;
+    }
+    onFocus(...args) {
+        this.handler.setOnFocus(new HandlerMethod(...args));
+        return this;
+    }
+}
+
+
+export class CheckboxHandlerBuilder extends InputHandlerBuilder {
+    constructor() {
+        super(CheckboxHandler);
+    }
+}
+
+export function BuildHandler(handlerClass) {
+  return new EventHandlerBuilder(handlerClass);
+}
+
+export function BuildClickHandler() {
+  return BuildHandler(ClickHandler);
+}
+
+export function BuildInputHandler() {
+    return new InputHandlerBuilder();
+  }
+  
+export function BuildCheckboxHandler() {
+    return new CheckboxHandlerBuilder();
+  }
+
+export class EventHandler {
+  constructor(...args) {
+    this.defaultResponse = ResponseStopPropagation;
+    this.eventProcessor = this.eventProcessor.bind(this);
+    this.listenElement = null;
+    this.handlerObject = null;
+    this.handlerFunc = null;
+    this.typeName = null;
+    this.selector = null;
+    this.excludeSelector = null;
+    this.data = null;
+
+    if (args.length == 0) {
+      return;
+    }
+    if (args.length == 1 && typeof args[0] == "string") {
+      this.setTypeName(args[0]);
+      return;
+    }
+
+    args.forEach((arg) => {
+      if (arg instanceof HTMLElement) {
+        this.setListenElement(arg);
+      } else if (arg instanceof ObjectEventType) {
+        this.setTypeName(arg.name);
+      } else if (typeof arg === "object") {
+        this.handlerObject = arg;
+      } else if (typeof arg === "function") {
+        this.handlerFunc = arg;
+      } else if (typeof arg === "string") {
+        if (this.typeName == null) {
+          this.setTypeName(arg);
+        } else if (this.selector == null) {
+          this.setSelector(arg);
+        }
+      }
+    });
+  }
+
+  setListenElement(element) {
+    this.listenElement = element;
+    return this;
+  }
+  setHandler(...args) {
+    args.forEach((arg) => {
+      if (typeof arg == "object") {
+        this.setHandlerObject(arg);
+      } else if (typeof arg == "function") {
+        this.setHandlerFunction(arg);
+      }
+    });
+    return this;
+  }
+  setHandlerObject(obj) {
+    this.handlerObject = obj;
+    return this;
+  }
+  setHandlerFunction(func) {
+    this.handlerFunc = func;
+    return this;
+  }
+  setTypeName(typeName) {
+    this.typeName = typeName;
+    return this;
+  }
+  setSelector(sel) {
+    this.selector = sel;
+    return this;
+  }
+  
+  setData(data) {
+    this.data = data;
+    return this;
+  }
+
+  listen() {
+    if (this.typeName == null) {
+      log.error("EventHandler requires an event type name (e.g. 'click'");
+      return;
+    }
+    this.typeNames = Util.toArray(this.typeName);
+    this.typeNames.forEach(typeName=>{
+        if (this.listenElement != null) {
+        this.listenElement.addEventListener(typeName, this.eventProcessor);
+        } else if (this.selector != null) {
+        this.listenElement = dom.find(this.selector);
+        this.listenElement.forEach((element) => {
+            element.addEventListener(typeName, this.eventProcessor);
+        });
         } else {
-            log.error("EventHandler needs an element and event type. element=",this.element,"  event type=",this.typeName);
+        log.error("EventHandler needs an element or selector");
         }
-    }
+    });
+    return this;
+  }
 
-    remove() {
-        if (this.element) {
-            this.element.removeEventListener(this.typeName,this.eventProcessor);
-        }
-    }
-    eventProcessor(event) {
-        var result = ResponseContinue;
-        var method = null;
-        if (this.handlerFunc){
-            var func = this.handlerFunc;
-            if (this.handlerObject) {
-                method = func.bind(this.handlerObject);
+  remove() {
+    if (this.listenElement) {
+        this.typeNames.forEach(typeName=>{
+            if (Array.isArray(this.listenElement)) {
+                this.listenElement.forEach((element) => {
+                element.removeEventListener(typeName, this.eventProcessor);
+                });
+            } else {
+                this.listenElement.removeEventListener(
+                typeName,
+                this.eventProcessor
+                );
             }
-            result = ResponseStop;
-            method = func;
-        } else if (this.handlerObject) {
-            method = this.findHandlerMethod(this.handlerObject,this.typeName);
-        }
-
-        if (method) {
-            result = this.callHandler(method,event);
-        }
-        if (result == ResponseStop) {
-            event.stopPropagation();
-            event.preventDefault();
-        }
-    }
-
-    // allow derived classed to just override this.
-    // they can change values or parse the event and pass additional args
-    callHandler(method,event) {
-        method(event);
-    }
-    findHandlerMethod(obj, name) {
-        if (typeof obj[name] == 'function') {
-            return obj[name].bind(obj);
-        }
-        var lower = name.toLowerCase();
-        var onLower = "on"+lower;
-        var methodName = Object.getOwnPropertyNames(Object.getPrototypeOf(obj)).find(propName=>{
-            var lowerProp = propName.toLowerCase();
-            if (lower == lowerProp || onLower == lowerProp) {
-                var func = obj[propName];
-                if (typeof func == 'function'){
-                    return true;
-                }
-            }
-            return false;
         });
-        return methodName == null ? null : obj[methodName];
     }
+    this.listenElement = null;
+    return this;
+  }
+  eventProcessor(event) {
+    var result = null;
+    var method = null;
+    if (this.selector != null && !event.target.matches(this.selector)) {
+      return;
+    }
+    if (
+      this.excludeSelector != null &&
+      event.target.matches(this.excludeSelector)
+    ) {
+      return;
+    }
+    if (this.handlerFunc) {
+      var func = this.handlerFunc;
+      if (this.handlerObject) {
+        method = func.bind(this.handlerObject);
+      }
+      result = ResponseStopPropagation;
+    } else if (this.handlerObject) {
+      method = this.findHandlerMethod(this.handlerObject, this.typeName);
+    }
+
+    result = this.callHandler(method, event);
+
+    if (result == null) {
+      result = this.defaultResponse || ResponseStopPropagation;
+    }
+
+    if (result == ResponseStopPropagation || result == ResponseStopAll) {
+      event.stopPropagation();
+    }
+    if (result == ResponseStopDefault || result == ResponseStopAll) {
+      event.preventDefault();
+    }
+  }
+
+  // allow derived classed to just override this.
+  // they can change values or parse the event and pass additional args
+  callHandler(method, event) {
+    try {
+        if (method != null) {
+            method(event,this.data);
+        }
+    } catch(ex) {
+        log.error(ex, "event handler for ",this.typeName," failed");
+    }
+  }
+  findHandlerMethod(obj, name) {
+    if (typeof obj[name] == "function") {
+      return obj[name].bind(obj);
+    }
+    var lower = name.toLowerCase();
+    var onLower = "on" + lower;
+    var methodName = Object.getOwnPropertyNames(
+      Object.getPrototypeOf(obj)
+    ).find((propName) => {
+      var lowerProp = propName.toLowerCase();
+      if (lower == lowerProp || onLower == lowerProp) {
+        var func = obj[propName];
+        if (typeof func == "function") {
+          return true;
+        }
+      }
+      return false;
+    });
+    return methodName == null ? null : obj[methodName];
+  }
+  exclude(selector) {
+    this.excludeSelector = selector;
+    return this;
+  }
 }
 
 export class ClickHandler extends EventHandler {
-    constructor(...args){
-        super('click',...args);
+  constructor(...args) {
+    super("click", ...args);
+  }
+
+  callHandler(method, event) {
+    try {
+        method(event.currentTarget,this.data,event,this);
+    } catch(ex) {
+        log.error(ex, "event handler for ",this.typeName," failed");
+    }
+  }
+}
+
+export class InputHandler extends EventHandler {
+    constructor(...args) {
+      super( ...args);
+      this.setTypeName(["input","focus","blur"]);
+      this.onChange = null;
+      this.onFocus = null;
+      this.onBlur = null;
+    }
+
+    setOnChange(handler) {
+        this.onChange = handler;
+    }
+    setOnBlur(handler) {
+        this.onBlur = handler;
+    }
+    setOnFocus(handler) {
+        this.onFocus = handler;
+    }
+
+  
+    callHandler(method, event) {
+      try {
+        if (event.type == "input" || event.type == "change"){
+            if (method != null) {
+                method(event.currentTarget,this.data,event,this);
+            }
+            if (this.onChange != null) {
+                var changeMethod = this.onChange.getMethod({defaultName:'onChange'});
+                if (changeMethod) {
+                    changeMethod(event.currentTarget,this.data,event,this);
+                }
+            }
+        } else if (event.type == 'blur' && this.onBlur) {
+            var blurMethod = this.onBlur.getMethod('onBlur');
+            if (blurMethod) {
+                blurMethod(event.currentTarget,this.data,event,this);
+            }
+
+    } else if (event.type == 'focus' && this.onFocus) {
+        var focusMethod = this.onFocus.getMethod({default:'onFocus'});
+        if (focusMethod) {
+            focusMethod(event.currentTarget,this.data,event,this);
+        }
+
+    }
+  } catch(ex) {
+          log.error(ex, "event handler for ",this.typeName," failed");
+      }
     }
 }
 
-export class EventListener extends EventHandler {
-    constructor(objectEventType,...args) {
-        super(dom.getBody(),objectEventType,...args);
-    }
+export class CheckboxHandler extends InputHandler {
+    constructor(...args) {
+      super(...args);
 
-    callHandler(method,event) {
-        const detail = event.detail;
-        method(detail.object,detail.data,detail.type);
     }
+  
+    callHandler(method, event) {
+      try {
+          method(event.currentTarget,this.data,event,this);
+      } catch(ex) {
+          log.error(ex, "event handler for ",this.typeName," failed");
+      }
+    }
+  }
+
+export class EventListener extends EventHandler {
+  constructor(objectEventType, ...args) {
+    super(objectEventType, dom.getBody(), ...args);
+  }
+
+  callHandler(method, event) {
+    const detail = event.detail;
+    method(detail.object, detail.data, detail.type);
+  }
 }
 
 export class ObjectListener extends EventHandler {
-    constructor(obj, objectEventType,...args) {
-        super(dom.getBody(),objectEventType,...args);
-        this.target = obj;
-        this.target = args.find(arg=> typeof(arg) == 'object');
-    }
+  constructor(obj, objectEventType, ...args) {
+    super(objectEventType, dom.getBody(), ...args);
+    this.target = obj;
+    this.target = args.find((arg) => typeof arg == "object");
+  }
 
-    callHandler(method,event) {
-        const detail = event.detail;
-        if ((this.target == null || this.target == details.object) &&
-            (this.typeName == null || this.typeName == "*" || this.typeName == detail.typeName)) {
-            method(detail.object,detail.data,detail.type);
-        }
+  callHandler(method, event) {
+    const detail = event.detail;
+    if (
+      (this.target == null || this.target == details.object) &&
+      (this.typeName == null ||
+        this.typeName == "*" ||
+        this.typeName == detail.typeName)
+    ) {
+      method(detail.object, detail.data, detail.type);
     }
+  }
 }
 
 export class EventEmitter {
-    constructor(type,object){
-        this.type = type;
-        if (type instanceof ObjectEventType) {
-            this.typeName = type.getName();
-        } else {
-            this.typeName = type;
-        }
-        this.object = object;
+  constructor(type, object) {
+    this.type = type;
+    if (type instanceof ObjectEventType) {
+      this.typeName = type.getName();
+    } else {
+      this.typeName = type;
     }
+    this.object = object;
+  }
 
-    emit(data) {
-        const detail = {
-            object: this.object,
-            data: data,
-            typeName: this.typeName,
-            type: this.type
-        };
-        const event = new CustomEvent(this.typeName,{detail: detail});
-        dom.getBody().dispatchEvent(event);
-    }
+  emit(data) {
+    const detail = {
+      object: this.object,
+      data: data,
+      typeName: this.typeName,
+      type: this.type,
+    };
+    const event = new CustomEvent(this.typeName, { detail: detail });
+    dom.getBody().dispatchEvent(event);
+  }
 }
-

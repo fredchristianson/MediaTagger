@@ -1,24 +1,9 @@
 import ENV from './env.js';
+import {LogLevel,LOG_LEVEL} from "./logger-interface.js";
+export {LogLevel,LOG_LEVEL} from "./logger-interface.js";
 
 
-export class LogLevel {
-    constructor(value, name) {
-        this.value = value;
-        this.name = name;
-    }
 
-    toString() {
-        return this.name;
-    }
-}
-
-export const LOG_LEVEL = {
-    DEBUG: new LogLevel(100, "DEBUG"),
-    INFO: new LogLevel(80, "INFO"),
-    WARN: new LogLevel(60, "WARN"),
-    ERROR: new LogLevel(40, "ERROR"),
-    FATAL: new LogLevel(0, "FATAL")
-};
 
 if (ENV.DEBUG) {
     LOG_LEVEL.DEFAULT= new LogLevel(100,"DEBUG");

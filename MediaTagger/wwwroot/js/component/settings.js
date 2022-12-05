@@ -1,7 +1,8 @@
 import {ComponentBase} from '../../drjs/browser/component.js';
 import API from '../mt-api.js';
 import {Tree, TreeDataProvider, TreeItem} from '../controls/tree.js'
-
+import { LOG_LEVEL, Logger } from '../../drjs/logger.js';
+const log = Logger.create("Settings", LOG_LEVEL.DEBUG);
 
 class FolderTreeData extends TreeDataProvider {
     constructor(containerElement) {
@@ -11,21 +12,28 @@ class FolderTreeData extends TreeDataProvider {
     async getTopItems(){
         this.folders = await API.GetTopFolders();
         var items = this.folders.map(folder=>{
-            var item = new TreeItem(folder.name,true);
+            var item = new TreeItem(folder.name,null,true);
             item.data = folder;
             return item;
         });
         return items;
     }
 
-    async getChildren(item) {
-        var folders = await API.GetFolders(item.data.path);
+    async getChildren(parent) {
+        var folders = [];
+        try {
+            folders = await API.GetFolders(parent.data.path);
+        } catch(ex) {
+            log.error("cannot get child folders for ",parent.data.path);
+            return [];
+        }
         var items = folders.map(folder=>{
-            var item = new TreeItem(folder.name,false);
+            var item = new TreeItem(folder.name,parent,false);
             item.data = folder;
             return item;
         });
-        item.children = items;
+        parent.allChildren = items;
+        parent.children = items.filter(item=>{ return item.name[0] != '$' && item.name[0] != '.';});
         return items;        
     }
 }
