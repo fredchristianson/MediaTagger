@@ -167,7 +167,7 @@ export class HtmlTemplate {
             this.fillNode(clone,values);
             filled.push(clone);
         });
-        return filled;
+        return this.nodes.length != 1 ? filled : filled[0];
     }
 
     fillNode(node,values){

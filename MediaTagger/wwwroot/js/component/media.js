@@ -2,7 +2,8 @@ import {ComponentBase} from '../../drjs/browser/component.js';
 import {HtmlTemplate, ReplaceTemplateValue} from '../../drjs/browser/html-template.js';
 import { LOG_LEVEL, Logger } from '../../drjs/logger.js';
 import {DOM} from '../../drjs/browser/dom.js';
-import EVENT from '../../drjs/browser/dom-event.js';
+import {Listeners} from "../../drjs/browser/event.js";
+
 import UTIL from '../../drjs/util.js';
 
 const log = Logger.create("MediaComponent", LOG_LEVEL.DEBUG);
@@ -15,8 +16,7 @@ export class MediaComponent extends ComponentBase{
         super(selector,htmlName);
         this.loadCompleteHandler = this.loadComplete.bind(this);
         this.loadErrorHandler = this.loadError.bind(this);
-
-
+        this.listeners = new Listeners();
     }
 
     async onHtmlInserted(elements) {
@@ -38,7 +38,7 @@ export class MediaComponent extends ComponentBase{
                 ".name": item.name,
                 ".thumbnail, .test": new ReplaceTemplateValue("{id}",item.primaryFileId)
             });
-            var newNode = this.dom.append(items,this.dom.first(htmlItem,'image.thumbnail'));
+            var newNode = this.dom.append(items,htmlItem);
             observer.observe(newNode);
 
         }
@@ -99,6 +99,7 @@ export class MediaComponent extends ComponentBase{
             log.debug("loading ",name," ",src);
             img.addEventListener('load',this.loadCompleteHandler);
             img.addEventListener('error',this.loadErrorHandler);
+
             img.setAttribute('src',src+"?v=1");
             if (img.loadComplete) {
                 this.dom.removeClass(img,'loading');

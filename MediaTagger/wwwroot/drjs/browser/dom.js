@@ -17,6 +17,8 @@ export class DOM {
         }
     }
 
+    getBody() { return document.body;}
+
     getParentAndSelector(opts) {
         var parent=this.root;
         var selector='*';
@@ -239,6 +241,18 @@ export class DOM {
                 this.addClass(element,className);
             } else {
                 this.removeClass(element,className);
+            }
+        });
+    }
+    toggleClasses(elements,classA, classB) {
+        this.toElementArrayrray(elements).forEach(element=>{
+            var isA = !this.hasClass(element,classA);
+            if (isA){
+                this.addClass(element,classB);
+                this.removeClass(element,classA);
+            } else {
+                this.addClass(element,classA);
+                this.removeClass(element,classB);
             }
         });
     }

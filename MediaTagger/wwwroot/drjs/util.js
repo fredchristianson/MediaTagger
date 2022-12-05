@@ -46,6 +46,20 @@ export class Util  {
             return "";
         } else if (type === 'string') {
             return item;
+        } else if (item instanceof HTMLElement) {
+            var parts = [];
+            var tag = item.tagName;
+            parts.push('[');
+            parts.push(tag);
+            if (item.id) {
+                parts.push('#');
+                parts.push(item.id);
+            }
+
+            var classes = item.classList;
+            classes.forEach(c=>{ parts.push('.');parts.push(c);});
+            parts.push(']');
+            return parts.join('');
         } else if (type === 'object') {
             
             var seen = [];

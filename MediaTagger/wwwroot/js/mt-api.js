@@ -40,6 +40,11 @@ export class MediaTaggerApi  {
     return response;
   }
 
+  async GetFolders(parent) {
+    var response = await this.http.get("filesystem/folders/children",{"parent":encodeURIComponent(parent)},"json");
+    return response;
+  }
+
   async GetAppSettings() {
     var response = await this.http.get("settings/app",null,"json");
     return response;

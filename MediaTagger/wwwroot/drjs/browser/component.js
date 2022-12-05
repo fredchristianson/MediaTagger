@@ -3,9 +3,12 @@ import Logger from '../logger.js';
 import util from '../util.js';
 import componentLoader from './component-loader.js';
 import {default as dom, DOM} from './dom.js';
-import {default as DOMEvent, Selector} from './dom-event.js';
+import {EventEmitter, ObjectEventType} from './event.js';
 
 const log = Logger.create("Component");
+
+
+export var ComponentLoadedEvent = new ObjectEventType("componentLoaded");
 
 export class ComponentBase {
     constructor(selector,htmlName) {
@@ -14,6 +17,7 @@ export class ComponentBase {
         if (!util.isEmpty(htmlName)) {
             this.load(selector,htmlName);
         }
+        this.onLoadedEmitter = new EventEmitter(ComponentLoadedEvent,this);
     }
 
     isLoaded() { return this.loaded;}
@@ -52,7 +56,8 @@ export class ComponentBase {
             this.htmlName = htmlName;
             this.selector = selector;
             this.loaded = true;
-            DOMEvent.triggerComponentLoaded(this);
+            this.onLoadedEmitter.emit(this);
+            parent.componentImplementation = this;
         })
         .catch(err=>{
             log.error("failed to load comonent html file ",htmlName,err);
@@ -61,8 +66,7 @@ export class ComponentBase {
 
     detach(parent) {
         log.debug("detaching");
-        DOMEvent.removeListener(this);
-        var component = dom.getProperty(parent,"_componentBase");
+        var component = parent.componentImplementation;
         if (component && component.onDetach) {
             component.onDetach();
         } else {

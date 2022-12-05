@@ -8,6 +8,7 @@ export class ConsoleLogWriter extends LogWriter {
 
     write(text,logMessage) {
         const level = logMessage.getLevel().value;
+        const err = logMessage.parts.find(p=> p instanceof Error);
         if (level > LOG_LEVEL.INFO.value) {
             console.log(text);
         } else if (level > LOG_LEVEL.WARN.value) {
@@ -15,7 +16,10 @@ export class ConsoleLogWriter extends LogWriter {
         } else if (level > LOG_LEVEL.ERROR.value) {
             console.warn(text);
         } else {
-            console.error(text);
+            console.warn(text);
+            if (err) {
+                console.error(err);
+            }
         }
 
     }

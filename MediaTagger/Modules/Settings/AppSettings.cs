@@ -12,5 +12,6 @@ public class AppSettings {
     = $"{Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)}\\MediaTagger";
     public List<string> MediaDirectories {get;set;} = new List<string>();
 
+    public string MediaExtensions {get;set;} = ".jpeg,.jpg,.png,.gif,.rw2,.mp4";
 
 }

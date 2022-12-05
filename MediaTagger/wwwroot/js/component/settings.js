@@ -17,6 +17,17 @@ class FolderTreeData extends TreeDataProvider {
         });
         return items;
     }
+
+    async getChildren(item) {
+        var folders = await API.GetFolders(item.data.path);
+        var items = folders.map(folder=>{
+            var item = new TreeItem(folder.name,false);
+            item.data = folder;
+            return item;
+        });
+        item.children = items;
+        return items;        
+    }
 }
 
 export class SettingsComponent extends ComponentBase{
@@ -24,10 +35,18 @@ export class SettingsComponent extends ComponentBase{
         super(selector,htmlName);
     }
 
+    onDetach() {
+        if (this.tree) {
+            this.tree.detach();
+            this.tree = null;
+        }
+    }
+
     async onHtmlInserted(parent) {
         this.settings = await API.GetAppSettings();
 
         this.setValue("[name='thumbnailDirectory'",this.settings.storageDirectory);
+        this.setValue("[name='mediaExtensions'",this.settings.mediaExtensions);
 
         this.tree = new Tree(this.dom.first('.tree.folders'),new FolderTreeData());
     }

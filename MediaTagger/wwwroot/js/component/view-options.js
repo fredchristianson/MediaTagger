@@ -1,24 +1,35 @@
 import {ComponentBase} from '../../drjs/browser/component.js';
-import {Selector,default as DOMEvent} from '../../drjs/browser/dom-event.js';
-import env from '../../drjs/env.js';
 import main from './main.js';
+import {Listeners,ClickHandler} from "../../drjs/browser/event.js";
 
 export class ViewOptionsComponent extends ComponentBase{
     constructor(selector, htmlName='view-options') {
         super(selector,htmlName);
+        this.listeners = [];
     }
 
     onHtmlInserted(parent) {
-        this.listen("click",".show-settings",this.showSettings);
-        this.listen("click",".show-media",this.showMedia);
+        this.listeners = new Listeners(
+            new ClickHandler(".show-settings",this,this.showSettings),
+            new ClickHandler(".show-media",this,this.showMedia)
+        );
+//        this.listen("click",".show-settings",this.showSettings);
+//        this.listen("click",".show-media",this.showMedia);
+
     }
 
-    showSettings() {
+    onDetach() {
+        this.listeners.remove();
+    }
+
+    showSettings(target,event) {
         main.instance.showSettings();
+        event.stopPropagation();
     }
 
-    showMedia() {
+    showMedia(target,event) {
         main.instance.showMedia();
+        event.stopPropagation();
     }
 }
 
