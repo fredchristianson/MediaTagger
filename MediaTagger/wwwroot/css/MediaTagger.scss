@@ -15,6 +15,27 @@
   display: none !important;
 }
 
+.invisible {
+  visibility: hidden;
+}
+
+.danger {
+  background-color: #ffaaaa;
+}
+
+.success {
+  background-color: #aaffaa;
+}
+
+button {
+  border-radius: 4px;
+}
+
+button:hover {
+  border-color: #ffff44;
+  outline: 2px #ffff77 outset;
+}
+
 .panel {
   position: absolute;
   top: 0;
@@ -92,13 +113,16 @@
 
 
     }
-    .loading,.load-waiting {
+
+    .loading,
+    .load-waiting {
       display: block;
       width: 32px;
       height: 32px;
       left: 48px;
       top: 48px;
     }
+
     .error {
       display: block;
       width: 32px;
@@ -112,31 +136,37 @@
 
 .name-value {
   width: 100%;
-  > div {
+
+  >div {
     margin-top: 1em;
   }
+
   label {
     display: inline-block;
     width: 12em;
     margin-right: 2em;
     vertical-align: top;
   }
-  input,.value {
+
+  input,
+  .value {
     width: calc(100% - 15em);
+    display: inline-block;
   }
 }
+
 .settings-component {
   padding: 2rem;
   background-color: white;
-  color: black; 
+  color: black;
   width: 100%;
   height: 100%;
 }
 
 .tree {
-  display: inline-block;
+  display: block;
   border: 1px solid #dddddd;
-  background-color: #dddddd;
+  background-color: #f0f0f0;
   padding: 2px;
   max-height: calc(100% - 4rem);
   height: 20rem;
@@ -145,36 +175,86 @@
   .tree-item {
     display: grid;
     width: 100%;
-    grid-template-areas: 
-    "open check name"
-    "children children children";
+    grid-template-areas:
+      "open check name"
+      "children children children";
     grid-template-columns: max-content max-content 1fr;
     grid-template-rows: max-content;
-    background-color: green;
-    
+
+
+    .open-close {
+      grid-area: open;
+      width: 10px;
+      position: relative;
+    }
+
     .children {
       grid-area: children;
       margin-left: 2rem;
-      border-left: 1px solid red;
-      border-bottom: 1px solid red;
-        }
+      border-left: 1px solid #aaa;
+      border-bottom: 0px solid red;
+    }
+
     input[type='checkbox'] {
       grid-area: check;
-      width: 2rem;
+      width: 16px;
+      height: 16px;
       background-color: blue;
+      margin-left: 6px;
     }
-    span[name='name'] {
+
+    span.name {
       grid-area: name;
-      background-color: yellow;
+      white-space: nowrap;
     }
+
+    >.open-close::after {
+      content: '';
+      position: absolute;
+      left: 4px;
+      right: 4px;
+      bottom: 4px;
+      top: 4px;
+      border: 0px solid #aaa;
+      border-width: 0 2px 2px 0;
+      transform: rotate(-45deg);
+      padding: 3px;
+    }
+
     &.open {
-      background-color: #ddddff;
+
+      >.open-close::after {
+        content: '';
+        position: absolute;
+        left: 4px;
+        right: 4px;
+        bottom: 4px;
+        top: 4px;
+        border: 0px solid #aaa;
+        border-width: 0 2px 2px 0;
+        transform: rotate(45deg);
+        padding: 3px;
+      }
     }
 
     &.closed .children {
       display: none;
+
     }
+
+
   }
+}
 
+.folders.selected {
+  display: block;
+  border: 1px solid #dddddd;
+  background-color: #f0f0f0;
+  padding: 2px;
+  height: 5rem;
+  overflow: auto;
 
+  ul {
+    padding-left: 2rem;
+  }
 }

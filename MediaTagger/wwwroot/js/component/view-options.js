@@ -12,11 +12,11 @@ export class ViewOptionsComponent extends ComponentBase{
         this.listeners = new Listeners(
            // new ClickHandler(".show-settings",this,this.showSettings),
            BuildClickHandler()
-                .setSelector(".show-settings")
+                .selector(".show-settings")
                 .setHandler(this,this.showSettings)
                 .build(),
             BuildClickHandler()
-            .setSelector(".show-media")
+            .selector(".show-media")
             .setHandler(this,this.showMedia)
             .build()
         );

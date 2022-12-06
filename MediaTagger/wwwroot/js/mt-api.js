@@ -50,6 +50,11 @@ export class MediaTaggerApi  {
     return response;
   }
 
+  async PostAppSettings(settings) {
+    var response = await this.http.post("settings/app",settings,"json");
+    return response;
+  }
+
 
 
 }

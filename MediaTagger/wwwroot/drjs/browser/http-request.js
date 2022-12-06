@@ -85,7 +85,7 @@ export class HttpRequest {
         return result;
     }
 
-    async post(path,body,responseType='text') {
+    async post(path,body,responseType='text',bodyType="application/json") {
         const promise = new Promise((resolve,reject)=>{
             var fullPath = path;
             if (fullPath.substr(0,3) == "://"){
@@ -106,10 +106,12 @@ export class HttpRequest {
                     resolve(xhttp.response);
                 }
                 else if (xhttp.readyState == 4 && xhttp.status >=400) {
-                    reject(xhttp.responseText);
+                    reject(xhttp.response);
                 }
             };
             xhttp.open("POST", fullPath, true);
+            
+            xhttp.setRequestHeader('content-type', bodyType);
             xhttp.send(body);
         });
         const result = await promise;

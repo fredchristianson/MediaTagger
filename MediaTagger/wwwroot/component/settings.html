@@ -1,15 +1,26 @@
 <div class="settings-component">
-<div class="setting name-value">
-    <div><label class="name">Thumbnail Directory</label>
-    <input type="text" name="thumbnailDirectory"/>
+    <div class="buttons">
+        <button name="save" class="success">Save</button> <button name="reset" class="danger">Reset</button>
     </div>
-    <div><label class="name">Media Extensions</label>
-        <input type="text" name="mediaExtensions"/>
+    <div class="setting name-value">
+        <div><label class="name">Thumbnail Directory</label>
+        <input type="text" name="thumbnailDirectory"/>
+        </div>
+        <div><label class="name">Media Extensions</label>
+            <input type="text" name="mediaExtensions"/>
+        </div>
+        <div>
+        <label class="name">Media Directories</label>
+        <div class="value">
+            <div class=" tree folders"></div>
+            
+            <div class=" selected folders">
+                <h3>Selected:</h3>
+                <ul>
+                    <li>none</li>
+                </ul>
+            </div>
+        </div>
+        </div>
     </div>
-    <div>
-    <label class="name">Media Directories</label>
-    <div class="value tree folders">
-    </div>
-    </div>
-</div>
 </div>

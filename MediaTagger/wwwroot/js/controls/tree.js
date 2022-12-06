@@ -16,14 +16,15 @@ const TREE_ITEM_TYPE ={
 };
 
 export class TreeItem {
-    constructor(name,parent, isTop=false) {
+    constructor(name,parent,value, isTop=false) {
         this.name = name;
+        this.value = value;
         this.parent = parent;
         this.type = TREE_ITEM_TYPE.NODE;
         this.isTop = isTop;
         this.children = null;
         this.isSelected = false;
-        this.isChildSelected = false;
+        this.isOpen = false;
     }
 
     hasSelectedParent(){
@@ -36,6 +37,7 @@ export class TreeItem {
         }
         return false;
     }
+
 }
 
 export class TreeDataProvider {
@@ -46,13 +48,18 @@ export class Tree {
     constructor(containerElement, dataProvider) {
         this.containerElement = containerElement;
         this.dataProvider = dataProvider;
-        this.fillTopItems();
+        //this.fillTopItems();
         
         this.listeners = new Listeners();
     }
 
     detach() {
-        this.listeners.remove();
+        this.listeners.removeAll();
+    }
+
+    async setDataProvider(provider) {
+        this.dataProvider = provider;
+        await this.fillTopItems();
     }
 
     async fillTopItems() {
@@ -66,11 +73,7 @@ export class Tree {
             });
             var added =dom.append(this.containerElement,element);
             //dom.setData(added,"tree-item",item);
-            element.tree = {
-                item: item,
-                selected: item.selected,
-                open: item.isSelected || item.isChildSelected
-            };
+            element.treeItem = item;
             item.element = element;
             //dom.addClass(added,'closed');
             this.setupElement(element);
@@ -98,7 +101,7 @@ export class Tree {
 
     checkChange(checkbox,item,event,handler) {
         item.isSelected = dom.getProperty(checkbox,"checked");
-        var checks = dom.find(item.element,'.children input[type="checkbox"]');
+        var checks = dom.find(dom.find(item.element,'.children'),'input[type="checkbox"]');
         dom.setProperty(checks,'checked',item.isSelected);
         dom.setProperty(checks,'disabled',item.isSelected);
         
@@ -116,12 +119,12 @@ export class Tree {
     async toggleOpen(element, item) {
         log.debug("toggleopen");
         log.debug("treeElement ",element, item);
-        var treeData = element.tree;
-        if (treeData == null) {
+        var item = element.treeItem;
+        if (item == null) {
             log.error("element is not a tree item",element);
             return;
         }
-        treeData.open = !treeData.open;
+        item.isOpen = !item.isOpen;
         this.setupElement(element);
 
         
@@ -129,39 +132,35 @@ export class Tree {
     }
 
     async setupElement(element) {
-        var treeData = element.tree;
-        if (treeData == null) {
+        var item = element.treeItem;
+        if (item == null) {
             log.error("element is not a tree item",element);
             return;
         }
 
-        dom.toggleClass(element,'closed',!treeData.open);
-        dom.toggleClass(element,'open',treeData.open);
-        if (treeData.open && treeData.children == null) {
+        dom.toggleClass(element,'closed',!item.isOpen);
+        dom.toggleClass(element,'open',item.isOpen);
+        dom.setProperty(dom.first(element,"input"),'checked',item.isSelected);
+        if (item.isOpen && dom.isEmpty(element,'.children')) {
             try {
-                await this.getChildren(element,treeData);
+                await this.getChildren(element,item);
             } catch(ex){
                 log.error(ex,"unable to get children");
             }
         }
     }
 
-    async getChildren(element,treeData){
-        if (treeData.children != null) { return;}
+    async getChildren(element,treeItem){
         var childContainer = dom.first(element,'.children');
-        await this.dataProvider.getChildren(treeData.item);
+        await this.dataProvider.getChildren(treeItem);
             var template = new HtmlTemplate(ITEM_TEMPLATE);
-            treeData.item.children.forEach(item=>{
+            treeItem.children.forEach(item=>{
                 var child = template.fill({
                     '.name':item.name
                 });
                 var added =dom.append(childContainer,child);
                 //dom.setData(added,"tree-item",item);
-                added.tree = {
-                    item: item,
-                    selected: item.selected,
-                    open: item.isSelected || item.isChildSelected
-                };
+                added.treeItem = item;
                 item.element = added;
                 if (item.hasSelectedParent()) {
                     var check = dom.first(added,'input[type="checkbox"]');
@@ -175,6 +174,24 @@ export class Tree {
     
             });
  
+    }
+
+    getSelectedItems(items, selected) {
+        if (items == null) {
+            return;
+        }
+        items.forEach(item=>{
+            if (item.isSelected){
+                selected.push(item);
+            }
+            this.getSelectedItems(item.children,selected);
+        });
+    }
+
+    getSelectedValues() {
+        var items = [];
+        this.getSelectedItems(this.topItems,items);
+        return items.map(item=>{return item.value;});
     }
 
 }

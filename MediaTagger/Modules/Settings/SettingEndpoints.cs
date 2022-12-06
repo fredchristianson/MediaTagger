@@ -1,4 +1,5 @@
 ﻿using MediaTagger.Data;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace MediaTagger.Modules.Setting
@@ -32,7 +33,7 @@ namespace MediaTagger.Modules.Setting
        await settingService.SaveAppSettings(appSettings);
         return Results.Ok(appSettings);
       });
-      routes.MapPut(V1_URL_PREFIX + "/settings/app", async (AppSettings appSettings, ISettingService settingService, MediaTaggerContext db) =>
+      routes.MapPut(V1_URL_PREFIX + "/settings/app", async ([FromBody]AppSettings appSettings, ISettingService settingService, MediaTaggerContext db) =>
       {
        await settingService.SaveAppSettings(appSettings);
         return Results.Ok(appSettings);

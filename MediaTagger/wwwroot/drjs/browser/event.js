@@ -1,8 +1,7 @@
 import assert from "../assert.js";
 import Logger from "../logger.js";
 import Util from "../util.js";
-import dom from "./dom.js";
-import DOM from "./dom.js";
+import {DOM,default as dom} from "./dom.js";
 
 const log = Logger.create("Event");
 
@@ -20,7 +19,7 @@ export class Listeners extends Array {
     });
   }
 
-  remove() {
+  removeAll() {
     this.forEach((listener) => {
       listener.remove();
     });
@@ -87,7 +86,11 @@ export class EventHandlerBuilder {
   }
 
   listenTo(element) {
-    this.handler.listenElement = element;
+    if (element instanceof DOM) {
+      this.handler.listenElement = element.getRoot();
+    } else {
+      this.handler.listenElement = element;
+    }
     return this;
   }
   setHandler(...args) {
@@ -116,7 +119,7 @@ export class EventHandlerBuilder {
     this.handler.setTypeName(typeName);
     return this;
   }
-  setSelector(sel) {
+  selector(sel) {
     this.handler.setSelector(sel);
     return this;
   }
@@ -150,11 +153,22 @@ export class InputHandlerBuilder extends EventHandlerBuilder {
     }
 }
 
+export class ClickHandlerBuilder extends EventHandlerBuilder {
+  constructor(type) {
+      super(type || InputHandler);
+  }
+
+  onClick(...args) {
+      this.handler.setOnClick(new HandlerMethod(...args));
+      return this;
+  }
+}
 
 export class CheckboxHandlerBuilder extends InputHandlerBuilder {
     constructor() {
         super(CheckboxHandler);
     }
+
 }
 
 export function BuildHandler(handlerClass) {
@@ -162,7 +176,7 @@ export function BuildHandler(handlerClass) {
 }
 
 export function BuildClickHandler() {
-  return BuildHandler(ClickHandler);
+  return new ClickHandlerBuilder(ClickHandler);
 }
 
 export function BuildInputHandler() {
@@ -246,6 +260,10 @@ export class EventHandler {
   setData(data) {
     this.data = data;
     return this;
+  }
+
+  setDefaultResponse(response) {
+    this.defaultResponse = response;
   }
 
   listen() {
@@ -363,11 +381,24 @@ export class EventHandler {
 export class ClickHandler extends EventHandler {
   constructor(...args) {
     super("click", ...args);
+    this.onClick = null;
+  }
+
+  setOnClick(handler) {
+    this.onClick = handler;
   }
 
   callHandler(method, event) {
     try {
-        method(event.currentTarget,this.data,event,this);
+      if (method != null) {
+          method(event.currentTarget,this.data,event,this);
+      }
+      if (this.onClick!= null) {
+        var clickMethod = this.onClick.getMethod({defaultName:'onClick'});
+        if (clickMethod) {
+            clickMethod(event.currentTarget,this.data,event,this);
+        }
+      }
     } catch(ex) {
         log.error(ex, "event handler for ",this.typeName," failed");
     }
@@ -378,6 +409,7 @@ export class InputHandler extends EventHandler {
     constructor(...args) {
       super( ...args);
       this.setTypeName(["input","focus","blur"]);
+      this.setDefaultResponse(ResponseContinue);
       this.onChange = null;
       this.onFocus = null;
       this.onBlur = null;

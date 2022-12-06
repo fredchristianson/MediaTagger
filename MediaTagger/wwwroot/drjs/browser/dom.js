@@ -17,6 +17,7 @@ export class DOM {
         }
     }
 
+    getRoot() { return this.root;}
     getBody() { return document.body;}
 
     getParentAndSelector(opts) {
@@ -396,6 +397,10 @@ export class DOM {
         if (values == null) {
             return element;
         }
+        if (typeof values == 'string') {
+            element.innerHTML = values;
+            return element;
+        }
         Object.getOwnPropertyNames(values).forEach(prop=>{
             var val = values[prop];
             if (prop[0] == '@') {
@@ -415,7 +420,7 @@ export class DOM {
     }
 
     removeChildren(selector) {
-        this.find(selector).forEach(element=> {
+        this.toElementArrayrray(selector).forEach(element=>{
             element.innerHTML = "";
         });
     }
@@ -427,6 +432,12 @@ export class DOM {
         var array = util.toArray(item);
         var elements = array.map(e=>{ return this.first(e);})
         return elements.filter(item=>item instanceof HTMLElement);
+    }
+
+    isEmpty(...opts) {
+        var element = this.first(...opts);
+        if (element == null) { return true;}
+        return element.childNodes.length == 0;
     }
 }
 
