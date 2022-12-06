@@ -123,6 +123,7 @@ export class SettingsComponent extends ComponentBase{
             "mediaDirectories": this.tree.getSelectedValues()
         };
         await API.PostAppSettings(settings);
+        this.dom.addClass('.buttons button', 'invisible');
     }
 
     async onReset() {

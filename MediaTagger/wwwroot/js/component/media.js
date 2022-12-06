@@ -1,8 +1,10 @@
 import {ComponentBase} from '../../drjs/browser/component.js';
 import {HtmlTemplate, ReplaceTemplateValue} from '../../drjs/browser/html-template.js';
 import { LOG_LEVEL, Logger } from '../../drjs/logger.js';
-import {DOM} from '../../drjs/browser/dom.js';
 import {Listeners} from "../../drjs/browser/event.js";
+import MediaDetailsComponent from './media-details.js';
+import DateFilterComponent from './date-filter.js';
+import MediaFilterComponent from './media-filter.js';
 
 import UTIL from '../../drjs/util.js';
 
@@ -20,7 +22,10 @@ export class MediaComponent extends ComponentBase{
     }
 
     async onHtmlInserted(elements) {
-        this.dom = new DOM(this.parent);
+        this.mediaDetails = new MediaDetailsComponent("#media-details");
+        this.dateFilter = new DateFilterComponent("#date-filter");
+        this.mediaFilter = new MediaFilterComponent("#media-filter");
+
         let options = {
             root: null,
             rootMargin: '0px',

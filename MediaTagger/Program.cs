@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using MediaTagger.Interfaces;
 using MediaTagger.Modules.BackgroundTasks;
 using MediaTagger.Modules.BackgroundTasks.workers;
+using Microsoft.Extensions.Primitives;
 
 var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
@@ -15,11 +16,13 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddDbContext<MediaTaggerContext>(options =>
   options.UseSqlServer(builder.Configuration.GetConnectionString("MediaTaggerContext")));
 
+
 builder.Services.AddSingleton<IBackgroundMessageService,BackgroundMessageService>();
 builder.Services.AddSession();
 //builder.Services.AddHostedService<FileSystemService>();
 builder.WebHost.UseUrls("https://localhost:7094","http://192.168.10.128:8094");
 var app = builder.Build();
+
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
@@ -29,6 +32,11 @@ if (!app.Environment.IsDevelopment())
   app.UseHsts();
 }
 
+// app.Use(async (context, next) =>
+// {
+//     context.Response.Headers.Add("Content-Security-Policy", "default-src 'self' 'unsafe-inline'");
+//     await next();
+// });
 
 using (var scope = app.Services.CreateScope())
 {
@@ -43,6 +51,14 @@ using (var scope = app.Services.CreateScope())
 app.UseHttpsRedirection();
 app.UseStaticFiles(new StaticFileOptions {
   ServeUnknownFileTypes = true
+  //   OnPrepareResponse = context =>
+  //   {
+  //       if (!context.Context.Response.Headers.TryAdd("Content-Security-Policy", 
+  //           "default-src 'self'")) {
+  //            StringValues values = new StringValues();
+  //             var current = context.Context.Response.Headers.TryGetValue("content-security-policy",out values);
+  //           }
+  //   }
 });
 
 app.UseRouting();

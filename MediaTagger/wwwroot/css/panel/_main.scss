@@ -1,0 +1,30 @@
+
+
+#main-content {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  top: 0;
+  height: 100vh;
+  max-height: 100vh;
+  display: grid;
+  grid-template-areas: 
+  "view-options"
+  "content"
+  "status";
+  grid-template-rows: max-content 1fr max-content;
+
+  #view-options {
+    grid-area: view-options;
+  }
+
+  #content-view {
+    grid-area: content;
+    overflow: hidden;
+  }
+
+  #status-bar {
+    grid-area: status;
+  }
+}
