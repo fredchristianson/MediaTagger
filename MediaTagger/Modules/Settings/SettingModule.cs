@@ -9,6 +9,7 @@ namespace MediaTagger.Modules.Setting
     public IServiceCollection RegisterModule(IServiceCollection services)
     {
       services.AddScoped<ISettingService,SettingService>();
+      services.AddSingleton<AppSettingsService>();
       return services;
     }
     public IEndpointRouteBuilder MapEndpoints(IEndpointRouteBuilder endpoints)

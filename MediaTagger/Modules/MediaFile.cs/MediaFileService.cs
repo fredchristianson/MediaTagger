@@ -13,7 +13,8 @@ namespace MediaTagger.Modules.MediaFile
     Task<MediaFileModel?> GetMediaFileById(int id);
     Task<MediaFileModel?> Process(string path);
     public bool IsWebImageType(MediaFileModel file);
-  }
+        public Task<List<int>> GetAllMediaFileIds();
+    }
   public class MediaFileService : IMediaFileService
   {
     private MediaTaggerContext? db;
@@ -37,6 +38,11 @@ namespace MediaTagger.Modules.MediaFile
       return mediaFile;
 
 
+    }
+
+    public async Task<List<int>> GetAllMediaFileIds(){
+      var ids = db.MediaFiles.Select(f=>f.MediaFileId);
+      return ids.ToList();
     }
 
     public async Task<MediaFileModel?> Process(string path)

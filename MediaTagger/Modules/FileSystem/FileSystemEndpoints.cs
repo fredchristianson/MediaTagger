@@ -11,12 +11,12 @@ namespace MediaTagger.Modules.FileSystem
     public static void MapEndpoints(this IEndpointRouteBuilder routes)
     {
       
-      routes.MapGet(V1_URL_PREFIX + "/filesystem/folders", async (IFileSystemService service) =>
+      routes.MapGet(V1_URL_PREFIX + "/filesystem/folders", (IFileSystemService service) =>
             {
               return service.TopFolders();
             });
 
-      routes.MapGet(V1_URL_PREFIX + "/filesystem/folders/children", async (ILogger<FileSystemService> log, IFileSystemService service, [FromQuery]String parent) =>
+      routes.MapGet(V1_URL_PREFIX + "/filesystem/folders/children",  (ILogger<FileSystemService> log, IFileSystemService service, [FromQuery]String parent) =>
             {
               try {
               var decode = Uri.UnescapeDataString(parent);

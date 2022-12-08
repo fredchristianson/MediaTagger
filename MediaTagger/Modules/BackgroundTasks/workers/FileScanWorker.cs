@@ -1,4 +1,5 @@
 ﻿using MediaTagger.Data;
+using MediaTagger.Modules.Image;
 using MediaTagger.Modules.MediaFile;
 using MediaTagger.Modules.Setting;
 
@@ -6,56 +7,95 @@ namespace MediaTagger.Modules.BackgroundTasks.workers
 {
     public class FileScanWorker : BackgroundWorker
     {
+        static int nextWorkerCounter = 0;
+        static int NextWorkerCounter { get { return nextWorkerCounter++; } }
+        static CancellationTokenSource? currentTaskCancellationSource = null;
         private ILogger<FileScanWorker> logger;
-        private IBackgroundMessageService messageService;
         private IMediaFileService mediaFileService;
         private ISettingService settingService;
+        private ThumbnailService thumbnailService;
         private AppSettings? appSettings;
 
-        public FileScanWorker(IBackgroundTaskQueue queue,
-      ILogger<FileScanWorker> logger,
-      IMediaFileService mediaFileService,
-      ISettingService settingsService,
-      IBackgroundMessageService messageService) : base(queue)
+        int workerCounter { get; } = NextWorkerCounter;
+        public FileScanWorker(
+        ILogger<FileScanWorker> logger,
+        IMediaFileService mediaFileService,
+        ISettingService settingsService,
+        ThumbnailService thumbnailService)
         {
             this.logger = logger;
-            this.messageService = messageService;
             this.mediaFileService = mediaFileService;
             this.settingService = settingsService;
+            this.thumbnailService = thumbnailService;
+            if (currentTaskCancellationSource != null)
+            {
+                currentTaskCancellationSource.Cancel();
+            }
+            logger.LogDebug($"FileScanWorker {workerCounter} created");
         }
 
-        public override async void DoWork()
+        public override async Task DoWork()
         {
-            this.appSettings = await settingService.GetAppSettings();
-            logger.LogInformation("FileScanWorker starting");
-            DateTime lastScan = await GetLastScanTime();
-            var startTime = DateTime.Now;
-            List<string> dirs = this.appSettings.MediaDirectories;
-            if (dirs.Count == 0)
-            {
-                dirs.Add("x:\\photo-reorg");
-                appSettings.MediaDirectories = dirs;
-                await this.settingService.SaveAppSettings(appSettings);
-            }
-            foreach (var dir in dirs)
-            {
-                var files = await ScanDirectory(dir, lastScan, Array.AsReadOnly(DefaultData.FileExtensions), TaskCancellationToken);
-                int count = 0;
-                foreach (var file in files)
-                {
-                    _ = await this.mediaFileService.Process(file);
-                    //logger.LogDebug($"Processed {file}");
-                    //messageService.Add($"Processed {file}");
-                    count += 1;
-                    if ((count % 100) == 0)
-                    {
+            logger.LogDebug($"FileScanWorker {workerCounter} running");
 
-                        logger.LogInformation($"file scan {count} out of {files.Count}");
+            using (var cancellationSource = new CancellationTokenSource())
+            {
+                currentTaskCancellationSource = cancellationSource;
+                var token = cancellationSource.Token;
+                this.appSettings = settingService.GetAppSettings().Result;
+                logger.LogInformation("FileScanWorker starting");
+                DateTime lastScan = await GetLastScanTime();
+                var startTime = DateTime.Now;
+                List<string> dirs = this.appSettings.MediaDirectories;
+                if (dirs.Count == 0)
+                {
+                    logger.LogInformation("Not media directories to scan");
+                    return;
+                }
+                foreach (var dir in dirs)
+                {
+                    if (TaskCancellationToken.IsCancellationRequested || token.IsCancellationRequested)
+                    {
+                        break;
+                    }
+                    logger.LogInformation($"Scan directory {dir}");
+                    var files = await ScanDirectory(dir, lastScan, Array.AsReadOnly(DefaultData.FileExtensions), TaskCancellationToken);
+                    int count = 0;
+                    foreach (var file in files)
+                    {
+                        _ = await this.mediaFileService.Process(file);
+                        //logger.LogDebug($"Processed {file}");
+                        //messageService.Add($"Processed {file}");
+                        count += 1;
+                        if ((count % 100) == 0)
+                        {
+
+                            logger.LogInformation($"file scan {count} out of {files.Count}");
+                        }
                     }
                 }
+                var allMediaFileIds = await this.mediaFileService.GetAllMediaFileIds();
+                allMediaFileIds.Sort();
+                foreach (var id in allMediaFileIds)
+                {
+                    if (TaskCancellationToken.IsCancellationRequested || token.IsCancellationRequested)
+                    {
+                        break;
+                    }
+                    await thumbnailService.GetThumbnailFileInfo(id);
+                };
+
+
+                if (!TaskCancellationToken.IsCancellationRequested || !token.IsCancellationRequested)
+                {
+                    logger.LogDebug($"FileScanWorker {workerCounter} cancelled");
+
+                    await settingService.SetTime("FileScanWorker", "lastscantime", startTime);
+                }
+                logger.LogDebug($"FileScanWorker {workerCounter} complete");
+
+                logger.LogInformation("FileScanWorker complete");
             }
-            await settingService.SetTime("FileScanWorker", "lastscantime", startTime);
-            logger.LogInformation("FileScanWorker complete");
         }
 
         private async Task<DateTime> GetLastScanTime()
@@ -71,6 +111,14 @@ namespace MediaTagger.Modules.BackgroundTasks.workers
         protected async Task<IList<string>> ScanDirectory(string path, DateTime after, IList<string> extensions, CancellationToken stoppingToken)
         {
             List<string> result = new List<string>();
+            var appSettings = await settingService.GetAppSettings();
+            // don't scan the app storage directory where thumbnails and other temp files are kept
+            // in case user picked a storage directory under a media directory
+            var storageDir = new DirectoryInfo(normalizePath(appSettings.StorageDirectory));
+            if (IsPathBelow(new DirectoryInfo(normalizePath(path)), storageDir))
+            {
+                return result;
+            }
             try
             {
                 var files = Directory.GetFiles(path);
@@ -89,7 +137,6 @@ namespace MediaTagger.Modules.BackgroundTasks.workers
                 {
                     if (stoppingToken.IsCancellationRequested)
                     {
-                        messageService.Add("Scan canceled");
                         return result;
                     }
                     result.AddRange(await ScanDirectory(dir, after, extensions, stoppingToken));
@@ -97,10 +144,27 @@ namespace MediaTagger.Modules.BackgroundTasks.workers
             }
             catch (Exception ex)
             {
-                messageService.Add("error scanning {path}", ex);
             }
 
             return result;
+        }
+
+        private string normalizePath(string path)
+        {
+            return path.ToUpperInvariant().Trim('\\', '/', '.');
+        }
+
+        private bool IsPathBelow(DirectoryInfo path, DirectoryInfo storageDirectory)
+        {
+            if (path.FullName.Equals(storageDirectory.FullName))
+            {
+                return true;
+            }
+            if (path.Parent != null)
+            {
+                return IsPathBelow(path.Parent, storageDirectory);
+            }
+            return false;
         }
     }
 

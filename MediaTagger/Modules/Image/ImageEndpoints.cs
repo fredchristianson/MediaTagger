@@ -34,52 +34,23 @@ namespace MediaTagger.Modules.Image
             });
 
 
-            routes.MapGet("/thumbnail/{id}", async (IHttpContextAccessor contextAccessor, 
-            IMediaFileService service, 
-            ILogger<ImageService> logger,int id) =>
-            {
-                var context = contextAccessor.HttpContext;
-                context.Response.Headers.CacheControl = $"max-age: {60 * 60 * 24 * 365}";
-                context.Response.Headers.Expires = $"{DateTime.Now.AddYears(1).ToString()}";
-                context.Response.Headers.CacheControl = $"max-age: {60 * 60 * 24 * 365}";
-                context.Response.Headers.LastModified = $"{DateTime.Now.ToString()}";
-                var file = await service.GetMediaFileById(id);
-                if (file == null)
-                {
-                    return Results.NotFound();
-                }
-                if (!service.IsWebImageType(file)) {
-                 // return Results.LocalRedirect("~/image/unknownType.png");
-                }
-                var path = service.GetFilePath(file);
 
+
+            routes.MapGet("/thumbnail/{id}", async (ThumbnailService service, ILogger<ImageService> logger, int id) =>
+            {
                 try
                 {
-                    
-                    var readSettings = new MagickReadSettings{
-                      //  Format=MagickFormat.Dcraw
-                    };
-                    
-                    var responseStream = new MemoryStream();
-                    using (var img = new MagickImage(path,readSettings))
-                    {
-                        img.Thumbnail(new MagickGeometry(255,255));
-                        img.Write(responseStream, MagickFormat.Jpeg);
-                        var bytes = responseStream.ToArray();
-                        return Results.Bytes(bytes, "image/jpeg");
-                        //var thumb = Results.File(path, service.GetFileMimeType(file));
-                        //return thumb;
-                    }
+                    var fileInfo = await service.GetThumbnailFileInfo(id);
+                    return Results.Stream(fileInfo.OpenRead(), service.GetMimeType());
                 }
                 catch (Exception ex)
                 {
-                  logger.LogError(ex,"unable to convert image");
-                  return Results.NoContent();
+                    logger.LogError(ex, "unable to get thumbnail image");
+                    return Results.NoContent();
+
                 }
             });
-    
         }
-
 
     }
 }

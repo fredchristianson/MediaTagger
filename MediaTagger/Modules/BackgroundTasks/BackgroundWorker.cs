@@ -2,25 +2,24 @@
 {
     public interface IBackgroundWorker
     {
-    void DoWork();
+        Task DoWork();
+
     }
 
-  public abstract class BackgroundWorker : IBackgroundWorker
-  {
-    protected CancellationToken TaskCancellationToken { get; set; }
-    public BackgroundWorker(IBackgroundTaskQueue queue)
+    public abstract class BackgroundWorker : IBackgroundWorker
     {
-      TaskCancellationToken = new CancellationToken();
+        internal IServiceScope? Scope { get; set; } = null;
+        internal CancellationToken TaskCancellationToken { get; set; }
 
-      queue.QueueBackgroundWorkItemAsync((cancelationToken) =>
-      {
-        TaskCancellationToken = cancelationToken;
-        DoWork();
-        return ValueTask.CompletedTask;
-      });
+        public BackgroundWorker()
+        {
+
+        }
+
+
+        public abstract Task DoWork();
     }
 
-    
-    public abstract void DoWork();
-    }
+
 }
+

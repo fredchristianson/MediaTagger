@@ -13,6 +13,7 @@ namespace MediaTagger.Modules.Image
     public IServiceCollection RegisterModule(IServiceCollection builder)
     {
       builder.AddScoped<ImageService>();
+      builder.AddScoped<ThumbnailService>();
 
       return builder;
     }

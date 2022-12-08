@@ -10,53 +10,103 @@ using System.Threading;
 
 namespace MediaTagger.Modules.BackgroundTasks
 {
-  public interface IBackgroundTaskManager : IHostedService { }
-
-  public class BackgroundTaskManager : IBackgroundTaskManager
-  {
-    private IBackgroundTaskQueue queue;
-    private ILogger<BackgroundTaskManager> logger;
-
-    public BackgroundTaskManager(IBackgroundTaskQueue queue, ILogger<BackgroundTaskManager> logger)// IBackgroundMessageService messageService, IMediaFileService mediaFileService)
+    public interface IBackgroundTaskManager : IHostedService
     {
-      this.queue = queue;
-      this.logger = logger;
+
     }
 
-    
-    private async Task BackgroundProcessing(CancellationToken stoppingToken)
+    public class BackgroundTaskManager : IBackgroundTaskManager
     {
-      while (!stoppingToken.IsCancellationRequested)
-      {
-        var workItem =
-            await queue.DequeueAsync(stoppingToken);
+        private IBackgroundTaskQueue queue;
+        private IPeriodicWorkerRunner periodicRunner;
+        private ILogger<BackgroundTaskManager> logger;
+        private IServiceScopeFactory scopeFactory;
 
-        try
+        public BackgroundTaskManager(IBackgroundTaskQueue queue, IPeriodicWorkerRunner periodicRunner, IServiceScopeFactory scopeFactory, ILogger<BackgroundTaskManager> logger)// IBackgroundMessageService messageService, IMediaFileService mediaFileService)
         {
-          await workItem(stoppingToken);
+            this.queue = queue;
+            this.periodicRunner = periodicRunner;
+            this.logger = logger;
+            this.scopeFactory = scopeFactory;
         }
-        catch (Exception ex)
+
+
+        private async Task BackgroundProcessing(CancellationToken stoppingToken)
         {
-          logger.LogError(ex,
-              "Error occurred executing {WorkItem}.", nameof(workItem));
+            while (!stoppingToken.IsCancellationRequested)
+            {
+                var workItem =
+                    await queue.DequeueAsync(stoppingToken);
+
+                try
+                {
+                    await workItem(stoppingToken);
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex,
+                        "Error occurred executing {WorkItem}.", nameof(workItem));
+                }
+            }
         }
-      }
+        private async Task PeriodicProcessing(CancellationToken stoppingToken)
+        {
+            while (!stoppingToken.IsCancellationRequested)
+            {
+                var workItems =
+                    await periodicRunner.GetRunnableTasks(stoppingToken);
+
+                try
+                {
+                    if (!stoppingToken.IsCancellationRequested)
+                    {
+                        foreach (var worker in workItems)
+                        {
+                            try
+                            {
+                                worker.Run();
+                            }
+                            catch (Exception ex)
+                            {
+                                logger.LogError(ex, $"failed to execute worker {worker.GetType().Name}");
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex,
+                        "failed to execute periodic tasks.");
+                }
+            }
+        }
+
+        public Task StartAsync(CancellationToken cancellationToken)
+        {
+            Task.Run(async () =>
+            {
+                var backgroundProcessing = BackgroundProcessing(cancellationToken);
+                var periodicProcessing = PeriodicProcessing(cancellationToken);
+                await Task.WhenAll(backgroundProcessing, periodicProcessing);
+                return Task.CompletedTask;
+            });
+            return Task.CompletedTask;
+        }
+
+        public Task StopAsync(CancellationToken cancellationToken)
+        {
+            Func<CancellationToken, ValueTask>? worker = queue.TryDequeue();
+            while (worker != null)
+            {
+                worker(cancellationToken);
+                worker = queue.TryDequeue();
+            }
+            return Task.CompletedTask;
+        }
+
+
+
+
     }
 
-    public Task StartAsync(CancellationToken cancellationToken)
-    {
-      Task.Run(async () =>
-      {
-        await BackgroundProcessing(cancellationToken);
-        return Task.CompletedTask;
-      });
-      return Task.CompletedTask;
-    }
-
-    public Task StopAsync(CancellationToken cancellationToken)
-    {
-
-      return Task.CompletedTask;
-    }
-  }
 }
