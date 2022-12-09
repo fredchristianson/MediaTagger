@@ -3,7 +3,7 @@ using MediaTagger.Modules.Image;
 using MediaTagger.Modules.MediaFile;
 using MediaTagger.Modules.Setting;
 
-namespace MediaTagger.Modules.BackgroundTasks.workers
+namespace MediaTagger.Modules.BackgroundTasks.Workers
 {
     public class CleanTempFilesWorker : BackgroundWorker
     {
@@ -41,7 +41,7 @@ namespace MediaTagger.Modules.BackgroundTasks.workers
                     }
                     catch (Exception ex)
                     {
-                        logger.LogError(ex, $"Failed to delete file {file}");
+                        logger.LogInformation(ex, $"Failed to delete file {file}");
                     }
                 }
                 foreach (var dir in subDirectories)
@@ -51,15 +51,17 @@ namespace MediaTagger.Modules.BackgroundTasks.workers
                     try
                     {
                         subdirInfo.Delete();
-                    } catch(Exception ex) {
-                        logger.LogError(ex, $"Failed to delete subdirectory {dir}");
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.LogInformation(ex, $"Failed to delete subdirectory {dir}");
                     }
                 }
 
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, $"failed to clean directory {dirInfo.FullName}");
+                logger.LogInformation(ex, $"failed to clean directory {dirInfo.FullName}");
             }
 
         }

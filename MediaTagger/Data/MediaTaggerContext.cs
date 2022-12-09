@@ -1,5 +1,6 @@
 ﻿using MediaTagger.Modules.FileSystem;
 using MediaTagger.Modules.MediaFile;
+using MediaTagger.Modules.MediaGroup;
 using MediaTagger.Modules.MediaItem;
 using MediaTagger.Modules.Setting;
 using MediaTagger.Modules.Tag;
@@ -9,7 +10,6 @@ namespace MediaTagger.Data
 {
     public class MediaTaggerContext : DbContext
     {
-
 
         public MediaTaggerContext(DbContextOptions<MediaTaggerContext> options) : base(options)
         {
@@ -32,6 +32,7 @@ namespace MediaTagger.Data
         public DbSet<MediaItemModel> MediaItems => Set<MediaItemModel>();
         public DbSet<MediaFileModel> MediaFiles => Set<MediaFileModel>();
         public DbSet<PathModel> Paths => Set<PathModel>();
+        public DbSet<MediaGroupModel> MediaGroups => Set<MediaGroupModel>();
 
 
 
@@ -56,7 +57,6 @@ namespace MediaTagger.Data
               .HasForeignKey(file => file.MediaItemId)
               .OnDelete(DeleteBehavior.NoAction);
 
-            modelBuilder.Entity<MediaItemModel>().HasOne(item => item.ThumbnailFile);
             modelBuilder.Entity<MediaItemModel>().HasOne(item => item.PrimaryFile);
 
             modelBuilder.Entity<MediaItemModel>().ToTable("MediaItem");

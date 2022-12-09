@@ -2,8 +2,7 @@ using MediaTagger.Data;
 using Microsoft.EntityFrameworkCore;
 using MediaTagger.Interfaces;
 using MediaTagger.Modules.BackgroundTasks;
-using MediaTagger.Modules.BackgroundTasks.workers;
-using Microsoft.Extensions.Primitives;
+using MediaTagger.Modules.BackgroundTasks.Workers;
 
 var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
@@ -41,6 +40,7 @@ if (!app.Environment.IsDevelopment())
 
 using (var scope = app.Services.CreateScope())
 {
+    
     var services = scope.ServiceProvider;
 
     var context = services.GetRequiredService<MediaTaggerContext>();

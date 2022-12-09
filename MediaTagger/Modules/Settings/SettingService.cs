@@ -1,8 +1,6 @@
 ﻿using MediaTagger.Data;
-using MediaTagger.Hubs;
 using MediaTagger.Modules.BackgroundTasks;
-using MediaTagger.Modules.BackgroundTasks.workers;
-using Microsoft.AspNetCore.SignalR;
+using MediaTagger.Modules.BackgroundTasks.Workers;
 
 namespace MediaTagger.Modules.Setting
 {
@@ -88,10 +86,8 @@ namespace MediaTagger.Modules.Setting
                 string text = settings.ToJsonString();
                 await Set(APP_SETTINGS_SCOPE, APP_SETTINGS_NAME, text);
                 appSettingsService.set(settings);
-
-
-                //var scope = serviceProvider.CreateScope();
-                //scope.ServiceProvider.GetService<FileScanWorker>();
+                var backgroundTaskQueue = serviceProvider.GetRequiredService<IBackgroundTaskQueue>();
+                await backgroundTaskQueue.CreateWorker<FileScanWorker>();
 
             }
 
@@ -110,10 +106,6 @@ namespace MediaTagger.Modules.Setting
             {
                 setting.Value = value;
                 dbContext.SaveChanges();
-                //var backgroundTaskManager = serviceProvider.GetRequiredService<IBackgroundTaskManager>();
-                //await backgroundTaskManager.CreateWorker<FileScanWorker>();
-                var backgroundTaskQueue = serviceProvider.GetRequiredService<IBackgroundTaskQueue>();
-                await backgroundTaskQueue.CreateWorker<FileScanWorker>();
             }
         }
 

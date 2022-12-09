@@ -29,7 +29,7 @@ namespace MediaTagger.Modules.Image
             this.settingsService = settings;
         }
 
-        public string GetMimeType() { return "image/jpeg"; }
+        public string GetMimeType() { return "image/webp"; }
 
         async public Task<FileInfo> GetThumbnailFileInfo(int id)
         {
@@ -49,7 +49,7 @@ namespace MediaTagger.Modules.Image
             var bucket2 = (id / 10000) % 100;
             var bucket1 = id / 100000;
             var thumbDir = Path.Combine(dir, "thumbnail", bucket1.ToString(), bucket2.ToString(), bucket3.ToString());
-            var thumbFile = Path.Combine(thumbDir, id.ToString() + ".jpg");
+            var thumbFile = Path.Combine(thumbDir, id.ToString() + ".webp");
             var fileInfo = new FileInfo(thumbFile);
             if (fileInfo.Exists)
             {
@@ -69,28 +69,63 @@ namespace MediaTagger.Modules.Image
             try
             {
 
-                var readSettings = new MagickReadSettings
-                {
-                    //  Format=MagickFormat.Dcraw
-                };
+
 
                 var responseStream = new MemoryStream();
-                using (var img = new MagickImage(path, readSettings))
+                IMagickImage? img = null;
+                if (false && fileService.IsVideoType(mediaFile))
                 {
-                    var cs = img.ColorSpace;
-                    var ct = img.ColorType;
-                    var cp = img.GetColorProfile();
-                    //img.TransformColorSpace(new ColorProfile())
-                    img.Thumbnail(new MagickGeometry(255, 255));
-                    cs = img.ColorSpace;
-                    ct = img.ColorType;
-                    cp = img.GetColorProfile();
-                    img.Write(thumbFile, MagickFormat.Jpeg);
-                    img.Dispose();
-                    return new FileInfo(thumbFile);
-                    //var thumb = Results.File(path, service.GetFileMimeType(file));
-                    //return thumb;
+
+                    using (var videoFrames = new MagickImageCollection(path))
+                    {
+                        img = videoFrames.First(); //save last full frame, as initial it will be first in collection
+                        if (img != null)
+                        {
+                            img.Thumbnail(new MagickGeometry(255, 255));
+                            if (fileService.IsRawImage(mediaFile))
+                            {
+                                img.GammaCorrect(2.2);
+                            }
+
+                            img.Write(thumbFile, MagickFormat.WebP);
+                            img.Dispose();
+                            return new FileInfo(thumbFile);
+                        }
+                    }
                 }
+                else
+                {
+                    var readSettings = new MagickReadSettings
+                    {
+                        //  Format=MagickFormat.Dcraw
+                    };
+                    using (img = new MagickImage(path, readSettings))
+                    {
+
+                        if (img != null)
+                        {
+
+                            if (fileService.IsRawImage(mediaFile))
+                            {
+                                // todo: see if raw thumbnail color problems can be fixed
+                                img.GammaCorrect(1.8);
+                                var profile = img.GetProfile(":dng:thumbnail");
+                                if (profile != null)
+                                {
+                                    File.WriteAllBytes(thumbFile, profile.GetData());
+                                    return new FileInfo(thumbFile);
+                                }
+                            }
+                            img.Thumbnail(new MagickGeometry(255, 255));
+
+                            img.Write(thumbFile, MagickFormat.WebP);
+                            img.Dispose();
+                            return new FileInfo(thumbFile);
+                        }
+                    }
+                }
+                return null;
+
             }
             catch (Exception ex)
             {

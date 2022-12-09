@@ -3,7 +3,7 @@ using MediaTagger.Modules.Image;
 using MediaTagger.Modules.MediaFile;
 using MediaTagger.Modules.Setting;
 
-namespace MediaTagger.Modules.BackgroundTasks.workers
+namespace MediaTagger.Modules.BackgroundTasks.Workers
 {
     public class FileScanWorker : BackgroundWorker
     {
@@ -11,6 +11,7 @@ namespace MediaTagger.Modules.BackgroundTasks.workers
         static int NextWorkerCounter { get { return nextWorkerCounter++; } }
         static CancellationTokenSource? currentTaskCancellationSource = null;
         private ILogger<FileScanWorker> logger;
+        private MediaTaggerContext db;
         private IMediaFileService mediaFileService;
         private ISettingService settingService;
         private ThumbnailService thumbnailService;
@@ -21,22 +22,31 @@ namespace MediaTagger.Modules.BackgroundTasks.workers
         ILogger<FileScanWorker> logger,
         IMediaFileService mediaFileService,
         ISettingService settingsService,
+        MediaTaggerContext db,
         ThumbnailService thumbnailService)
         {
             this.logger = logger;
+            this.db = db;
             this.mediaFileService = mediaFileService;
             this.settingService = settingsService;
             this.thumbnailService = thumbnailService;
             if (currentTaskCancellationSource != null)
             {
-                currentTaskCancellationSource.Cancel();
+                try
+                {
+                    currentTaskCancellationSource.Cancel();
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, "failed to cancel previous worker");
+                }
             }
             logger.LogDebug($"FileScanWorker {workerCounter} created");
         }
 
         public override async Task DoWork()
         {
-            logger.LogDebug($"FileScanWorker {workerCounter} running");
+            logger.LogInformation($"FileScanWorker {workerCounter} running");
 
             using (var cancellationSource = new CancellationTokenSource())
             {
@@ -52,39 +62,12 @@ namespace MediaTagger.Modules.BackgroundTasks.workers
                     logger.LogInformation("Not media directories to scan");
                     return;
                 }
-                foreach (var dir in dirs)
-                {
-                    if (TaskCancellationToken.IsCancellationRequested || token.IsCancellationRequested)
-                    {
-                        break;
-                    }
-                    logger.LogInformation($"Scan directory {dir}");
-                    var files = await ScanDirectory(dir, lastScan, Array.AsReadOnly(DefaultData.FileExtensions), TaskCancellationToken);
-                    int count = 0;
-                    foreach (var file in files)
-                    {
-                        _ = await this.mediaFileService.Process(file);
-                        //logger.LogDebug($"Processed {file}");
-                        //messageService.Add($"Processed {file}");
-                        count += 1;
-                        if ((count % 100) == 0)
-                        {
-
-                            logger.LogInformation($"file scan {count} out of {files.Count}");
-                        }
-                    }
-                }
-                var allMediaFileIds = await this.mediaFileService.GetAllMediaFileIds();
-                allMediaFileIds.Sort();
-                foreach (var id in allMediaFileIds)
-                {
-                    if (TaskCancellationToken.IsCancellationRequested || token.IsCancellationRequested)
-                    {
-                        break;
-                    }
-                    await thumbnailService.GetThumbnailFileInfo(id);
-                };
-
+                // can't use lastScan when directory settings change.  
+                // need to do a full scan after a directory is added.
+                // always do full scan for now
+                await FindFileChanges(/*lastScan*/ DateTime.MinValue, dirs, token);
+                await GetMediaFileProperties(token);
+                await CreateThumbnails(token);
 
                 if (!TaskCancellationToken.IsCancellationRequested || !token.IsCancellationRequested)
                 {
@@ -95,6 +78,78 @@ namespace MediaTagger.Modules.BackgroundTasks.workers
                 logger.LogDebug($"FileScanWorker {workerCounter} complete");
 
                 logger.LogInformation("FileScanWorker complete");
+            }
+        }
+
+        private async Task GetMediaFileProperties(CancellationToken token)
+        {
+            var allMediaFileIds = await this.mediaFileService.GetAllMediaFileIds();
+            allMediaFileIds.Sort();
+            foreach (var id in allMediaFileIds)
+            {
+                if (TaskCancellationToken.IsCancellationRequested || token.IsCancellationRequested)
+                {
+                    break;
+                }
+                await mediaFileService.UpdateMediaFileProperties(id);
+                // iterating through all files but don't need to keep changes
+                db.ChangeTracker.Clear();
+
+            };
+        }
+
+        private async Task CreateThumbnails(CancellationToken token)
+        {
+            var allMediaFileIds = await this.mediaFileService.GetAllMediaFileIds();
+            allMediaFileIds.Sort();
+            foreach (var id in allMediaFileIds)
+            {
+                if (TaskCancellationToken.IsCancellationRequested || token.IsCancellationRequested)
+                {
+                    break;
+                }
+                try
+                {
+                    await thumbnailService.GetThumbnailFileInfo(id);
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, $"Unable to create thumbnail for media file {id}");
+                }
+            };
+        }
+
+
+
+        private async Task FindFileChanges(DateTime lastScan, List<string> dirs, CancellationToken token)
+        {
+            foreach (var dir in dirs)
+            {
+
+                if (TaskCancellationToken.IsCancellationRequested || token.IsCancellationRequested)
+                {
+                    break;
+                }
+                logger.LogInformation($"Scan directory {dir}");
+                if (AppSettingsService.IsAppStorageDirectory(dir))
+                {
+                    logger.LogInformation("ignoring MediaTagger storage directory");
+                    continue;
+                }
+                var files = await ScanDirectory(dir, lastScan, Array.AsReadOnly(DefaultData.FileExtensions), TaskCancellationToken);
+                int count = 0;
+                foreach (var file in files)
+                {
+                    _ = await this.mediaFileService.Process(file);
+                    //logger.LogDebug($"Processed {file}");
+                    //messageService.Add($"Processed {file}");
+                    count += 1;
+                    if ((count % 100) == 0)
+                    {
+
+                        logger.LogDebug($"file scan {count} out of {files.Count}");
+                    }
+                }
             }
         }
 

@@ -1,5 +1,5 @@
 ﻿using MediaTagger.Interfaces;
-using MediaTagger.Modules.BackgroundTasks.workers;
+using MediaTagger.Modules.BackgroundTasks.Workers;
 
 namespace MediaTagger.Modules.BackgroundTasks
 {
@@ -11,7 +11,6 @@ namespace MediaTagger.Modules.BackgroundTasks
         {
             services.AddScoped<FileScanWorker>();
             services.AddScoped<CleanTempFilesWorker>();
-            services.AddScoped<TestWorker>();
             return services;
         }
         public IEndpointRouteBuilder MapEndpoints(IEndpointRouteBuilder endpoints)
