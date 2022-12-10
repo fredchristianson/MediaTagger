@@ -152,6 +152,17 @@ export class DOM {
     return val;
   }
 
+  setAttribute(element, name, value) {
+    this.toElementArray(element).forEach((elem) => {
+      elem.setAttribute(name, value);
+    });
+  }
+
+  getAttribute(element, name) {
+    var e = this.first(element);
+    return e == null ? null : e.getAttribute(name);
+  }
+
   setProperty(element, name, val) {
     assert.notNull(element, "setProperty requires an element");
     assert.notEmpty(name, "setProperty requires a name");

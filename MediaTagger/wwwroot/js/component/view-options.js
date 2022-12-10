@@ -16,6 +16,8 @@ import {
 
 export var ZoomChangeEvent = new ObjectEventType("zoomChange");
 
+var MAX_ZOOM = 800;
+
 export class ViewOptionsComponent extends ComponentBase {
   constructor(selector, htmlName = "view-options") {
     super(selector, htmlName);
@@ -48,8 +50,10 @@ export class ViewOptionsComponent extends ComponentBase {
         .onChange(this, this.zoomWheel)
         .build()
     );
-    //        this.listen("click",".show-settings",this.showSettings);
-    //        this.listen("click",".show-media",this.showMedia);
+    this.zoomInput = this.dom.first('[name="zoom"]');
+    this.zoomSlider = this.dom.first('[name="zoom-slider"]');
+    this.dom.setAttribute(this.zoomInput, "max", MAX_ZOOM);
+    this.dom.setAttribute(this.zoomSlider, "max", MAX_ZOOM);
   }
 
   onDetach() {
@@ -68,8 +72,8 @@ export class ViewOptionsComponent extends ComponentBase {
     if (value < 25) {
       value = 25;
     }
-    if (value > 300) {
-      value = 300;
+    if (value > MAX_ZOOM) {
+      value = MAX_ZOOM;
     }
     value = Math.floor(value);
     dom.setValue('[name="zoom-slider"]', value);
