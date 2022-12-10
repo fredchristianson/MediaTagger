@@ -1,6 +1,6 @@
+import dom from "../../drjs/browser/dom.js";
 import { ComponentBase } from "../../drjs/browser/component.js";
 import { LOG_LEVEL, Logger } from "../../drjs/logger.js";
-import styles from "../modules/style.js";
 
 import main from "./main.js";
 const log = Logger.create("ViewOptions", LOG_LEVEL.DEBUG);
@@ -42,7 +42,25 @@ export class ViewOptionsComponent extends ComponentBase {
   }
 
   zoom(value) {
-    styles.updateMediaZoom(value);
+    //styles.updateMediaZoom(value);
+    var size = (128.0 * value) / 100;
+    var items = dom.find(".media-items .media-item");
+    var left = 0;
+    var top = 0;
+    for (var idx in items) {
+      var item = items[idx];
+      //item.offsetLeft = left;
+      //item.offsetTop = top;
+      item.style.left = "" + left + "px";
+      item.style.top = "" + top + "px";
+      item.style.width = "" + size + "px";
+      item.style.height = "" + size + "px";
+      left = left + size;
+      if (left > 800) {
+        left = 0;
+        top += size;
+      }
+    }
   }
   showSettings(target, event) {
     main.instance.showSettings();
