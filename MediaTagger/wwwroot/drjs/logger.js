@@ -31,11 +31,15 @@ export class Logger {
 
   write(level, message) {
     var v = level.value ? level.value : level;
-    if (v > this.getLevelValue()) {
+    if (v > this.getLevelValue() && v != LOG_LEVEL.NEVER.value) {
       return;
     }
     const logMessage = new LogMessage(this.moduleName, level, message);
     logWriters.write(logMessage);
+  }
+
+  always(...message) {
+    this.write(LOG_LEVEL.ALWAYS, message);
   }
 
   debug(...message) {

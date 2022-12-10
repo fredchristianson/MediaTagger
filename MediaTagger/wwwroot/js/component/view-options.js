@@ -9,6 +9,7 @@ import {
   Listeners,
   BuildClickHandler,
   BuildInputHandler,
+  BuildWheelHandler,
   EventEmitter,
   ObjectEventType,
 } from "../../drjs/browser/event.js";
@@ -40,6 +41,11 @@ export class ViewOptionsComponent extends ComponentBase {
       BuildInputHandler()
         .selector("[name='zoom-slider']")
         .onChange(this, this.zoomSlider)
+        .build(),
+      BuildWheelHandler()
+        .listenTo("#content-view")
+        .withAlt(true)
+        .onChange(this, this.zoomWheel)
         .build()
     );
     //        this.listen("click",".show-settings",this.showSettings);
@@ -48,6 +54,27 @@ export class ViewOptionsComponent extends ComponentBase {
 
   onDetach() {
     this.listeners.remove();
+  }
+
+  zoomWheel(delta) {
+    log.debug("zoom wheel change ", delta);
+    var value = dom.getValue('[name="zoom-slider"]');
+    if (delta > 0) {
+      value = value * 1.1;
+    } else {
+      value = value * 0.9;
+    }
+
+    if (value < 25) {
+      value = 25;
+    }
+    if (value > 300) {
+      value = 300;
+    }
+    value = Math.floor(value);
+    dom.setValue('[name="zoom-slider"]', value);
+    dom.setValue('[name="zoom"]', value);
+    this.zoomEmitter.emit(value);
   }
 
   zoom(value) {

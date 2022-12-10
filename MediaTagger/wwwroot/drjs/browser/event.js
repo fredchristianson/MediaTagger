@@ -170,6 +170,29 @@ export class CheckboxHandlerBuilder extends InputHandlerBuilder {
   }
 }
 
+export class WheelHandlerBuilder extends EventHandlerBuilder {
+  constructor() {
+    super(WheelHandler);
+  }
+  onChange(...args) {
+    this.handler.setOnChange(new HandlerMethod(...args));
+    return this;
+  }
+
+  withShift(require) {
+    this.handler.setWithShift(require);
+    return this;
+  }
+  withAlt(require) {
+    this.handler.setWithAlt(require);
+    return this;
+  }
+  withCtrl(require) {
+    this.handler.setWithCtrl(require);
+    return this;
+  }
+}
+
 export function BuildHandler(handlerClass) {
   return new EventHandlerBuilder(handlerClass);
 }
@@ -184,6 +207,10 @@ export function BuildInputHandler() {
 
 export function BuildCheckboxHandler() {
   return new CheckboxHandlerBuilder();
+}
+
+export function BuildWheelHandler() {
+  return new WheelHandlerBuilder();
 }
 
 export class EventHandler {
@@ -293,10 +320,15 @@ export class EventHandler {
     this.listenElement = null;
     return this;
   }
+
+  eventMatches(event) {
+    return this.selector != null && !event.target.matches(this.selector);
+  }
+
   eventProcessor(event) {
     var result = null;
     var method = null;
-    if (this.selector != null && !event.target.matches(this.selector)) {
+    if (this.eventMatches(event)) {
       return;
     }
     if (
@@ -461,6 +493,62 @@ export class CheckboxHandler extends InputHandler {
   callHandler(method, event) {
     try {
       method(event.currentTarget, this.data, event, this);
+    } catch (ex) {
+      log.error(ex, "event handler for ", this.typeName, " failed");
+    }
+  }
+}
+
+export class WheelHandler extends EventHandler {
+  constructor(...args) {
+    super(...args);
+    this.setTypeName("wheel");
+    this.setDefaultResponse(ResponseStopDefault);
+    this.setListenElement(dom.getBody());
+
+    this.onChange = null;
+    this.withShift = null;
+    this.withCtrl = null;
+    this.withAlt = null;
+  }
+
+  setOnChange(handler) {
+    this.onChange = handler;
+  }
+
+  setWithAlt(require) {
+    this.withAlt = require;
+  }
+  setWithShift(require) {
+    this.withShift = require;
+  }
+  setWithCtrl(require) {
+    this.withCtrl = require;
+  }
+
+  callHandler(method, event) {
+    try {
+      if (this.withAlt && !event.altKey) {
+        return ResponseContinue;
+      }
+      if (this.withCtrl && !event.ctrlKey) {
+        return ResponseContinue;
+      }
+      if (this.withShift && !event.shiftKey) {
+        return ResponseContinue;
+      }
+      log.debug("wheel event ", event.wheelDelta);
+      if (method) {
+        method(event.currentTarget, this.data, event, this);
+      }
+      if (this.onChange) {
+        var changeMethod = this.onChange.getMethod({
+          defaultName: "onChange",
+        });
+        if (changeMethod) {
+          changeMethod(event.wheelDelta, event.target, event, this);
+        }
+      }
     } catch (ex) {
       log.error(ex, "event handler for ", this.typeName, " failed");
     }
