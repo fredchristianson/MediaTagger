@@ -50,16 +50,27 @@ body {
   border: 1px solid green;
   display: none;
   position: relative;
+  aspect-ratio: 1/1;
 }
 #media-view .media-items .media-item .name {
   position: relative;
   z-index: 2;
   background-color: rgba(0, 68, 68, 0.4666666667);
 }
+#media-view .media-items .media-item .details {
+  position: relative;
+  z-index: 2;
+  background-color: black;
+  min-height: 3rem;
+  color: white;
+  display: none;
+}
 #media-view .media-items .media-item img {
   position: absolute;
   left: 0;
   bottom: 0;
+  width: 100%;
+  aspect-ratio: auto;
   max-width: 100%;
   max-height: 100%;
   z-index: 1;
@@ -79,6 +90,12 @@ body {
   left: 48px;
   top: 48px;
   background-color: red;
+}
+#media-view .detailed .media-item .details {
+  display: block;
+}
+#media-view .minimal .media-item .name {
+  display: none;
 }
 #media-view .date-filter {
   grid-area: date-filter;

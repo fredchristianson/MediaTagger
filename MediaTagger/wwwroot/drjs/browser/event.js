@@ -310,7 +310,7 @@ export class EventHandler {
       if (this.handlerObject) {
         method = func.bind(this.handlerObject);
       }
-      result = ResponseStopPropagation;
+      result = this.defaultResponse;
     } else if (this.handlerObject) {
       method = this.findHandlerMethod(this.handlerObject, this.typeName);
     }
@@ -470,11 +470,13 @@ export class CheckboxHandler extends InputHandler {
 export class EventListener extends EventHandler {
   constructor(objectEventType, ...args) {
     super(objectEventType, dom.getBody(), ...args);
+    this.defaultResponse = ResponseContinue;
+    this.listen();
   }
 
   callHandler(method, event) {
     const detail = event.detail;
-    method(detail.object, detail.data, detail.type);
+    method(detail.data, detail.object, detail.type);
   }
 }
 

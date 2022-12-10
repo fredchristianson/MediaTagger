@@ -18,12 +18,13 @@
         position: relative;
 
         .media-item {
-            left:0;
-            top:0;
+            left: 0;
+            top: 0;
             overflow: hidden;
             border: 1px solid green;
             display: none;
             position: relative;
+            aspect-ratio: 1/1;
 
             .name {
                 position: relative;
@@ -31,10 +32,21 @@
                 background-color: #00444477;
             }
 
+            .details {
+                position: relative;
+                z-index: 2;
+                background-color: black;
+                min-height: 3rem;
+                color: white;
+                display: none;
+            }
+
             img {
                 position: absolute;
                 left: 0;
                 bottom: 0;
+                width: 100%;
+                aspect-ratio: auto;
                 max-width: 100%;
                 max-height: 100%;
                 z-index: 1;
@@ -62,13 +74,31 @@
         }
     }
 
+    .detailed {
+            .media-item {
+                .details {
+                    display: block;
+                }
+        }
+    }
+
+    .minimal {
+            .media-item {
+                .name {
+                    display: none;
+                }
+            }
+    }
+
     .date-filter {
         grid-area: date-filter;
         max-height: 3rem;
     }
+
     .media-filter {
         grid-area: media-details;
     }
+
     .media-details {
         grid-area: media-filter;
     }

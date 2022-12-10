@@ -9,12 +9,17 @@ import {
   Listeners,
   BuildClickHandler,
   BuildInputHandler,
+  EventEmitter,
+  ObjectEventType,
 } from "../../drjs/browser/event.js";
+
+export var ZoomChangeEvent = new ObjectEventType("zoomChange");
 
 export class ViewOptionsComponent extends ComponentBase {
   constructor(selector, htmlName = "view-options") {
     super(selector, htmlName);
     this.listeners = [];
+    this.zoomEmitter = new EventEmitter(ZoomChangeEvent, this);
   }
 
   onHtmlInserted(parent) {
@@ -31,6 +36,10 @@ export class ViewOptionsComponent extends ComponentBase {
       BuildInputHandler()
         .selector("[name='zoom']")
         .onChange(this, this.zoom)
+        .build(),
+      BuildInputHandler()
+        .selector("[name='zoom-slider']")
+        .onChange(this, this.zoomSlider)
         .build()
     );
     //        this.listen("click",".show-settings",this.showSettings);
@@ -42,25 +51,14 @@ export class ViewOptionsComponent extends ComponentBase {
   }
 
   zoom(value) {
-    //styles.updateMediaZoom(value);
-    var size = (128.0 * value) / 100;
-    var items = dom.find(".media-items .media-item");
-    var left = 0;
-    var top = 0;
-    for (var idx in items) {
-      var item = items[idx];
-      //item.offsetLeft = left;
-      //item.offsetTop = top;
-      item.style.left = "" + left + "px";
-      item.style.top = "" + top + "px";
-      item.style.width = "" + size + "px";
-      item.style.height = "" + size + "px";
-      left = left + size;
-      if (left > 800) {
-        left = 0;
-        top += size;
-      }
-    }
+    log.debug("zoom input change ", value);
+    dom.setValue('[name="zoom-slider"]', value);
+    this.zoomEmitter.emit(value);
+  }
+  zoomSlider(value) {
+    log.debug("zoom slider change ", value);
+    dom.setValue('[name="zoom"]', value);
+    this.zoomEmitter.emit(value);
   }
   showSettings(target, event) {
     main.instance.showSettings();

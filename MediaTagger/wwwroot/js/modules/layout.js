@@ -1,5 +1,12 @@
 import { LOG_LEVEL, Logger } from "../../drjs/logger.js";
 import dom from "../../drjs/browser/dom.js";
+import { ZoomChangeEvent } from "../component/view-options.js";
+import {
+  Listeners,
+  EventListener,
+  ObjectListener,
+  EventEmitter,
+} from "../../drjs/browser/event.js";
 
 const log = Logger.create("Layout", LOG_LEVEL.INFO);
 
@@ -43,10 +50,17 @@ export class Layout {
     });
     this.resizeObserver.observe(this.container);
     this.items = [];
+    this.listeners = new Listeners(
+      new EventListener(ZoomChangeEvent, this, this.onZoomChange)
+    );
   }
 
   onContainerResize(containerWidth, containerHeight, entries) {
     /* base layout does nothing;*/
+  }
+
+  onZoomChange(newValue) {
+    log.debug("layout zoom change ", newValue);
   }
 
   px(num) {
@@ -82,8 +96,14 @@ export class GridLayout extends Layout {
     this.nextLeft = this.gap;
     this.nextTop = this.gap;
     this.grid = dom.createElement("div");
+    this.zoom = 100.0;
     this.setGridAttributes();
     dom.append(this.container, this.grid);
+  }
+
+  onZoomChange(newValue) {
+    this.zoom = newValue;
+    this.setGridAttributes();
   }
 
   onContainerResize(containerWidth, containerHeight, entries) {
@@ -95,17 +115,20 @@ export class GridLayout extends Layout {
     style.display = "none";
     style.width = "100%"; // this.px(this.container.clientWidth);
     //style.height = this.px(this.container.clientHeight);
+    var zoomWidth = (this.itemWidth * this.zoom) / 100.0;
     this.columnCount = Math.floor(
-      (this.containerWidth - this.itemWidth) / (this.gap + this.itemWidth + 1)
+      (this.containerWidth - zoomWidth) / (this.gap + zoomWidth + 1)
     );
     this.columnPercent = 100.0 / this.columnCount;
     this.gapPercent = this.gap / 100.0 + 1;
     style["column-gap"] = px(this.gap);
     style["row-gap"] = px(this.gap);
     style["grid-template-columns"] = `repeat(${this.columnCount},1fr)`;
-    style["grid-auto-rows"] = px(this.itemHeight);
+    style["grid-auto-rows"] = "minmax(content,px(zoomWidth)";
     style["background-color"] = "hsl(180,100,50)";
 
+    dom.toggleClass(this.grid, "detailed", zoomWidth > 200);
+    dom.toggleClass(this.grid, "minimal", zoomWidth < 100);
     style.display = "grid";
   }
 
