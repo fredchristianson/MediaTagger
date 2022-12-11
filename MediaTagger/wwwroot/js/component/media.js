@@ -8,8 +8,10 @@ import { Listeners } from "../../drjs/browser/event.js";
 import MediaDetailsComponent from "./media-details.js";
 import DateFilterComponent from "./date-filter.js";
 import MediaFilterComponent from "./media-filter.js";
+import Media from "../modules/media.js";
 import { GridLayout } from "../modules/layout.js";
 import UTIL from "../../drjs/util.js";
+import asyncLoader from "../modules/async-loader.js";
 
 const log = Logger.create("MediaComponent", LOG_LEVEL.INFO);
 import api from "../mt-api.js";
@@ -30,14 +32,17 @@ export class MediaComponent extends ComponentBase {
     this.dateFilter = new DateFilterComponent("#date-filter");
     this.mediaFilter = new MediaFilterComponent("#media-filter");
 
-    this.layout = new GridLayout(".items");
-    var allItems = await api.GetAllMediaItems();
-    allItems.splice(MAX_MEDIA_ITEMS, allItems.length);
+    var allItems = await Media.getVisibleItems();
     var template = new HtmlTemplate(this.dom.first("#media-item-template"));
-    log.never("got ", allItems.length, " media items");
-    setTimeout(() => {
-      this.insertNextItems(template, allItems);
-    }, 0);
+
+    this.layout = new GridLayout(".items", allItems, (item) => {
+      var htmlItem = template.fill({
+        ".name": item.name,
+        ".thumbnail": new ReplaceTemplateValue("{id}", item.primaryFileId),
+      });
+      asyncLoader.setConcurrentLoadLimit(5);
+      return htmlItem;
+    });
 
     // load multiple images at a time but limit
     this.scheduled = 0;
@@ -47,37 +52,7 @@ export class MediaComponent extends ComponentBase {
     }
   }
 
-  insertNextItems(template, items) {
-    var toInsert = [];
-    for (var i = 0; i < items.length && i < 1000; i++) {
-      var item = items[i];
-      var htmlItem = template.fill({
-        ".name": item.name,
-        ".thumbnail": new ReplaceTemplateValue("{id}", item.primaryFileId),
-      });
-      //var newNode = this.dom.append(items, htmlItem);
-      //this.layout.addItem(htmlItem);
-      toInsert.push(htmlItem);
-    }
-    this.layout.addItems(toInsert);
-    items.splice(0, toInsert.length);
-    if (items.length > 0) {
-      setTimeout(() => this.insertNextItems(template, items), 0);
-    } else {
-      log.info("all items inserted");
-    }
-  }
 
-  intersectionChange(entries, observer) {
-    log.never("intersection change");
-    entries.forEach((entry) => {
-      if (entry.isIntersecting) {
-        this.dom.addClass(entry.target, "in-view");
-      } else {
-        this.dom.removeClass(entry.target, "in-view");
-      }
-    });
-  }
 
   scheduleLoadNext() {
     if (this.running > 5 || this.scheduled > 5) {

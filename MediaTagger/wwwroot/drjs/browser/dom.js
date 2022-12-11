@@ -486,6 +486,12 @@ export class DOM {
       element.removeEventListener(typeName, handler);
     });
   }
+
+  setInnerHTML(selector, html) {
+    this.toElementArray(selector).forEach((element) => {
+      element.innerHTML = `${html}`;
+    });
+  }
 }
 
 const dom = new DOM();

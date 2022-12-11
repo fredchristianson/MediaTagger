@@ -175,38 +175,45 @@ namespace MediaTagger.Modules.MediaFile
                 // don't do anything for videos yet;  
                 // todo: get video properties
                 if (IsVideoType(fileModel)) { return; }
-                using (var image = new MagickImage(path))
+                try
                 {
-
-                    IExifProfile exifProfile = image.GetExifProfile();
-                    if (exifProfile != null)
+                    using (var image = new MagickImage(path))
                     {
-                        List<Tuple<string, object>> exifValues = new List<Tuple<string, object>>();
-                        var dateTaken = exifProfile.GetValue(ExifTag.DateTimeOriginal);
-                        if (dateTaken != null)
-                        {
-                            fileModel.DateTaken = ParseExifDate(dateTaken.Value);
-                        }
-                        foreach (IExifValue v in exifProfile.Values)
-                        {
-                            var value = v.GetValue();
-                            // ignore long string values
-                            if (value != null && !(value is byte[]))
-                            {
-                                exifValues.Add(new Tuple<string, object>(v.Tag.ToString(), value));
-                            }
 
-                        }
-                        string json = JsonSerializer.Serialize(exifValues);
-                        if (json != null && !json.Equals(fileModel.ExifJson))
+                        IExifProfile exifProfile = image.GetExifProfile();
+                        if (exifProfile != null)
                         {
-                            fileModel.ExifJson = json;
+                            List<Tuple<string, object>> exifValues = new List<Tuple<string, object>>();
+                            var dateTaken = exifProfile.GetValue(ExifTag.DateTimeOriginal);
+                            if (dateTaken != null)
+                            {
+                                fileModel.DateTaken = ParseExifDate(dateTaken.Value);
+                            }
+                            foreach (IExifValue v in exifProfile.Values)
+                            {
+                                var value = v.GetValue();
+                                // ignore long string values
+                                if (value != null && !(value is byte[]))
+                                {
+                                    exifValues.Add(new Tuple<string, object>(v.Tag.ToString(), value));
+                                }
+
+                            }
+                            string json = JsonSerializer.Serialize(exifValues);
+                            if (json != null && !json.Equals(fileModel.ExifJson))
+                            {
+                                fileModel.ExifJson = json;
+                            }
                         }
                     }
+
+                    await this.db.SaveChangesAsync();
+
                 }
-
-                await this.db.SaveChangesAsync();
-
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, "failed to update properties");
+                }
             }
         }
 

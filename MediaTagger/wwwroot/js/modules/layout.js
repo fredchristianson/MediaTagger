@@ -6,6 +6,7 @@ import {
   EventListener,
   ObjectListener,
   EventEmitter,
+  BuildScrollHandler,
 } from "../../drjs/browser/event.js";
 
 const log = Logger.create("Layout", LOG_LEVEL.INFO);
@@ -30,8 +31,10 @@ function px(num) {
 }
 
 export class Layout {
-  constructor(containerSelector) {
+  constructor(containerSelector, list, htmlCreator) {
     this.containerSelector = containerSelector;
+    this.htmlCreator = htmlCreator;
+    this.list = list;
     this.container = dom.first(this.containerSelector);
     if (this.container == null) {
       throw new Error("Selector ", containerSelector, " not found");
@@ -49,10 +52,43 @@ export class Layout {
       );
     });
     this.resizeObserver.observe(this.container);
-    this.items = [];
     this.listeners = new Listeners(
       new EventListener(ZoomChangeEvent, this, this.onZoomChange)
     );
+    this.items = [];
+    this.list.getUpdatedEvent().createListener(this, this.onListUpdated);
+    this.listeners = new Listeners(
+      BuildScrollHandler().listenTo(this.container).onScroll(this).build()
+    );
+  }
+
+  onScroll(pos) {
+    log.info("scroll ", pos);
+    if (pos > this.container.scrollHeight - this.container.offsetHeight * 2) {
+      this.addElements(500);
+    }
+  }
+  onListUpdated(list) {
+    this.addElements(500);
+  }
+
+  addElements(maxAdded) {
+    var items = this.list.getItems();
+    var count = 0;
+    for (var i = 0; i < items.length && count < maxAdded; i++) {
+      var item = items[i];
+      if (item.__layout_element == null) {
+        var element = this.htmlCreator(item);
+        item.__layout_element = element;
+        this.addItem(element);
+        count++;
+      }
+    }
+    // if (i < items.length) {
+    //   setTimeout(() => {
+    //     this.addElements(500);
+    //   }, 100);
+    // }
   }
 
   onContainerResize(containerWidth, containerHeight, entries) {
@@ -88,8 +124,8 @@ export class Layout {
 }
 
 export class GridLayout extends Layout {
-  constructor(containerSelector) {
-    super(containerSelector);
+  constructor(containerSelector, list, htmlCreator) {
+    super(containerSelector, list, htmlCreator);
     this.itemWidth = 128;
     this.itemHeight = 128;
     this.gap = 16;

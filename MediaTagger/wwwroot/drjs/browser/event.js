@@ -164,6 +164,17 @@ export class ClickHandlerBuilder extends EventHandlerBuilder {
   }
 }
 
+export class ScrollHandlerBuilder extends EventHandlerBuilder {
+  constructor(type) {
+    super(type || ScrollHandler);
+  }
+
+  onScroll(...args) {
+    this.handler.setOnScroll(new HandlerMethod(...args));
+    return this;
+  }
+}
+
 export class CheckboxHandlerBuilder extends InputHandlerBuilder {
   constructor() {
     super(CheckboxHandler);
@@ -199,6 +210,10 @@ export function BuildHandler(handlerClass) {
 
 export function BuildClickHandler() {
   return new ClickHandlerBuilder(ClickHandler);
+}
+
+export function BuildScrollHandler() {
+  return new ScrollHandlerBuilder(ScrollHandler);
 }
 
 export function BuildInputHandler() {
@@ -425,6 +440,39 @@ export class ClickHandler extends EventHandler {
   }
 }
 
+export class ScrollHandler extends EventHandler {
+  constructor(...args) {
+    super("scroll", ...args);
+    this.onScroll = null;
+  }
+
+  setOnScroll(handler) {
+    this.onScroll = handler;
+  }
+
+  callHandler(method, event) {
+    try {
+      if (method != null) {
+        method(event.currentTarget, this.data, event, this);
+      }
+      if (this.onScroll != null) {
+        var scrollMethod = this.onScroll.getMethod({ defaultName: "onScroll" });
+        if (scrollMethod) {
+          scrollMethod(
+            event.currentTarget.scrollTop,
+            event.currentTarget,
+            this.data,
+            event,
+            this
+          );
+        }
+      }
+    } catch (ex) {
+      log.error(ex, "event handler for ", this.typeName, " failed");
+    }
+  }
+}
+
 export class InputHandler extends EventHandler {
   constructor(...args) {
     super(...args);
@@ -572,13 +620,13 @@ export class ObjectListener extends EventHandler {
   constructor(obj, objectEventType, ...args) {
     super(objectEventType, dom.getBody(), ...args);
     this.target = obj;
-    this.target = args.find((arg) => typeof arg == "object");
+    this.listen();
   }
 
   callHandler(method, event) {
     const detail = event.detail;
     if (
-      (this.target == null || this.target == details.object) &&
+      (this.target == null || this.target == detail.object) &&
       (this.typeName == null ||
         this.typeName == "*" ||
         this.typeName == detail.typeName)
@@ -599,6 +647,16 @@ export class EventEmitter {
     this.object = object;
   }
 
+  createListener(handlerObject, handlerMethod) {
+    log.debug(`EventEmitter.createListener ${this.typeName}`);
+    return new ObjectListener(
+      this.object,
+      this.type,
+      handlerObject,
+      handlerMethod
+    );
+  }
+
   emit(data) {
     const detail = {
       object: this.object,
@@ -606,6 +664,7 @@ export class EventEmitter {
       typeName: this.typeName,
       type: this.type,
     };
+    log.debug(`EventEmitter.emit ${this.typeName}`);
     const event = new CustomEvent(this.typeName, { detail: detail });
     dom.getBody().dispatchEvent(event);
   }
