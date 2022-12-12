@@ -38,7 +38,10 @@ export class MediaComponent extends ComponentBase {
     this.layout = new GridLayout(".items", allItems, (item) => {
       var htmlItem = template.fill({
         ".name": item.name,
-        ".thumbnail": new ReplaceTemplateValue("{id}", item.primaryFileId),
+        ".thumbnail": new ReplaceTemplateValue(
+          "{thumbnail}",
+          item.getThumbnailUrl.bind(item)
+        ),
       });
       asyncLoader.setConcurrentLoadLimit(5);
       return htmlItem;
@@ -51,8 +54,6 @@ export class MediaComponent extends ComponentBase {
       this.scheduleLoadNext();
     }
   }
-
-
 
   scheduleLoadNext() {
     if (this.running > 5 || this.scheduled > 5) {

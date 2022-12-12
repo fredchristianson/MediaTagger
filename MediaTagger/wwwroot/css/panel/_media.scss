@@ -17,6 +17,19 @@
         overflow: auto;
         position: relative;
 
+        .layout {
+            position: relative;
+        }
+
+        .layout-view {
+            position: absolute;
+            left:0;
+            top:0;
+            right:0;
+            bottom: 0;
+            background-color: #dddddd;
+        }
+
         .media-item {
             left: 0;
             top: 0;
@@ -25,6 +38,10 @@
             display: none;
             position: relative;
             aspect-ratio: 1/1;
+            background-image: url("../image/loading.gif");
+                background-size: 32px;
+                    background-repeat: no-repeat;
+                    background-position: center;
 
             .name {
                 position: relative;
@@ -54,14 +71,6 @@
 
             }
 
-            .loading,
-            .load-waiting {
-                display: block;
-                width: 32px;
-                height: 32px;
-                left: 48px;
-                top: 48px;
-            }
 
             .error {
                 display: block;
@@ -72,6 +81,10 @@
                 background-color: red;
             }
         }
+
+                .media-item.loaded {
+                    background-image: unset;
+                }
     }
 
     .detailed {
@@ -103,9 +116,4 @@
         grid-area: media-filter;
     }
 
-    [data-unloaded="true"] {
-        max-width: 64px !important;
-        position: relative;
-        margin: auto auto !important;
-    }
 }

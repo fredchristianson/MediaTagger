@@ -50,6 +50,12 @@ export class ObservableList extends ObservableCollection {
     return this.items;
   }
 
+  getItem(index) {
+    if (this.items == null) return null;
+    if (this.items.length - 1 < index) return null;
+    return this.items[index];
+  }
+
   setItems(items) {
     if (items instanceof ObservableCollection) {
       this.items = items.getItems();

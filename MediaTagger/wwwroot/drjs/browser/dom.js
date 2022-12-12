@@ -23,6 +23,10 @@ export class DOM {
     return document.body;
   }
 
+  getParent(element) {
+    return element.parentNode;
+  }
+
   getParentAndSelector(opts) {
     var parent = this.root;
     var selector = "*";
