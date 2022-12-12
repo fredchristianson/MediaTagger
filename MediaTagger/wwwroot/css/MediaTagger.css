@@ -107,6 +107,11 @@ body {
 #media-view .media-details {
   grid-area: media-filter;
 }
+#media-view [data-unloaded=true] {
+  max-width: 64px !important;
+  position: relative;
+  margin: auto auto !important;
+}
 
 .hidden {
   display: none !important;

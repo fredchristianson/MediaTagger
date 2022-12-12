@@ -11,6 +11,8 @@ class Media {
     this.items = new ObservableList();
     this.files = new ObservableList();
     this.groups = new ObservableList();
+    this.filesById = [];
+    this.itemsById = [];
     this.visibleItems = new ObservableList();
   }
 
@@ -18,8 +20,22 @@ class Media {
     try {
       log.debug("Media.getAll ");
       this.items.setItems(await api.GetAllMediaItems());
+      this.items.getItems().forEach((item) => {
+        this.itemsById[item.mediaItemId] = item;
+      });
       this.visibleItems.setItems(this.items);
       this.files.setItems(await api.GetAllMediaFiles());
+      this.files.getItems().forEach((file) => {
+        this.filesById[file.mediaFileId] = file;
+        var item = this.itemsById[file.mediaItemId];
+        if (item != null) {
+          file.mediaItem = item;
+          item.files.push(file);
+          if (item.primaryFileId == file.mediaFileId) {
+            item.primaryFile = file;
+          }
+        }
+      });
       this.groups.setItems(await api.GetAllMediaGroups());
     } catch (ex) {
       log.error(ex, "failed to get items");

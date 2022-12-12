@@ -63,7 +63,6 @@ export class Layout {
   }
 
   onScroll(pos) {
-    log.info("scroll ", pos);
     if (pos > this.container.scrollHeight - this.container.offsetHeight * 2) {
       this.addElements(500);
     }

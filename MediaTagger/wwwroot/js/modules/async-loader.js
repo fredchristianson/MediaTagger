@@ -2,7 +2,7 @@ import { ComponentLoader } from "../../drjs/browser/component-loader.js";
 import { LOG_LEVEL, Logger } from "../../drjs/logger.js";
 import dom from "../../drjs/browser/dom.js";
 
-const log = Logger.create("AsyncLoader", LOG_LEVEL.DEBUG);
+const log = Logger.create("AsyncLoader", LOG_LEVEL.INFO);
 
 class AsyncLoader {
   constructor() {

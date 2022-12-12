@@ -103,4 +103,9 @@
         grid-area: media-filter;
     }
 
+    [data-unloaded="true"] {
+        max-width: 64px !important;
+        position: relative;
+        margin: auto auto !important;
+    }
 }
