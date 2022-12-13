@@ -168,8 +168,8 @@ export class GridLayout extends Layout {
     var cols = Math.floor(viewWidth / (width + gap));
     var rows = Math.floor(viewHeight / (gap + height)) + 1; // draw an extra row
     var visibleCount = cols * rows;
-    if (itemIndex + visibleCount > this.list.getLength()) {
-      itemIndex = this.list.getLength() - visibleCount;
+    if (itemIndex + visibleCount >= this.list.getLength()) {
+      itemIndex = this.list.getLength() - visibleCount + 2 * cols;
     }
     var colPos = itemIndex % cols;
     itemIndex -= colPos;
