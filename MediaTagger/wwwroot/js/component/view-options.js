@@ -42,6 +42,10 @@ export class ViewOptionsComponent extends ComponentBase {
         .onChange(this, this.zoom)
         .build(),
       BuildInputHandler()
+        .selector("[name='zoom-slider']")
+        .onChange(this, this.zoomSlider)
+        .build(),
+      BuildInputHandler()
         .selector("[name='search']")
         .onChange(this, this.search)
         .debounce(500)

@@ -173,16 +173,23 @@ export class GridLayout extends Layout {
     var cols = Math.floor(viewWidth / (width + gap));
     var rows = Math.floor(viewHeight / (gap + height)) + 1; // draw an extra row
     var visibleCount = cols * rows;
-    if (itemIndex + visibleCount >= this.list.getLength()) {
+    if (
+      itemIndex > visibleCount &&
+      itemIndex + visibleCount >= this.list.getLength()
+    ) {
       itemIndex = this.list.getLength() - visibleCount + 2 * cols;
+      if (itemIndex < 0) {
+        itemIndex = 0;
+      }
     }
     var colPos = itemIndex % cols;
     itemIndex -= colPos;
+    var topOffset = (1.0 * (height + gap) * colPos) / cols;
     if (itemIndex < 0) {
       itemIndex = 0;
+      topOffset = 0;
     }
     var html = this.getItemHtml(itemIndex);
-    var topOffset = (1.0 * (height + gap) * colPos) / cols;
     asyncLoader.clearPriorities();
     while (visible && html != null) {
       asyncLoader.increasePriority(this.getItem(itemIndex));
