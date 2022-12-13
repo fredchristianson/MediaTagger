@@ -9,6 +9,7 @@ import {
   BuildScrollHandler,
 } from "../../drjs/browser/event.js";
 import asyncLoader from "./async-loader.js";
+import { OnNextLoop } from "./timer.js";
 
 const log = Logger.create("Layout", LOG_LEVEL.INFO);
 
@@ -61,20 +62,24 @@ export class Layout {
     this.listeners = new Listeners(
       new EventListener(ZoomChangeEvent, this, this.onZoomChange)
     );
-    this.items = [];
+
     this.list.getUpdatedEvent().createListener(this, this.onListUpdated);
     this.listeners = new Listeners(
       BuildScrollHandler().listenTo(this.container).onScroll(this).build()
     );
+
+    OnNextLoop(() => {
+      this.onListUpdated(this.list);
+    });
   }
 
   getItem(index) {
-    var item = this.list.getItem(index);
+    var item = this.list.getItemAt(index);
     return item;
   }
 
   getItemHtml(index) {
-    var item = this.list.getItem(index);
+    var item = this.list.getItemAt(index);
     if (item == null) {
       return null;
     }

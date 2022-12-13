@@ -4,7 +4,7 @@ import UTIL from "../../drjs/util.js";
 import asyncLoader from "./async-loader.js";
 const log = Logger.create("Media", LOG_LEVEL.INFO);
 import api from "../mt-api.js";
-import { ObservableList } from "./collections.js";
+import { ObservableView } from "./collections.js";
 
 class MediaObject {
   constructor(data) {
@@ -104,45 +104,45 @@ export class MediaGroup extends MediaObject {
 
 class Media {
   constructor() {
-    this.items = new ObservableList();
-    this.files = new ObservableList();
-    this.groups = new ObservableList();
+    this.mediaItems = null;
+    this.files = null;
+    this.groups = null;
     this.filesById = [];
     this.itemsById = [];
-    this.visibleItems = new ObservableList();
+    this.visibleItems = null;
   }
 
-  async getAll() {
+  async loadItems() {
     try {
       log.debug("Media.getAll ");
-      this.items.setItems(
+      this.mediaItems = new ObservableView(
         (await api.GetAllMediaItems()).map((item) => {
           return new MediaItem(item);
         })
       );
-      asyncLoader.addFiles(this.items.getItems());
+      asyncLoader.addFiles(this.mediaItems);
 
-      this.items.getItems().forEach((item) => {
+      for (var item of this.mediaItems) {
         this.itemsById[item.getId()] = item;
-      });
-      this.visibleItems.setItems(this.items);
-      this.files.setItems(
+      }
+      this.visibleItems = new ObservableView(this.mediaItems);
+      this.files = new ObservableView(
         (await api.GetAllMediaFiles()).map((file) => {
           return new MediaFile(file);
         })
       );
-      this.files.getItems().forEach((file) => {
+      for (var file of this.files) {
         this.filesById[file.fileId] = file;
-        var item = this.itemsById[file.getId()];
-        if (item != null) {
-          file.setMediaItem(item);
-          item.addFile(file);
-          if (item.getPrimaryFileId() == file.getId()) {
-            item.setPrimaryFile(file);
+        var mediaItem = this.itemsById[file.getId()];
+        if (mediaItem != null) {
+          file.setMediaItem(mediaItem);
+          mediaItem.addFile(file);
+          if (mediaItem.getPrimaryFileId() == file.getId()) {
+            mediaItem.setPrimaryFile(file);
           }
         }
-      });
-      this.groups.setItems(
+      }
+      this.groups = new ObservableView(
         (await api.GetAllMediaGroups()).map((g) => {
           return new MediaGroup(g);
         })

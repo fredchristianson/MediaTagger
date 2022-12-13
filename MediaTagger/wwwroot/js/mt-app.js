@@ -20,11 +20,11 @@ export class MediaTaggerApp extends Application {
     super("MediaTagger App");
   }
 
-  initialize() {
+  async initialize() {
     this.listeners = new Listeners(
       new EventListener(ComponentLoadedEvent, this)
     );
-    Media.getAll();
+    await Media.loadItems();
 
     this.mainComponent = new MainComponent("#main-content");
   }

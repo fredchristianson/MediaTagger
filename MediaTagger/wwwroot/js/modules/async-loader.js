@@ -47,12 +47,12 @@ class AsyncLoader {
   }
 
   addFiles(files) {
-    files.forEach((file) => {
+    for (var file of files) {
       var priority = this.getItemPriority(file);
       if (priority == null) {
         this.itemPriority.push(new ItemPriority(file, DEFAULT_PRIORITY));
       }
-    });
+    }
     this.check();
   }
 
