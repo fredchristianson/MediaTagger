@@ -20,7 +20,7 @@ builder.Services.AddDbContext<MediaTaggerContext>(options =>
 builder.Services.AddSingleton<IBackgroundMessageService, BackgroundMessageService>();
 builder.Services.AddSession();
 //builder.Services.AddHostedService<FileSystemService>();
-builder.WebHost.UseUrls("https://localhost:7094", "http://192.168.10.128:8094");
+//builder.WebHost.UseUrls("https://localhost:7094", "http://192.168.10.128:8094");
 var app = builder.Build();
 
 
@@ -40,7 +40,7 @@ if (!app.Environment.IsDevelopment())
 
 using (var scope = app.Services.CreateScope())
 {
-    
+
     var services = scope.ServiceProvider;
 
     var context = services.GetRequiredService<MediaTaggerContext>();
@@ -49,7 +49,7 @@ using (var scope = app.Services.CreateScope())
     //DbInitializer.Initialize(context);
 }
 
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection();
 app.UseStaticFiles(new StaticFileOptions
 {
     ServeUnknownFileTypes = true

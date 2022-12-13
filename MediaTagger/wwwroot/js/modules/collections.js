@@ -38,22 +38,37 @@ export class ObservableCollection {
     return this.updatedEvent;
   }
 
-  getEnumerator() {
-    throw new Error("ObservableCollection class must implement getEnumerator");
+  [Symbol.iterator]() {
+    let index = 0;
+    const count = this.getLength();
+    return {
+      next: () => {
+        if (index < count) {
+          return { done: false, value: this.getItemAt(index++) };
+        } else {
+          return { done: true };
+        }
+      },
+    };
   }
 }
 
 export class ObservableArray extends ObservableCollection {
   constructor(items = []) {
     super();
-    this.items = items;
+    if (items instanceof ObservableCollection) {
+      this.items = [...items];
+    } else if (Array.isArray(items)) {
+      this.items = items;
+    } else {
+      throw new Error(
+        "ObservableArray parameter must be an ObservableCollection or Array"
+      );
+    }
   }
 
   getLength() {
     return this.items.length;
-  }
-  getEnumerator() {
-    return this.items.getEnumerator();
   }
 
   getItemAt(index) {
@@ -73,6 +88,17 @@ export class ObservableArray extends ObservableCollection {
       throw new Error("ObservableArray.items called with invalid parameter");
     }
     this.updatedEvent.emit(this.items);
+  }
+
+  // these are intended for other ObservableCollection instances, not public
+  __getItems() {
+    return this.items;
+  }
+  __sort(func) {
+    this.items.sort(func);
+  }
+  __filter(func) {
+    this.items = this.items.filter(func);
   }
 }
 
@@ -97,7 +123,7 @@ export class ObservableView extends ObservableCollection {
       );
     }
     this.collectionIn.getSortedEvent().createListener(this, "onBaseSorted");
-    this.collectionIn.getFilteredEvent().createListener(this, "onBaseSorted");
+    this.collectionIn.getFilteredEvent().createListener(this, "onBaseFiltered");
     this.collectionIn
       .getItemsAddedEvent()
       .createListener(this, "onBaseItemsAdded");
@@ -108,6 +134,27 @@ export class ObservableView extends ObservableCollection {
       .getItemsRemovedEvent()
       .createListener(this, "onBaseItemsRemovedEvent");
     this.collectionIn.getUpdatedEvent().createListener(this, "onBaseUpdated");
+  }
+
+  onBaseSorted() {
+    this.sortedEvent.emit(this);
+    this.updatedEvent.emit(this);
+  }
+
+  onBaseFiltered() {
+    this.filteredEvent.emit(this);
+    this.updatedEvent.emit(this);
+  }
+  onBaseItemsAdded() {
+    this.itemsAddedEvent.emit(this);
+    this.updatedEvent.emit(this);
+  }
+  onBaseItemsRemoved() {
+    this.itemsRemovedEvent.emit(this);
+    this.updatedEvent.emit(this);
+  }
+  onBaseUpdated() {
+    this.updatedEvent.emit(this);
   }
 
   getLength() {
@@ -132,18 +179,63 @@ export class ObservableView extends ObservableCollection {
       );
     }
   }
+}
 
-  [Symbol.iterator]() {
-    let index = 0;
-    const count = this.getLength();
-    return {
-      next: () => {
-        if (index < count) {
-          return { done: false, value: this.getItemAt(index++) };
-        } else {
-          return { done: true };
-        }
-      },
-    };
+function defaultSortCompare(a, b) {
+  if (a == null) {
+    return b == null ? 0 : -1;
+  }
+  if (b == null) {
+    return 1;
+  }
+  return a < b ? -1 : 1;
+}
+export class SortedObservableView extends ObservableView {
+  constructor(collectionIn = null, comparisonFunction = defaultSortCompare) {
+    super(collectionIn);
+    this.comparisonFunction = comparisonFunction;
+    this.items = new ObservableArray(collectionIn);
+    this.sort();
+  }
+
+  setSortComparison(comparisonFunction) {
+    this.comparisonFunction = comparisonFunction;
+  }
+  onBaseUpdated() {
+    this.items = new ObservableArray(collectionIn);
+    this.sort();
+  }
+
+  sort() {
+    this.items.__sort(this.comparisonFunction);
+    this.sortedEvent.emit(this);
+    this.updatedEvent.emit(this);
+  }
+}
+
+function defaultKeepFilter(item) {
+  return true;
+}
+
+export class FilteredObservableView extends ObservableView {
+  constructor(collectionIn = null, keepFunction = defaultKeepFilter) {
+    super(collectionIn);
+    this.keepFunction = keepFunction;
+    this.items = new ObservableArray(collectionIn);
+    this.filter();
+  }
+
+  setKeepFunction(keepFunction) {
+    this.keepFunction = keepFunction;
+  }
+  onBaseUpdated() {
+    this.filter();
+  }
+
+  filter() {
+    this.items = new ObservableArray(this.collectionIn);
+    this.items.__filter(this.keepFunction);
+    this.filteredEvent.emit(this);
+    this.updatedEvent.emit(this);
   }
 }

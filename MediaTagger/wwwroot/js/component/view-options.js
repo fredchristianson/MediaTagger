@@ -41,8 +41,12 @@ export class ViewOptionsComponent extends ComponentBase {
         .onChange(this, this.zoom)
         .build(),
       BuildInputHandler()
-        .selector("[name='zoom-slider']")
-        .onChange(this, this.zoomSlider)
+        .selector("[name='search']")
+        .onChange(this, this.search)
+        .build(),
+      BuildInputHandler()
+        .selector("[name='sort']")
+        .onChange(this, this.sort)
         .build(),
       BuildWheelHandler()
         .listenTo("#content-view")
@@ -56,6 +60,13 @@ export class ViewOptionsComponent extends ComponentBase {
     this.dom.setAttribute(this.zoomSlider, "max", MAX_ZOOM);
   }
 
+  search(text) {
+    log.debug("search change ", text);
+  }
+
+  sort(sortType) {
+    log.debug("sort change ", sortType);
+  }
   onDetach() {
     this.listeners.remove();
   }

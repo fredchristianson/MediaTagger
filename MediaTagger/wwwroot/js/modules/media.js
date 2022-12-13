@@ -4,7 +4,13 @@ import UTIL from "../../drjs/util.js";
 import asyncLoader from "./async-loader.js";
 const log = Logger.create("Media", LOG_LEVEL.INFO);
 import api from "../mt-api.js";
-import { ObservableView } from "./collections.js";
+import Database from "../../drjs/browser/database.js";
+
+import {
+  ObservableView,
+  SortedObservableView,
+  FilteredObservableView,
+} from "./collections.js";
 
 class MediaObject {
   constructor(data) {
@@ -107,33 +113,70 @@ class Media {
     this.mediaItems = null;
     this.files = null;
     this.groups = null;
-    this.filesById = [];
-    this.itemsById = [];
     this.visibleItems = null;
+    this.database = new Database("media", 3, ["items"]);
   }
 
   async loadItems() {
+    this.databaseTable = await this.database.getTable("items");
+
+    if (!(await this.loadItemsFromDatabase())) {
+      await this.loadItemsFromAPI();
+      this.saveItemsToDatabase();
+    }
+  }
+
+  async saveItemsToDatabase() {
+    await this.databaseTable.set("mediaItems", [...this.mediaItems]);
+    await this.databaseTable.set("files", [...this.files]);
+    await this.databaseTable.set("groups", [...this.groups]);
+  }
+
+  async loadItemsFromDatabase() {
+    var mediaItemData = await this.databaseTable.get("mediaItems");
+    var fileData = await this.databaseTable.get("files");
+    var groupData = await this.databaseTable.get("groups");
+    if (mediaItemData != null && fileData != null && groupData != null) {
+      return this.setupDataViews(mediaItemData, fileData, groupData);
+    }
+    return false;
+  }
+
+  async loadItemsFromAPI() {
+    try {
+      log.debug("Media.getAll ");
+      var mediaItemData = await api.GetAllMediaItems();
+      var fileData = await api.GetAllMediaFiles();
+      var groupData = await api.GetAllMediaGroups();
+      this.setupDataViews(mediaItemData, fileData, groupData);
+    } catch (ex) {
+      log.error(ex, "failed to get items");
+    }
+  }
+
+  async setupDataViews(items, files, groups) {
     try {
       log.debug("Media.getAll ");
       this.mediaItems = new ObservableView(
-        (await api.GetAllMediaItems()).map((item) => {
-          return new MediaItem(item);
+        items.map((i) => {
+          return new MediaItem(i);
         })
       );
       asyncLoader.addFiles(this.mediaItems);
 
+      var itemsById = {};
+      var filesById = {};
       for (var item of this.mediaItems) {
-        this.itemsById[item.getId()] = item;
+        itemsById[item.getId()] = item;
       }
-      this.visibleItems = new ObservableView(this.mediaItems);
       this.files = new ObservableView(
-        (await api.GetAllMediaFiles()).map((file) => {
-          return new MediaFile(file);
+        files.map((f) => {
+          return new MediaFile(f);
         })
       );
       for (var file of this.files) {
-        this.filesById[file.fileId] = file;
-        var mediaItem = this.itemsById[file.getId()];
+        filesById[file.fileId] = file;
+        var mediaItem = itemsById[file.getId()];
         if (mediaItem != null) {
           file.setMediaItem(mediaItem);
           mediaItem.addFile(file);
@@ -143,12 +186,18 @@ class Media {
         }
       }
       this.groups = new ObservableView(
-        (await api.GetAllMediaGroups()).map((g) => {
+        groups.map((g) => {
           return new MediaGroup(g);
         })
       );
+
+      this.filteredItems = new FilteredObservableView(this.mediaItems);
+      this.sortedItems = new SortedObservableView(this.filteredItems);
+      this.visibleItems = new ObservableView(this.sortedItems);
+      return true;
     } catch (ex) {
       log.error(ex, "failed to get items");
+      return false;
     }
   }
 
