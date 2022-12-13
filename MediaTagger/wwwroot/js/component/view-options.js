@@ -1,6 +1,7 @@
 import dom from "../../drjs/browser/dom.js";
 import { ComponentBase } from "../../drjs/browser/component.js";
 import { LOG_LEVEL, Logger } from "../../drjs/logger.js";
+import Media from "../modules/media.js";
 
 import main from "./main.js";
 const log = Logger.create("ViewOptions", LOG_LEVEL.DEBUG);
@@ -43,6 +44,7 @@ export class ViewOptionsComponent extends ComponentBase {
       BuildInputHandler()
         .selector("[name='search']")
         .onChange(this, this.search)
+        .debounce(500)
         .build(),
       BuildInputHandler()
         .selector("[name='sort']")
@@ -62,10 +64,12 @@ export class ViewOptionsComponent extends ComponentBase {
 
   search(text) {
     log.debug("search change ", text);
+    Media.setSearchText(text);
   }
 
   sort(sortType) {
     log.debug("sort change ", sortType);
+    Media.setSortTtype(sortType.toLowerCase());
   }
   onDetach() {
     this.listeners.remove();

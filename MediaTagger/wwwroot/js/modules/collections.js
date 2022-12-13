@@ -25,7 +25,7 @@ export class ObservableCollection {
     return this.sortedEvent;
   }
   getFilteredEvent() {
-    return this.sortedEvent;
+    return this.filteredEvent;
   }
   getItemsAddedEvent() {
     return this.itemsAddedEvent;
@@ -128,11 +128,8 @@ export class ObservableView extends ObservableCollection {
       .getItemsAddedEvent()
       .createListener(this, "onBaseItemsAdded");
     this.collectionIn
-      .getItemsAddedEvent()
-      .createListener(this, "onBaseItemsAddedEvent");
-    this.collectionIn
       .getItemsRemovedEvent()
-      .createListener(this, "onBaseItemsRemovedEvent");
+      .createListener(this, "onBaseItemsRemoved");
     this.collectionIn.getUpdatedEvent().createListener(this, "onBaseUpdated");
   }
 
@@ -202,10 +199,21 @@ export class SortedObservableView extends ObservableView {
     this.comparisonFunction = comparisonFunction;
   }
   onBaseUpdated() {
-    this.items = new ObservableArray(collectionIn);
+    this.items = new ObservableArray(this.collectionIn);
     this.sort();
   }
 
+  getItemAt(index) {
+    try {
+      return this.items.getItemAt(index);
+    } catch (ex) {
+      return null;
+    }
+  }
+
+  getLength() {
+    return this.items.getLength();
+  }
   sort() {
     this.items.__sort(this.comparisonFunction);
     this.sortedEvent.emit(this);
@@ -227,11 +235,23 @@ export class FilteredObservableView extends ObservableView {
 
   setKeepFunction(keepFunction) {
     this.keepFunction = keepFunction;
+    this.filter();
   }
   onBaseUpdated() {
     this.filter();
   }
 
+  getItemAt(index) {
+    try {
+      return this.items.getItemAt(index);
+    } catch (ex) {
+      return null;
+    }
+  }
+
+  getLength() {
+    return this.items.getLength();
+  }
   filter() {
     this.items = new ObservableArray(this.collectionIn);
     this.items.__filter(this.keepFunction);

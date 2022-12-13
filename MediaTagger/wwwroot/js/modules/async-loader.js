@@ -2,7 +2,7 @@ import { ComponentLoader } from "../../drjs/browser/component-loader.js";
 import { LOG_LEVEL, Logger } from "../../drjs/logger.js";
 import dom from "../../drjs/browser/dom.js";
 
-const log = Logger.create("AsyncLoader", LOG_LEVEL.INFO);
+const log = Logger.create("AsyncLoader", LOG_LEVEL.WARN);
 
 const DEFAULT_PRIORITY = 5;
 
@@ -200,7 +200,6 @@ class AsyncLoader {
       }
     });
     log.error("failed to load thumbnail ", event.target.src);
-    itemPriority.loading = false;
     this.activeLoadCount -= 1;
     log.debug(
       `load error finished (${this.activeLoadCount}) ${
@@ -214,6 +213,9 @@ class AsyncLoader {
   updateDOMImage(img) {
     var isUnloaded = dom.getData(img, "unloaded");
     var datasrc = dom.getData(img, "src");
+    if (isUnloaded == "false" && datasrc != null) {
+      dom.addClass(dom.getParent(img), "loaded");
+    }
     if (isUnloaded == "true" && datasrc != null) {
       var itemPriority = this.itemPriority.find((ip) => {
         return ip.file.getThumbnailUrl() == datasrc;
@@ -244,6 +246,7 @@ const observer = new MutationObserver((mutations) => {
     mutation.addedNodes.forEach((node) => {
       if (node instanceof HTMLElement) {
         var images = dom.find(node, "img");
+        //var images = dom.find("img");
         images.forEach((image) => {
           asyncLoader.updateDOMImage(image);
         });

@@ -205,6 +205,15 @@ class Media {
     log.debug("return visibleItems ");
     return this.visibleItems;
   }
+
+  setSearchText(text) {
+    var lcText = text.toLowerCase();
+    this.filteredItems.setKeepFunction((item) => {
+      return item.getName().toLowerCase().includes(lcText);
+    });
+  }
+
+  setSortType(type) {}
 }
 
 const media = new Media();

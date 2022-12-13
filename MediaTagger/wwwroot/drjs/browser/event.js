@@ -39,25 +39,30 @@ export class ObjectEventType {
 
 export class HandlerMethod {
   constructor(...args) {
+    this.handlerFunctionName = null;
+    this.handlerFunction = null;
+    this.handlerObject = null;
     args.forEach((arg) => {
       if (typeof arg == "object") {
         this.handlerObject = arg;
       } else if (typeof arg == "function") {
         this.handlerFunction = arg;
+      } else if (typeof arg == "string") {
+        this.handlerFunctionName = arg;
       }
     });
   }
 
   getMethod(defaultMethod) {
-    var defName = null;
+    var defName = this.handlerFunctionName;
     var defFunc = null;
     if (typeof defaultMethod == "object") {
-      defName = defaultMethod.defaultName || defaultMethod.default;
+      defName = defName || defaultMethod.defaultName || defaultMethod.default;
       defFunc = defaultMethod.defaultFunction || defaultMethod.default;
     } else if (typeof defaultMethod == "function") {
       defFunc = defaultMethod;
     } else if (typeof defaultMethod == "string") {
-      defName = defaultMethod;
+      defName = defName || defaultMethod;
     }
     var method = defFunc;
 
@@ -128,6 +133,15 @@ export class EventHandlerBuilder {
     return this;
   }
 
+  // default debouncer is 250msecs
+  debounce() {
+    this.setDebounceMSecs(250);
+    return this;
+  }
+  setDebounceMSecs(msecs = 250) {
+    this.handler.setDebounceMSecs(msecs);
+    return this;
+  }
   build() {
     this.handler.listen();
     return this.handler;
@@ -231,7 +245,7 @@ export function BuildWheelHandler() {
 export class EventHandler {
   constructor(...args) {
     this.defaultResponse = ResponseStopPropagation;
-    this.eventProcessor = this.eventProcessor.bind(this);
+    this.eventProcessor = this.eventProcessorMethod.bind(this);
     this.listenElement = null;
     this.handlerObject = null;
     this.handlerFunc = null;
@@ -239,6 +253,8 @@ export class EventHandler {
     this.selector = null;
     this.excludeSelector = null;
     this.data = null;
+    this.debounceMSecs = 0;
+    this.debounceTimer = null;
 
     if (args.length == 0) {
       return;
@@ -307,12 +323,17 @@ export class EventHandler {
     this.defaultResponse = response;
   }
 
+  setDebounceMSecs(msecs) {
+    this.debounceMSecs = msecs;
+  }
+
   listen() {
     if (this.typeName == null) {
       log.error("EventHandler requires an event type name (e.g. 'click'");
       return;
     }
     this.typeNames = Util.toArray(this.typeName);
+
     this.typeNames.forEach((typeName) => {
       if (this.listenElement != null) {
         dom.addListener(this.listenElement, typeName, this.eventProcessor);
@@ -336,14 +357,27 @@ export class EventHandler {
     return this;
   }
 
-  eventMatches(event) {
+  selectorMismatch(event) {
     return this.selector != null && !event.target.matches(this.selector);
   }
 
-  eventProcessor(event) {
+  eventProcessorMethod(event) {
+    if (this.debounceMSecs > 0) {
+      if (this.debounceTimer) {
+        clearTimeout(this.debounceTimer);
+      }
+      this.debounceTimer = setTimeout(() => {
+        this.invokeHandler(event);
+      }, this.debounceMSecs);
+    } else {
+      this.invokeHandler(event);
+    }
+  }
+
+  invokeHandler(event) {
     var result = null;
     var method = null;
-    if (this.eventMatches(event)) {
+    if (this.selectorMismatch(event)) {
       return;
     }
     if (
@@ -390,6 +424,9 @@ export class EventHandler {
   findHandlerMethod(obj, name) {
     if (typeof obj[name] == "function") {
       return obj[name].bind(obj);
+    }
+    if (obj instanceof HandlerMethod) {
+      return obj.getMethod(name);
     }
     var lower = name.toLowerCase();
     var onLower = "on" + lower;
@@ -497,7 +534,7 @@ export class InputHandler extends EventHandler {
     try {
       if (event.type == "input" || event.type == "change") {
         if (method != null) {
-          method(event.currentTarget, this.data, event, this);
+          method(event.target, this.data, event, this);
         }
         if (this.onChange != null) {
           var changeMethod = this.onChange.getMethod({
@@ -505,7 +542,7 @@ export class InputHandler extends EventHandler {
           });
           if (changeMethod) {
             changeMethod(
-              this.getValue(event.currentTarget),
+              this.getValue(event.target),
               event.currentTarget,
               this.data,
               event,
@@ -649,12 +686,8 @@ export class EventEmitter {
 
   createListener(handlerObject, handlerMethod) {
     log.debug(`EventEmitter.createListener ${this.typeName}`);
-    return new ObjectListener(
-      this.object,
-      this.type,
-      handlerObject,
-      handlerMethod
-    );
+    var listener = new ObjectListener(this.object, this.type);
+    listener.setHandler(new HandlerMethod(handlerObject, handlerMethod));
   }
 
   emit(data) {
