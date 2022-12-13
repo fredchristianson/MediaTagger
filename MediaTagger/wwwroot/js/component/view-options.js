@@ -69,7 +69,7 @@ export class ViewOptionsComponent extends ComponentBase {
 
   sort(sortType) {
     log.debug("sort change ", sortType);
-    Media.setSortTtype(sortType.toLowerCase());
+    Media.setSortType(sortType.toLowerCase());
   }
   onDetach() {
     this.listeners.remove();

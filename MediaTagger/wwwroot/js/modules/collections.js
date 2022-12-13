@@ -197,6 +197,7 @@ export class SortedObservableView extends ObservableView {
 
   setSortComparison(comparisonFunction) {
     this.comparisonFunction = comparisonFunction;
+    this.sort();
   }
   onBaseUpdated() {
     this.items = new ObservableArray(this.collectionIn);

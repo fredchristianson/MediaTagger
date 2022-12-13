@@ -12,9 +12,54 @@ import {
   FilteredObservableView,
 } from "./collections.js";
 
+function compareIds(a, b) {
+  if (a == null) {
+    return b == null ? 0 : -1;
+  }
+  if (b == null) {
+    return 1;
+  }
+  return a.getId().localeCompare(b.getId());
+}
+
+function compareNames(a, b) {
+  if (a == null) {
+    return b == null ? 0 : -1;
+  }
+  if (b == null) {
+    return 1;
+  }
+  return a.getName().localeCompare(b.getName());
+}
+
+function compareDates(a, b) {
+  if (a == null) {
+    return b == null ? 0 : -1;
+  }
+  if (b == null) {
+    return 1;
+  }
+  return a.getDateTaken() - b.getDateTaken();
+}
+
 class MediaObject {
   constructor(data) {
     this.name = data.name;
+    this.dateTaken = new Date(data.dateTaken);
+    this.dateCreated = new Date(data.created);
+    this.dateModified = new Date(data.modified);
+  }
+
+  getDateTaken() {
+    if (!isNaN(this.dateTaken)) {
+      return this.dateTaken;
+    }
+    if (!isNaN(this.dateModified)) {
+      return this.dateModified;
+    }
+    if (!isNaN(this.dateCreated)) {
+      return this.dateCreated;
+    }
   }
 
   getName() {
@@ -57,8 +102,19 @@ export class MediaItem extends MediaObject {
     this.primaryFileId = data.primaryFileId;
     this.id = "m" + this.mediaItemId;
   }
+
   getId() {
     return this.id;
+  }
+
+  getDateTaken() {
+    if (this.primaryFile) {
+      return this.primaryFile.getDateTaken();
+    }
+    if (this.files != null && this.files.length > 0) {
+      return this.files[0].getDateTaken();
+    }
+    return super.getDateTaken();
   }
 
   setPrimaryFile(file) {
@@ -193,6 +249,7 @@ class Media {
 
       this.filteredItems = new FilteredObservableView(this.mediaItems);
       this.sortedItems = new SortedObservableView(this.filteredItems);
+      this.setSortType("name");
       this.visibleItems = new ObservableView(this.sortedItems);
       return true;
     } catch (ex) {
@@ -213,7 +270,16 @@ class Media {
     });
   }
 
-  setSortType(type) {}
+  setSortType(type) {
+    type = type.toLowerCase();
+    if (type == "id") {
+      this.sortedItems.setSortComparison(compareIds);
+    } else if (type == "date") {
+      this.sortedItems.setSortComparison(compareDates);
+    } else {
+      this.sortedItems.setSortComparison(compareNames);
+    }
+  }
 }
 
 const media = new Media();
