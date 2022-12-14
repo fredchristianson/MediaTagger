@@ -104,4 +104,16 @@ public class AppSettingsService
         }
 
     }
+
+    public bool IsPathSelected(string path)
+    {
+        var len = path.Length;
+        var selected = appSettings.MediaDirectories.Any(dir =>
+        {
+            if (len < dir.Length) { return false; }
+            return path.StartsWith(dir, true, System.Globalization.CultureInfo.InvariantCulture);
+        });
+        return selected;
+    }
+
 }

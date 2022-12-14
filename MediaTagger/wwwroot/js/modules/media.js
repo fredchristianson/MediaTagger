@@ -1,7 +1,4 @@
 import { LOG_LEVEL, Logger } from "../../drjs/logger.js";
-import { Listeners } from "../../drjs/browser/event.js";
-import UTIL from "../../drjs/util.js";
-import asyncLoader from "./async-loader.js";
 const log = Logger.create("Media", LOG_LEVEL.INFO);
 import api from "../mt-api.js";
 import Database from "../../drjs/browser/database.js";
@@ -87,7 +84,7 @@ export class MediaFile extends MediaObject {
   constructor(data) {
     super(data);
     this.fileId = data.mediaFileId;
-    this.mediaId = data.mediaId;
+    this.mediaItemId = data.mediaItemId;
     this.mediaItem = null;
     this.id = "f" + this.fileId;
     this.fileSize = data.fileSize;
@@ -192,6 +189,7 @@ class Media {
     this.groups = null;
     this.visibleItems = null;
     this.database = new Database("media", 3, ["items"]);
+    this.visibleItems = new ObservableView([]);
   }
 
   async loadItems() {
@@ -240,7 +238,6 @@ class Media {
           return new MediaItem(i);
         })
       );
-      asyncLoader.addFiles(this.mediaItems);
 
       var itemsById = {};
       var filesById = {};
@@ -272,7 +269,7 @@ class Media {
       this.filteredItems = new FilteredObservableView(this.mediaItems);
       this.sortedItems = new SortedObservableView(this.filteredItems);
       this.setSortType("name");
-      this.visibleItems = new ObservableView(this.sortedItems);
+      this.visibleItems.setCollection(this.sortedItems);
       return true;
     } catch (ex) {
       log.error(ex, "failed to get items");

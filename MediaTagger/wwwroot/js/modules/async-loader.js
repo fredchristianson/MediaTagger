@@ -1,28 +1,19 @@
 import { ComponentLoader } from "../../drjs/browser/component-loader.js";
 import { LOG_LEVEL, Logger } from "../../drjs/logger.js";
 import dom from "../../drjs/browser/dom.js";
+import Media from "./media.js";
 
-const log = Logger.create("AsyncLoader", LOG_LEVEL.WARN);
+const log = Logger.create("AsyncLoader", LOG_LEVEL.DEBUG);
 
 const DEFAULT_PRIORITY = 5;
 
-class ItemPriority {
-  // set a priority for each file to be loaded.
-  // usually 0(low)-10(high) but can be outside range.
-  constructor(item, priority = DEFAULT_PRIORITY) {
-    this.file = item;
-    this.priority = priority;
-    this.image = null;
-    this.thumbnail = null;
+class LoadStatus {
+  constructor(item) {
+    this.item = item;
+    this.loaded = false;
     this.loading = false;
-  }
-
-  getPriority() {
-    return this.priority;
-  }
-
-  setPriority(p) {
-    this.priority = p;
+    this.error = false;
+    this.thumbnail = null;
   }
 }
 
@@ -32,7 +23,6 @@ class AsyncLoader {
     this.activeLoadCount = 0;
     this.loadCompleteHandler = this.loadComplete.bind(this);
     this.loadErrorHandler = this.loadError.bind(this);
-    this.itemPriority = [];
     this.container = dom.createElement("div");
     dom.append("body", this.container);
 
@@ -44,122 +34,101 @@ class AsyncLoader {
     this.container.style.height = "64px";
     this.container.style.zIndex = -1;
     this.container.style.overflow = "auto";
+    this.nextItemIndex = 0;
+    this.itemStatus = [];
+    Media.getVisibleItems()
+      .getUpdatedEvent()
+      .createListener(this, this.updateItems);
   }
 
-  addFiles(files) {
-    for (var file of files) {
-      var priority = this.getItemPriority(file);
-      if (priority == null) {
-        this.itemPriority.push(new ItemPriority(file, DEFAULT_PRIORITY));
+  updateItems(items) {
+    for (var item of items) {
+      var status = new LoadStatus(item);
+      this.itemStatus.push(status);
+    }
+    log.debug(`${this.itemStatus.length} items to be scanned`);
+    this.nextItemIndex = 0;
+    this.check();
+  }
+
+  setNextItemIndex(index) {
+    this.nextItemIndex = index % this.itemStatus.length;
+    log.debug(`scanning from index ${this.nextItemIndex}`);
+  }
+
+  setNextItem(item) {
+    for (
+      this.nextItemIndex = 0;
+      this.nextItemIndex < this.itemStatus.length;
+      this.nextItemIndex++
+    ) {
+      if (this.itemStatus[this.nextItemIndex].item == item) {
+        break;
       }
     }
-    this.check();
-  }
-
-  setPriority(file, priority) {
-    var itemPriority = this.getItemPriority(file);
-    if (itemPriority == null) {
-      this.itemPriority.push(new ItemPriority(file, DEFAULT_PRIORITY));
-    } else {
-      itemPriority.setPriority(priority);
-    }
-    this.check();
-  }
-  increasePriority(file) {
-    var itemPriority = this.getItemPriority(file);
-    if (itemPriority == null) {
-      this.itemPriority.push(new ItemPriority(file, DEFAULT_PRIORITY + 1));
-    } else {
-      itemPriority.setPriority(itemPriority.getPriority() + 1);
-    }
-    this.check();
-  }
-
-  clearPriorities() {
-    this.itemPriority.forEach((ip) => {
-      ip.priority = DEFAULT_PRIORITY;
-    });
-  }
-  clearPriority(file) {
-    var ItemPriority = this.getItemPriority(file);
-    if (ItemPriority == null) {
-      this.itemPriority.push(new ItemPriority(file, DEFAULT_PRIORITY));
-    } else {
-      ItemPriority.setPriority(DEFAULT_PRIORITY);
-    }
-    this.check();
-  }
-
-  getItemPriority(file) {
-    return this.itemPriority.find((f) => {
-      return f.file.getId() == file.getId();
-    });
+    log.debug(`scanning from index ${this.nextItemIndex}`);
   }
 
   setConcurrentLoadLimit(limit) {
     this.concurrentLoadLimit = limit;
   }
 
-  getNextFile() {
-    var file = null;
+  getNextItemStatus() {
+    var itemStatus = null;
     var priority = 0;
-    this.itemPriority.forEach((fp) => {
-      if (
-        (file == null || fp.priority > priority) &&
-        fp.thumbnail == null &&
-        !fp.loading
-      ) {
-        priority = fp.priority;
-        file = fp;
+    for (
+      var index = 0;
+      itemStatus == null && index < this.itemStatus.length;
+      index++
+    ) {
+      var pos = (index + this.nextItemIndex) % this.itemStatus.length;
+      var stat = this.itemStatus[pos];
+      if (stat.thumbnail == null && !stat.error) {
+        itemStatus = stat;
       }
-    });
-    return file;
+    }
+
+    return itemStatus;
   }
 
   check() {
-    var itemPriority = this.getNextFile();
+    var itemStatus = this.getNextItemStatus();
     while (
-      itemPriority != null &&
+      itemStatus != null &&
       this.activeLoadCount < this.concurrentLoadLimit
     ) {
       log.debug(
-        `load (${this.activeLoadCount}) ${itemPriority.file.getThumbnailUrl()}`
+        `load (${this.activeLoadCount}) ${itemStatus.item.getThumbnailUrl()}`
       );
       this.activeLoadCount += 1;
-      itemPriority.loading = true;
-      itemPriority.thumbnail = new Image();
-      itemPriority.thumbnail.addEventListener("load", this.loadCompleteHandler);
-      itemPriority.thumbnail.addEventListener("error", this.loadErrorHandler);
-      itemPriority.thumbnail.src = itemPriority.file.getThumbnailUrl();
-      dom.append(this.container, itemPriority.thumbnail);
+      itemStatus.loading = true;
+      itemStatus.thumbnail = new Image();
+      dom.append(this.container, itemStatus.thumbnail);
       dom.setData(
-        itemPriority.thumbnail,
+        itemStatus.thumbnail,
         "orig-src",
-        itemPriority.file.getThumbnailUrl()
+        itemStatus.item.getThumbnailUrl()
       );
-      if (itemPriority.thumbnail.complete) {
-        this.finishLoading(itemPriority.thumbnail);
+      itemStatus.thumbnail.addEventListener("load", this.loadCompleteHandler);
+      itemStatus.thumbnail.addEventListener("error", this.loadErrorHandler);
+      itemStatus.thumbnail.src = itemStatus.item.getThumbnailUrl();
+      log.debug(
+        `load listening (${
+          this.activeLoadCount
+        }) ${itemStatus.item.getThumbnailUrl()}`
+      );
+      if (itemStatus.thumbnail.complete) {
+        this.finishLoading(itemStatus.thumbnail, false);
         this.activeLoadCount -= 1;
         log.debug(
-          `load complete (${
+          `load already complete (${
             this.activeLoadCount
-          }) ${itemPriority.file.getThumbnailUrl()}`
+          }) ${itemStatus.item.getThumbnailUrl()}`
         );
         scheduleCheck();
-      } else {
-        itemPriority.thumbnail.addEventListener(
-          "load",
-          this.loadCompleteHandler
-        );
-        itemPriority.thumbnail.addEventListener("error", this.loadErrorHandler);
-        log.debug(
-          `load listening (${
-            this.activeLoadCount
-          }) ${itemPriority.file.getThumbnailUrl()}`
-        );
       }
 
-      itemPriority = this.getNextFile();
+      itemStatus = this.getNextItemStatus();
     }
   }
 
@@ -168,24 +137,27 @@ class AsyncLoader {
     log.debug(
       `load complete (${this.activeLoadCount}) ${img ? img.src : "no src"}`
     );
-    this.itemPriority.forEach((f) => {
-      if (f.thumbnail == img) {
-        f.loading = false;
-      }
-    });
+
     this.activeLoadCount -= 1;
-    this.finishLoading(event.target);
+    this.finishLoading(img, false);
     log.debug(
       `load finished (${this.activeLoadCount}) ${img ? img.src : "no src"}`
     );
     this.scheduleCheck();
   }
 
-  finishLoading(img) {
+  finishLoading(img, error) {
+    for (var f of this.itemStatus) {
+      if (f.thumbnail == img) {
+        f.loading = false;
+        f.loaded = true;
+        f.error = false;
+      }
+    }
     var src = dom.getData(img, "orig-src");
     var elements = dom.find(`[data-src$="${src}"]`);
     elements.forEach((e) => {
-      this.updateDOMImage(e);
+      this.updateDOMImage(e, error);
     });
   }
 
@@ -194,13 +166,16 @@ class AsyncLoader {
     log.debug(
       `load error (${this.activeLoadCount}) ${img ? img.src : "no src"}`
     );
-    this.itemPriority.forEach((f) => {
+    for (var f of this.itemStatus) {
       if (f.thumbnail == img) {
         f.loading = false;
+        f.loaded = false;
+        f.error = true;
       }
-    });
+    }
     log.error("failed to load thumbnail ", event.target.src);
     this.activeLoadCount -= 1;
+    this.finishLoading(img, false);
     log.debug(
       `load error finished (${this.activeLoadCount}) ${
         img ? img.src : "no src"
@@ -210,32 +185,34 @@ class AsyncLoader {
     this.scheduleCheck();
   }
 
-  updateDOMImage(img) {
-    var isUnloaded = dom.getData(img, "unloaded");
+  updateDOMImage(img, error = false) {
     var datasrc = dom.getData(img, "src");
-    if (isUnloaded == "false" && datasrc != null) {
-      dom.addClass(dom.getParent(img), "loaded");
+    if (datasrc == null) {
+      return;
     }
-    if (isUnloaded == "true" && datasrc != null) {
-      var itemPriority = this.itemPriority.find((ip) => {
-        return ip.file.getThumbnailUrl() == datasrc;
-      });
-      if (
-        itemPriority != null &&
-        itemPriority.thumbnail != null &&
-        itemPriority.thumbnail.complete
-      ) {
-        img.src = itemPriority.thumbnail.src;
+    if (error) {
+      dom.addClass(dom.getParent(img), "error");
+    }
+    var itemStatus = this.itemStatus.find((status) => {
+      return status.item.getThumbnailUrl() == datasrc;
+    });
+    if (
+      itemStatus != null &&
+      itemStatus.thumbnail != null &&
+      itemStatus.thumbnail.complete
+    ) {
+      img.src = itemStatus.thumbnail.src;
 
-        dom.addClass(dom.getParent(img), "loaded");
-      }
+      dom.addClass(dom.getParent(img), "loaded");
+
+      dom.removeClass(dom.getParent(img), "unloaded");
     }
   }
 
   scheduleCheck() {
     setTimeout(() => {
       this.check();
-    }, 1);
+    }, 1000);
   }
 }
 
@@ -248,13 +225,13 @@ const observer = new MutationObserver((mutations) => {
         var images = dom.find(node, "img");
         //var images = dom.find("img");
         images.forEach((image) => {
-          asyncLoader.updateDOMImage(image);
+          asyncLoader.updateDOMImage(image, false);
         });
-        log.debug(`found ${images.length} images`);
+        log.never(`found ${images.length} images`);
       }
     });
   });
-  asyncLoader.check();
+  asyncLoader.scheduleCheck();
 });
 observer.observe(document.body, { subtree: true, childList: true });
 

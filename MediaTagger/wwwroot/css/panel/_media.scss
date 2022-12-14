@@ -23,11 +23,15 @@
 
         .layout-view {
             position: absolute;
-            left:0;
-            top:0;
-            right:0;
+            left: 0;
+            top: 0;
+            right: 0;
             bottom: 0;
             background-color: #dddddd;
+        }
+
+        .media-item.unloaded {
+            background-image: url("../image/loading.gif");
         }
 
         .media-item {
@@ -38,10 +42,9 @@
             display: none;
             position: relative;
             aspect-ratio: 1/1;
-            background-image: url("../image/loading.gif");
-                background-size: 32px;
-                    background-repeat: no-repeat;
-                    background-position: center;
+            background-size: 32px;
+            background-repeat: no-repeat;
+            background-position: center;
 
             .name {
                 position: relative;
@@ -82,25 +85,25 @@
             }
         }
 
-                .media-item.loaded {
-                    background-image: unset;
-                }
+        .media-item.loaded {
+            background-image: unset;
+        }
     }
 
     .detailed {
-            .media-item {
-                .details {
-                    display: block;
-                }
+        .media-item {
+            .details {
+                display: block;
+            }
         }
     }
 
     .minimal {
-            .media-item {
-                .name {
-                    display: none;
-                }
+        .media-item {
+            .name {
+                display: none;
             }
+        }
     }
 
     .date-filter {

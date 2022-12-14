@@ -95,7 +95,7 @@ export class MediaComponent extends ComponentBase {
       img.addEventListener("load", this.loadCompleteHandler);
       img.addEventListener("error", this.loadErrorHandler);
 
-      img.setAttribute("src", src + "?v=1");
+      //   img.setAttribute("src", src);
       if (img.loadComplete) {
         this.dom.setData(img, "loading", "false");
         img.removeEventListener("load", this.loadCompleteHandler);

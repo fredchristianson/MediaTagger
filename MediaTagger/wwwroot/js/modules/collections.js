@@ -67,6 +67,10 @@ export class ObservableArray extends ObservableCollection {
     }
   }
 
+  find(selector) {
+    return this.items.find(selector);
+  }
+
   getLength() {
     return this.items.length;
   }
@@ -110,27 +114,9 @@ export class ObservableArray extends ObservableCollection {
 export class ObservableView extends ObservableCollection {
   constructor(collectionIn = null) {
     super();
-    if (collectionIn == null) {
-      throw new Error("ObservableList needs an input collection");
-    }
-    if (Array.isArray(collectionIn)) {
-      collectionIn = new ObservableArray(collectionIn);
-    }
-    this.collectionIn = collectionIn;
-    if (!(collectionIn instanceof ObservableCollection)) {
-      throw new Error(
-        "ObservableLView constructor argument is not a collection"
-      );
-    }
-    this.collectionIn.getSortedEvent().createListener(this, "onBaseSorted");
-    this.collectionIn.getFilteredEvent().createListener(this, "onBaseFiltered");
-    this.collectionIn
-      .getItemsAddedEvent()
-      .createListener(this, "onBaseItemsAdded");
-    this.collectionIn
-      .getItemsRemovedEvent()
-      .createListener(this, "onBaseItemsRemoved");
-    this.collectionIn.getUpdatedEvent().createListener(this, "onBaseUpdated");
+    this.collectionIn = null;
+    this.listeners = null;
+    this.setCollection(collectionIn);
   }
 
   onBaseSorted() {
@@ -154,6 +140,10 @@ export class ObservableView extends ObservableCollection {
     this.updatedEvent.emit(this);
   }
 
+  find(selector) {
+    return this.collectionIn.find(selector);
+  }
+
   getLength() {
     return this.collectionIn.getLength();
   }
@@ -166,15 +156,37 @@ export class ObservableView extends ObservableCollection {
     }
   }
 
-  setCollection(collection) {
-    if (items instanceof ObservableCollection) {
-      this.collectionIn = collection;
-      this.updatedEvent.emit(this);
-    } else {
+  setCollection(collectionIn) {
+    if (collectionIn == null) {
+      throw new Error("ObservableList needs an input collection");
+    }
+
+    if (Array.isArray(collectionIn)) {
+      collectionIn = new ObservableArray(collectionIn);
+    }
+    this.collectionIn = collectionIn;
+    if (!(collectionIn instanceof ObservableCollection)) {
       throw new Error(
-        "setCollection must be passed a valid ObservableCollection"
+        "ObservableLView constructor argument is not a collection"
       );
     }
+    if (this.listeners) {
+      this.listeners.removeAll();
+    }
+    this.listeners = new Listeners(
+      this.collectionIn.getSortedEvent().createListener(this, "onBaseSorted"),
+      this.collectionIn
+        .getFilteredEvent()
+        .createListener(this, "onBaseFiltered"),
+      this.collectionIn
+        .getItemsAddedEvent()
+        .createListener(this, "onBaseItemsAdded"),
+      this.collectionIn
+        .getItemsRemovedEvent()
+        .createListener(this, "onBaseItemsRemoved"),
+      this.collectionIn.getUpdatedEvent().createListener(this, "onBaseUpdated")
+    );
+    this.updatedEvent.emit(this);
   }
 }
 

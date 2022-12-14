@@ -1,9 +1,10 @@
 import assert from "../assert.js";
+import { LOG_LEVEL } from "../logger-interface.js";
 import Logger from "../logger.js";
 import Util from "../util.js";
 import { DOM, default as dom } from "./dom.js";
 
-const log = Logger.create("Event");
+const log = Logger.create("Event", LOG_LEVEL.WARN);
 
 export class HandlerResponse {}
 export class ResponseStopPropagation extends HandlerResponse {}
@@ -20,10 +21,9 @@ export class Listeners extends Array {
   }
 
   removeAll() {
-    this.forEach((listener) => {
-      listener.remove();
-    });
-    length = 0;
+    while (this.length > 0) {
+      this.shift().remove();
+    }
   }
 }
 
@@ -530,6 +530,16 @@ export class InputHandler extends EventHandler {
     this.onFocus = handler;
   }
 
+  invokeChange(method, event) {
+    method(
+      this.getValue(event.target),
+      event.currentTarget,
+      this.data,
+      event,
+      this
+    );
+  }
+
   callHandler(method, event) {
     try {
       if (event.type == "input" || event.type == "change") {
@@ -541,13 +551,7 @@ export class InputHandler extends EventHandler {
             defaultName: "onChange",
           });
           if (changeMethod) {
-            changeMethod(
-              this.getValue(event.target),
-              event.currentTarget,
-              this.data,
-              event,
-              this
-            );
+            this.invokeChange(changeMethod, event);
           }
         }
       } else if (event.type == "blur" && this.onBlur) {
@@ -575,12 +579,14 @@ export class CheckboxHandler extends InputHandler {
     super(...args);
   }
 
-  callHandler(method, event) {
-    try {
-      method(event.currentTarget, this.data, event, this);
-    } catch (ex) {
-      log.error(ex, "event handler for ", this.typeName, " failed");
-    }
+  invokeChange(method, event) {
+    method(
+      dom.isChecked(event.target),
+      event.currentTarget,
+      this.data,
+      event,
+      this
+    );
   }
 }
 
@@ -688,6 +694,7 @@ export class EventEmitter {
     log.debug(`EventEmitter.createListener ${this.typeName}`);
     var listener = new ObjectListener(this.object, this.type);
     listener.setHandler(new HandlerMethod(handlerObject, handlerMethod));
+    return listener;
   }
 
   emit(data) {

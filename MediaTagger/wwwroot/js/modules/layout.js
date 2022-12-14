@@ -190,9 +190,8 @@ export class GridLayout extends Layout {
       topOffset = 0;
     }
     var html = this.getItemHtml(itemIndex);
-    asyncLoader.clearPriorities();
+    asyncLoader.setNextItemIndex(itemIndex);
     while (visible && html != null) {
-      asyncLoader.increasePriority(this.getItem(itemIndex));
       if (html != null) {
         var added = dom.append(view, html);
         if (added != null) {

@@ -184,6 +184,14 @@ export class DOM {
     return val;
   }
 
+  isChecked(element) {
+    return this.getProperty(element, "checked");
+  }
+
+  isSelected(element) {
+    return this.getProperty(element, "selected");
+  }
+
   // setStyle can be called in many ways
   //  dom.setStyle(element,"color:red; width: 5%");
   //  dom.setStyle([element1,element2],"color","red");
