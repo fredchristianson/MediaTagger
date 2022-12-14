@@ -42,12 +42,27 @@ function compareDates(a, b) {
   return a.getDateTaken() - b.getDateTaken();
 }
 
+function toDate(val) {
+  if (val instanceof Date) {
+    return val;
+  } else {
+    try {
+      if (typeof val == "string") {
+        return new Date(Date.parse(val));
+      }
+      return new Date(val);
+    } catch (ex) {
+      return null;
+    }
+  }
+}
+
 class MediaObject {
   constructor(data) {
     this.name = data.name;
-    this.dateTaken = new Date(data.dateTaken);
-    this.dateCreated = new Date(data.created);
-    this.dateModified = new Date(data.modified);
+    this.dateTaken = toDate(data.dateTaken);
+    this.dateCreated = toDate(data.dateCreated);
+    this.dateModified = toDate(data.dateModified);
   }
 
   getDateTaken() {
@@ -60,6 +75,7 @@ class MediaObject {
     if (!isNaN(this.dateCreated)) {
       return this.dateCreated;
     }
+    return new Date(2000, 0, 1);
   }
 
   getName() {
@@ -71,10 +87,15 @@ export class MediaFile extends MediaObject {
   constructor(data) {
     super(data);
     this.fileId = data.mediaFileId;
+    this.mediaId = data.mediaId;
     this.mediaItem = null;
     this.id = "f" + this.fileId;
+    this.fileSize = data.fileSize;
   }
 
+  getMediaId() {
+    return `m${this.mediaId}`;
+  }
   getMediaItem() {
     return this.mediaItem;
   }
@@ -189,6 +210,7 @@ class Media {
   }
 
   async loadItemsFromDatabase() {
+    return false;
     var mediaItemData = await this.databaseTable.get("mediaItems");
     var fileData = await this.databaseTable.get("files");
     var groupData = await this.databaseTable.get("groups");
@@ -232,11 +254,11 @@ class Media {
       );
       for (var file of this.files) {
         filesById[file.fileId] = file;
-        var mediaItem = itemsById[file.getId()];
+        var mediaItem = itemsById[file.getMediaId()];
         if (mediaItem != null) {
           file.setMediaItem(mediaItem);
           mediaItem.addFile(file);
-          if (mediaItem.getPrimaryFileId() == file.getId()) {
+          if ("f" + mediaItem.getPrimaryFileId() == file.getId()) {
             mediaItem.setPrimaryFile(file);
           }
         }

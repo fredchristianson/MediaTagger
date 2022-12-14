@@ -1,6 +1,7 @@
 ﻿@use 'common/reset' as *;
 @use 'panel/main' as *;
 @use 'panel/media' as *;
+@use 'panel/date-filter' as *;
 
 
 
@@ -31,7 +32,7 @@ button:hover {
 }
 
 .panel {
-  border: 1px solid red;
+  border: 1px solid #fafafa;
   background-color: white;
 }
 

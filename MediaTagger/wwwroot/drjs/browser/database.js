@@ -13,7 +13,7 @@ const log = Logger.create("Database", LOG_LEVEL.INFO);
 function DBPromise(req) {
   return new Promise(function (resolve, reject) {
     req.oncomplete = () => {
-      resolve(req.result.value || req.result);
+      resolve(true);
     };
     req.onsuccess = () => {
       resolve(req.result.value || req.result);
