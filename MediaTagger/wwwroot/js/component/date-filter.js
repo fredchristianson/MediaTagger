@@ -2,7 +2,10 @@ import { ComponentBase } from "../../drjs/browser/component.js";
 import Media from "../modules/media.js";
 import { LOG_LEVEL, Logger } from "../../drjs/logger.js";
 const log = Logger.create("DateFilter", LOG_LEVEL.DEBUG);
-import { BuildHoverHandler } from "../../drjs/browser/event.js";
+import {
+  BuildHoverHandler,
+  BuildMouseHandler,
+} from "../../drjs/browser/event.js";
 
 export class DateFilterComponent extends ComponentBase {
   constructor(selector, htmlName = "date-filter") {
@@ -19,12 +22,30 @@ export class DateFilterComponent extends ComponentBase {
       .listenTo(this.dom.first(".svg-container"))
       .onStart(this, this.startHover)
       .onEnd(this, this.endHover)
-      .onMouseMove(this)
       .include([".date-popup", ".media-items"])
       .endDelayMSecs(300)
       .build();
+    this.test = 3;
+    BuildMouseHandler()
+      .listenTo(this.dom.first(".svg-container"))
+      .onMouseMove(this)
+      .onLeftUp(this, this.setStartDate)
+      .onRightUp(this, this.setEndDate)
+      .onLeftDown(() => {
+        log.debug("left down");
+      })
+      .onRightDown(this, () => {
+        log.debug("right down ", this.test);
+      })
+      .build();
   }
 
+  setStartDate() {
+    log.debug("start date");
+  }
+  setEndDate() {
+    log.debug("end date");
+  }
   startHover() {
     log.debug("start hover");
   }
@@ -34,7 +55,7 @@ export class DateFilterComponent extends ComponentBase {
   }
 
   onMouseMove(pos, event, data, handler) {
-    // log.debug(`move: `, pos);
+    log.debug(`move: `, pos);
   }
 
   onItemsUpdated(collection) {

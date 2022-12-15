@@ -208,7 +208,6 @@ class Media {
   }
 
   async loadItemsFromDatabase() {
-    return false;
     var mediaItemData = await this.databaseTable.get("mediaItems");
     var fileData = await this.databaseTable.get("files");
     var groupData = await this.databaseTable.get("groups");

@@ -78,7 +78,7 @@ export class HandlerMethod {
         method = method.bind(this.handlerObject);
       }
     } else if (typeof this.handlerFunction == "function") {
-      method = handlerFunction;
+      method = this.handlerFunction;
     }
     return method;
   }
@@ -106,6 +106,19 @@ export class EventHandlerBuilder {
         this.handler.setHandlerFunction(arg);
       }
     });
+    return this;
+  }
+
+  withShift(require) {
+    this.handler.setWithShift(require);
+    return this;
+  }
+  withAlt(require) {
+    this.handler.setWithAlt(require);
+    return this;
+  }
+  withCtrl(require) {
+    this.handler.setWithCtrl(require);
     return this;
   }
   setHandlerObject(obj) {
@@ -203,17 +216,32 @@ export class WheelHandlerBuilder extends EventHandlerBuilder {
     this.handler.setOnChange(new HandlerMethod(...args));
     return this;
   }
+}
 
-  withShift(require) {
-    this.handler.setWithShift(require);
+export class MouseHandlerBuilder extends EventHandlerBuilder {
+  constructor() {
+    super(MouseHandler);
+  }
+  onLeftDown(...args) {
+    this.handler.setOnLeftDown(new HandlerMethod(...args));
     return this;
   }
-  withAlt(require) {
-    this.handler.setWithAlt(require);
+
+  onLeftUp(...args) {
+    this.handler.setOnLeftUp(new HandlerMethod(...args));
     return this;
   }
-  withCtrl(require) {
-    this.handler.setWithCtrl(require);
+  onRightDown(...args) {
+    this.handler.setOnRightDown(new HandlerMethod(...args));
+    return this;
+  }
+
+  onRightUp(...args) {
+    this.handler.setOnRightUp(new HandlerMethod(...args));
+    return this;
+  }
+  onMouseMove(...args) {
+    this.handler.setOnMouseMove(new HandlerMethod(...args));
     return this;
   }
 }
@@ -247,6 +275,10 @@ export class HoverHandlerBuilder extends EventHandlerBuilder {
 
 export function BuildHoverHandler() {
   return new HoverHandlerBuilder();
+}
+
+export function BuildMouseHandler() {
+  return new MouseHandlerBuilder();
 }
 
 export function BuildHandler(handlerClass) {
@@ -286,6 +318,9 @@ export class EventHandler {
     this.data = null;
     this.debounceMSecs = 0;
     this.debounceTimer = null;
+    this.withShift = null;
+    this.withCtrl = null;
+    this.withAlt = null;
 
     if (args.length == 0) {
       return;
@@ -312,6 +347,16 @@ export class EventHandler {
         }
       }
     });
+  }
+
+  setWithAlt(require) {
+    this.withAlt = require;
+  }
+  setWithShift(require) {
+    this.withShift = require;
+  }
+  setWithCtrl(require) {
+    this.withCtrl = require;
   }
 
   setListenElement(element) {
@@ -393,6 +438,15 @@ export class EventHandler {
   }
 
   eventProcessorMethod(event) {
+    if (this.withAlt && !event.altKey) {
+      return ResponseContinue;
+    }
+    if (this.withCtrl && !event.ctrlKey) {
+      return ResponseContinue;
+    }
+    if (this.withShift && !event.shiftKey) {
+      return ResponseContinue;
+    }
     if (this.debounceMSecs > 0) {
       if (this.debounceTimer) {
         clearTimeout(this.debounceTimer);
@@ -625,6 +679,7 @@ export class HoverHandler extends EventHandler {
   constructor(...args) {
     super(...args);
     this.setTypeName(["mouseover", "mouseout", "mousemove"]);
+    this.setDefaultResponse = ResponseContinue;
     this.endDelayMSecs = 200;
     this.includeSelectors = [];
     this.onStartHandler = null;
@@ -732,6 +787,85 @@ export class HoverHandler extends EventHandler {
   }
 }
 
+export class MouseHandler extends EventHandler {
+  constructor(...args) {
+    super(...args);
+    this.setTypeName(["mousedown", "mouseup", "mousemove"]);
+    this.setDefaultResponse(ResponseStopAll);
+    this.endDelayMSecs = 200;
+    this.onLeftDown = null;
+    this.onLeftUp = null;
+    this.onRightDown = null;
+    this.onRightUp = null;
+    this.onMouseMove = null;
+    document.oncontextmenu = function () {
+      return false;
+    };
+  }
+  setOnLeftDown(handler) {
+    this.onLeftDown = handler;
+  }
+
+  setOnLeftUp(handler) {
+    this.onLeftUp = handler;
+  }
+  setOnRightDown(handler) {
+    this.onRightDown = handler;
+  }
+
+  setOnRightUp(handler) {
+    this.onRightUp = handler;
+  }
+  setOnMouseMove(handler) {
+    this.onMouseMove = handler;
+  }
+
+  callIfSet(event, handler, name) {
+    if (handler) {
+      var method = handler.getMethod(name);
+      method(event, this.data, this);
+    }
+  }
+
+  callHandler(method, event) {
+    try {
+      if (event.type == "mousemove") {
+        var method = this.onMouseMove.getMethod("onMouseMove");
+
+        if (method) {
+          var target = event.currentTarget;
+          var width = target.clientWidth;
+          var height = target.clientHeight;
+          var x = event.offsetX;
+          var y = event.offsetY;
+          var pctX = width > 0 ? (x * 1.0) / width : 0;
+          var pctY = height > 0 ? (y * 1.0) / height : 0;
+          var pos = { x, y, width, height, pctX, pctY };
+          method(pos, event, this.data, this);
+        }
+      } else if (event.type == "mousedown") {
+        if (event.button == 0) {
+          this.callIfSet(event, this.onLeftDown, "onLeftDown");
+        } else if (event.button == 2) {
+          this.callIfSet(event, this.onRightDown, "onRightDown");
+        } else {
+          log.error("unknown button ", event.button);
+        }
+      } else if (event.type == "mouseup") {
+        if (event.button == 0) {
+          this.callIfSet(event, this.onLeftUp, "onLeftUp");
+        } else if (event.button == 2) {
+          this.callIfSet(event, this.onRightUp, "onRightUp");
+        } else {
+          log.error("unknown button ", event.button);
+        }
+      }
+    } catch (ex) {
+      log.error(ex, "event handler for ", this.typeName, " failed");
+    }
+  }
+}
+
 export class WheelHandler extends EventHandler {
   constructor(...args) {
     super(...args);
@@ -740,36 +874,14 @@ export class WheelHandler extends EventHandler {
     this.setListenElement(dom.getBody());
 
     this.onChange = null;
-    this.withShift = null;
-    this.withCtrl = null;
-    this.withAlt = null;
   }
 
   setOnChange(handler) {
     this.onChange = handler;
   }
 
-  setWithAlt(require) {
-    this.withAlt = require;
-  }
-  setWithShift(require) {
-    this.withShift = require;
-  }
-  setWithCtrl(require) {
-    this.withCtrl = require;
-  }
-
   callHandler(method, event) {
     try {
-      if (this.withAlt && !event.altKey) {
-        return ResponseContinue;
-      }
-      if (this.withCtrl && !event.ctrlKey) {
-        return ResponseContinue;
-      }
-      if (this.withShift && !event.shiftKey) {
-        return ResponseContinue;
-      }
       log.debug("wheel event ", event.wheelDelta);
       if (method) {
         method(event.currentTarget, this.data, event, this);
