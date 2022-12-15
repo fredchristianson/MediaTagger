@@ -1,5 +1,8 @@
 import { ComponentBase } from "../../drjs/browser/component.js";
 import Media from "../modules/media.js";
+import { LOG_LEVEL, Logger } from "../../drjs/logger.js";
+const log = Logger.create("DateFilter", LOG_LEVEL.DEBUG);
+import { BuildHoverHandler } from "../../drjs/browser/event.js";
 
 export class DateFilterComponent extends ComponentBase {
   constructor(selector, htmlName = "date-filter") {
@@ -12,6 +15,26 @@ export class DateFilterComponent extends ComponentBase {
       .getUpdatedEvent()
       .createListener(this, this.onItemsUpdated);
     this.onItemsUpdated(Media.getVisibleItems());
+    BuildHoverHandler()
+      .listenTo(this.dom.first(".svg-container"))
+      .onStart(this, this.startHover)
+      .onEnd(this, this.endHover)
+      .onMouseMove(this)
+      .include([".date-popup", ".media-items"])
+      .endDelayMSecs(300)
+      .build();
+  }
+
+  startHover() {
+    log.debug("start hover");
+  }
+
+  endHover() {
+    log.debug("end hover");
+  }
+
+  onMouseMove(pos, event, data, handler) {
+    // log.debug(`move: `, pos);
   }
 
   onItemsUpdated(collection) {
@@ -20,10 +43,10 @@ export class DateFilterComponent extends ComponentBase {
     var photosPerDay = {};
     for (var item of collection) {
       var taken = item.getDateTaken();
-      if (start == null || start < taken) {
+      if (start == null || start > taken) {
         start = taken;
       }
-      if (end == null || end > taken) {
+      if (end == null || end < taken) {
         end = taken;
       }
       if (photosPerDay[taken] == null) {
@@ -34,19 +57,23 @@ export class DateFilterComponent extends ComponentBase {
     }
     this.dom.setInnerHTML(
       ".start",
-      start.toLocaleDateString({
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-      })
+      start
+        ? start.toLocaleDateString({
+            year: "numeric",
+            month: "short",
+            day: "numeric",
+          })
+        : "---"
     );
     this.dom.setInnerHTML(
       ".end",
-      end.toLocaleDateString({
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-      })
+      end
+        ? end.toLocaleDateString({
+            year: "numeric",
+            month: "short",
+            day: "numeric",
+          })
+        : "---:"
     );
   }
 }

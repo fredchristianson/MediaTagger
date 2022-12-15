@@ -40,7 +40,7 @@ function compareDates(a, b) {
 }
 
 function toDate(val) {
-  if (val instanceof Date) {
+  if (val == null || val instanceof Date) {
     return val;
   } else {
     try {
@@ -63,13 +63,13 @@ class MediaObject {
   }
 
   getDateTaken() {
-    if (!isNaN(this.dateTaken)) {
+    if (this.dateTaken && !isNaN(this.dateTaken)) {
       return this.dateTaken;
     }
-    if (!isNaN(this.dateModified)) {
+    if (this.dateModified && !isNaN(this.dateModified)) {
       return this.dateModified;
     }
-    if (!isNaN(this.dateCreated)) {
+    if (this.dateCreated && !isNaN(this.dateCreated)) {
       return this.dateCreated;
     }
     return new Date(2000, 0, 1);
@@ -91,7 +91,7 @@ export class MediaFile extends MediaObject {
   }
 
   getMediaId() {
-    return `m${this.mediaId}`;
+    return `m${this.mediaItemId}`;
   }
   getMediaItem() {
     return this.mediaItem;

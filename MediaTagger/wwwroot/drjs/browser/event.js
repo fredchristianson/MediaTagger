@@ -218,6 +218,37 @@ export class WheelHandlerBuilder extends EventHandlerBuilder {
   }
 }
 
+export class HoverHandlerBuilder extends EventHandlerBuilder {
+  constructor() {
+    super(HoverHandler);
+  }
+
+  onStart(...args) {
+    this.handler.setOnStart(new HandlerMethod(...args));
+    return this;
+  }
+  onEnd(...args) {
+    this.handler.setOnEnd(new HandlerMethod(...args));
+    return this;
+  }
+  onMouseMove(...args) {
+    this.handler.setOnMouseMove(new HandlerMethod(...args));
+    return this;
+  }
+  include(selectors) {
+    this.handler.setInclude(selectors);
+    return this;
+  }
+  endDelayMSecs(msecs = 300) {
+    this.handler.setEndDelayMSecs(msecs);
+    return this;
+  }
+}
+
+export function BuildHoverHandler() {
+  return new HoverHandlerBuilder();
+}
+
 export function BuildHandler(handlerClass) {
   return new EventHandlerBuilder(handlerClass);
 }
@@ -587,6 +618,117 @@ export class CheckboxHandler extends InputHandler {
       event,
       this
     );
+  }
+}
+
+export class HoverHandler extends EventHandler {
+  constructor(...args) {
+    super(...args);
+    this.setTypeName(["mouseover", "mouseout", "mousemove"]);
+    this.endDelayMSecs = 200;
+    this.includeSelectors = [];
+    this.onStartHandler = null;
+    this.onEndHandler = null;
+    this.onMoveHandler = null;
+    this.mouseMoveBodyHandler = this.onMouseMoveBody.bind(this);
+    this.endTimeout = null;
+    this.inHover = false;
+  }
+  setOnStart(handler) {
+    this.onStartHandler = handler;
+  }
+  setOnEnd(handler) {
+    this.onEndHandler = handler;
+  }
+  setOnMouseMove(handler) {
+    this.onMoveHandler = handler;
+  }
+  setInclude(selectors) {
+    this.includeSelectors = Util.toArray(selectors);
+  }
+  setEndDelayMSecs(msecs) {
+    this.endDelayMSecs = msecs;
+  }
+
+  onMouseMoveBody(event) {
+    log.info("mousemove ");
+    if (dom.isElementIn(event.target, this.includeSelectors)) {
+      this.cancelEndTimeout();
+    } else if (this.endTimeout == null) {
+      this.resetEndTimeout();
+    }
+  }
+
+  cancelEndTimeout() {
+    if (this.endTimeout) {
+      clearTimeout(this.endTimeout);
+      this.endTimeout = null;
+    }
+  }
+
+  resetEndTimeout(event) {
+    this.cancelEndTimeout();
+    this.endTimeout = setTimeout(() => {
+      this.inHover = false;
+      dom.getBody().removeEventListener("mousemove", this.mouseMoveBodyHandler);
+      if (this.onEndHandler) {
+        var method = this.onEndHandler.getMethod("onHoverEnd");
+
+        if (method) {
+          method(event, this.data, this);
+        }
+      }
+    }, this.endDelayMSecs);
+  }
+
+  endHover() {
+    dom.getBody().removeEventListener("mousemove", this.mouseMoveBodyHandler);
+    if (this.onEndHandler) {
+      var method = this.onEndHandler.getMethod("onHoverEnd");
+
+      if (method) {
+        method(event, this.data, this);
+      }
+    }
+  }
+
+  callHandler(method, event) {
+    try {
+      if (event.type == "mouseover") {
+        this.cancelEndTimeout();
+        // delay may result in a 2nd start before end.  ignore it.
+        if (this.inHover) {
+          return;
+        }
+        this.inHover = true;
+        dom.getBody().addEventListener("mousemove", this.mouseMoveBodyHandler);
+        if (this.onStartHandler) {
+          var method = this.onStartHandler.getMethod("onHoverStart");
+          if (method) {
+            method(event, this.data, this);
+          }
+        }
+      } else if (event.type == "mouseout") {
+        this.resetEndTimeout(event);
+      } else if (event.type == "mousemove") {
+        if (this.onMoveHandler) {
+          var method = this.onMoveHandler.getMethod("onMouseMove");
+          if (method) {
+            var target = event.currentTarget;
+            var width = target.clientWidth;
+            var height = target.clientHeight;
+            var x = event.offsetX;
+            var y = event.offsetY;
+            var pctX = width > 0 ? (x * 1.0) / width : 0;
+            var pctY = height > 0 ? (y * 1.0) / height : 0;
+            var pos = { x, y, width, height, pctX, pctY };
+            method(pos, event, this.data, this);
+          }
+        }
+      }
+    } catch (ex) {
+      log.error(ex, "event handler for ", this.typeName, " failed");
+    }
   }
 }
 

@@ -131,9 +131,13 @@ body {
   width: 10rem;
   position: absolute;
   background-color: white;
+  text-align: center;
+  line-height: 2em;
 }
 .date-select .end {
   height: 2em;
+  text-align: center;
+  line-height: 2em;
   top: 0px;
   right: 0px;
   width: 10rem;

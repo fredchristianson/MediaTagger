@@ -1,6 +1,6 @@
 import assert from "../assert.js";
 import Logger from "../logger.js";
-import util from "../util.js";
+import util, { Util } from "../util.js";
 
 const log = Logger.create("DOM");
 const NO_SELECTION = "~-NOSEL-~";
@@ -503,6 +503,28 @@ export class DOM {
     this.toElementArray(selector).forEach((element) => {
       element.innerHTML = `${html}`;
     });
+  }
+
+  isElementIn(element, selectors) {
+    if (
+      element == null ||
+      selectors == null ||
+      !(element instanceof HTMLElement)
+    ) {
+      return false;
+    }
+    var e = this.first(element);
+    var match = util.toArray(selectors).find((sel) => {
+      if (typeof sel == "string") {
+        return e != null && e.matches(sel);
+      } else {
+        return e == sel;
+      }
+    });
+    if (match == null) {
+      return this.isElementIn(e.parentNode, selectors);
+    }
+    return match != null;
   }
 }
 
