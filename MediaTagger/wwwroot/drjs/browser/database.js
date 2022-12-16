@@ -16,7 +16,7 @@ function DBPromise(req) {
       resolve(true);
     };
     req.onsuccess = () => {
-      resolve(req.result.value || req.result);
+      resolve(req ? (req.result ? req.result.value : req.result) : req);
     };
     req.onerror = () => {
       reject(req.result);

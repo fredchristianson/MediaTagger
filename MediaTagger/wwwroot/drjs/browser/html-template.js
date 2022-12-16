@@ -78,6 +78,17 @@ export class ClassValue extends TemplateValue {
   }
 }
 
+export class DataValue extends TemplateValue {
+  constructor(name, value = true) {
+    super(value);
+    this.name = name;
+  }
+
+  set(element) {
+    DOM.setData(element, this.name, this._value);
+  }
+}
+
 export class ReplaceTemplateValue extends TemplateValue {
   constructor(oldValue, newValue) {
     super(null);
@@ -103,20 +114,6 @@ export class ReplaceTemplateValue extends TemplateValue {
   }
 }
 
-export class DataValue extends TemplateValue {
-  constructor(attributeName, value = null) {
-    super(value);
-    this.attributeName = attributeName;
-  }
-
-  set(element) {
-    var name = this.attributeName;
-    if (!name.startsWith("data-")) {
-      name = "data-" + name;
-    }
-    element.setAttribute(name, this._value);
-  }
-}
 
 export class HtmlTemplate {
   constructor(templateElement, initValues = null) {

@@ -551,6 +551,34 @@ export class DOM {
     }
     return match != null;
   }
+
+  getPageOffset(...args) {
+    var el = this.first(args);
+    var x = 0;
+    var y = 0;
+    var width = 0;
+    var height = 0;
+    if (el != null) {
+      var rect = el.getBoundingClientRect();
+      var scrollLeft =
+        window.pageXOffset || document.documentElement.scrollLeft;
+      var scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+      y = rect.top + scrollTop;
+      x = rect.left + scrollLeft;
+      height = el.clientHeight;
+      width = el.clientWidth;
+    }
+    return {
+      x,
+      y,
+      width,
+      height,
+      left: x,
+      top: y,
+      right: x + width,
+      bottom: y + height,
+    };
+  }
 }
 
 const dom = new DOM();

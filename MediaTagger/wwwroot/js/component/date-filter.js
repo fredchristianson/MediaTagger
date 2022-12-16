@@ -50,6 +50,7 @@ export class DateFilterComponent extends ComponentBase {
       BuildClickHandler()
         .listenTo(".date-select .end")
         .onClick(this, this.resetEnd)
+        .onRightClick(this, this.resetEnd)
         .build()
     );
 
@@ -175,26 +176,37 @@ export class DateFilterComponent extends ComponentBase {
     }
   }
   startHover() {
-    log.debug("start hover");
-    this.dom.addClass(this.popup, "show");
+    log.never("start hover");
+    var svgpos = this.dom.getPageOffset(this.svg);
+
+    //this.popup.style.top = `${svgpos.bottom}px`;
+    // absolute position relative to date div, not body
+    this.popup.style.top = `${svgpos.height}px`;
   }
 
   endHover() {
-    log.debug("end hover");
+    log.never("end hover");
     this.dom.removeClass(this.popup, "show");
   }
 
   onMouseMove(pos, event, data, handler) {
-    log.debug(`move: `, pos);
+    log.never(`move: `, event.clientX);
     var num = Math.floor(pos.pctX * 100);
     var bucket = this.buckets[num];
-    log.debug("show bucket ", num, bucket ? " exists " : "empty");
+    log.never("show bucket ", num, bucket ? " exists " : "empty");
     if (bucket && bucket.firstItem) {
       this.dom.first(this.popup, "img").src =
         bucket.firstItem.getThumbnailUrl();
+      this.dom.first(this.popup, "img.last").src =
+        bucket.lastItem.getThumbnailUrl();
       this.dom.first(this.popup, ".date").innerHTML = this.dateString(
         bucket.firstItem.getDateTaken()
       );
+      this.dom.addClass(this.popup, "show");
+      this.popup.style.left = `${event.clientX}px`;
+      this.popup.style.transform = `translate(-${pos.xPercent()}%)`;
+    } else {
+      this.dom.removeClass(this.popup, "show");
     }
   }
 

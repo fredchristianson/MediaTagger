@@ -170,9 +170,13 @@ body {
   display: none;
   z-index: 100;
   background-color: #ffffff;
+  min-width: 300px;
 }
 .date-select .popup-details.show {
   display: block;
+}
+.date-select .popup-details.show img {
+  width: 128px;
 }
 
 .hidden {

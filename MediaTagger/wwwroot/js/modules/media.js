@@ -102,6 +102,9 @@ export class MediaFile extends MediaObject {
   getId() {
     return this.id;
   }
+  getFileId() {
+    return this.id;
+  }
 
   getThumbnailUrl() {
     return `/thumbnail/${this.fileId}?v=1.0`;
@@ -123,6 +126,10 @@ export class MediaItem extends MediaObject {
 
   getId() {
     return this.id;
+  }
+
+  getFileId() {
+    return "f" + this.primaryFileId;
   }
 
   getDateTaken() {
@@ -197,7 +204,6 @@ class Media {
 
     if (!(await this.loadItemsFromDatabase())) {
       await this.loadItemsFromAPI();
-      this.saveItemsToDatabase();
     } else {
       // using the browser DB items until server items are loaded
       this.refreshItemsFromAPI().then(() => {

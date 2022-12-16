@@ -51,9 +51,13 @@
             display: none;
             z-index: 100;
             background-color: #ffffff;
+            min-width: 300px;
           }
 
            .popup-details.show {
             display: block;
+            img {
+              width: 128px;
+            }
            }
 }

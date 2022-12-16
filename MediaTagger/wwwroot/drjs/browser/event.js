@@ -12,9 +12,18 @@ export class ResponseStopDefault extends HandlerResponse {}
 export class ResponseStopAll extends HandlerResponse {}
 export class ResponseContinue extends HandlerResponse {}
 
+function DoNothing() {
+  return false;
+}
 export class Listeners extends Array {
   constructor(...args) {
     super();
+    args.forEach((arg) => {
+      this.push(arg);
+    });
+  }
+
+  add(...args) {
     args.forEach((arg) => {
       this.push(arg);
     });
@@ -123,11 +132,14 @@ export class EventHandlerBuilder {
     this.handler = new this.handlerClass();
   }
 
-  listenTo(element) {
+  listenTo(element, selector = null) {
     if (element instanceof DOM) {
       this.handler.listenElement = element.getRoot();
     } else {
       this.handler.listenElement = element;
+    }
+    if (selector != null) {
+      this.handler.setSelector(selector);
     }
     return this;
   }
@@ -220,6 +232,18 @@ export class ClickHandlerBuilder extends EventHandlerBuilder {
 
   onClick(...args) {
     this.handler.setOnClick(new HandlerMethod(...args));
+    return this;
+  }
+  onLeftClick(...args) {
+    this.handler.setOnLeftClick(new HandlerMethod(...args));
+    return this;
+  }
+  onRightClick(...args) {
+    this.handler.setOnRightClick(new HandlerMethod(...args));
+    return this;
+  }
+  onMiddleClick(...args) {
+    this.handler.setOnMiddleClick(new HandlerMethod(...args));
     return this;
   }
 }
@@ -470,8 +494,20 @@ export class EventHandler {
     return this;
   }
 
+  getEventItem(event) {
+    if (this.selector == null) {
+      return event.currentTarget;
+    }
+    if (event.target.matches(this.selector)) {
+      return event.target;
+    }
+    return dom.parent(event.target, this.selector);
+  }
+
   selectorMismatch(event) {
-    return this.selector != null && !event.target.matches(this.selector);
+    return (
+      this.selector != null && !dom.isElementIn(event.target, this.selector)
+    );
   }
 
   eventProcessorMethod(event) {
@@ -574,23 +610,85 @@ export class EventHandler {
 
 export class ClickHandler extends EventHandler {
   constructor(...args) {
-    super("click", ...args);
+    super(...args);
+    this.setTypeName([
+      "click",
+      "mouseup",
+      "mousedown",
+      "mouseover",
+      "mouseout",
+    ]);
     this.onClick = null;
+    this.onLeftClick = null;
+    this.onRightClick = null;
+    this.onMiddleClick = null;
   }
 
   setOnClick(handler) {
     this.onClick = handler;
   }
+  setOnLeftClick(handler) {
+    this.onLeftClick = handler;
+  }
+  setOnRightClick(handler) {
+    this.onRightClick = handler;
+  }
+  setOnMiddleClick(handler) {
+    this.onMiddleClick = handler;
+  }
 
+  callIf(event, method, defaultName) {
+    if (method != null) {
+      var func = method.getMethod(defaultName);
+      if (func) {
+        func(this.getEventItem(event), this.data, event, this);
+        return true;
+      }
+    }
+    return false;
+  }
   callHandler(method, event) {
     try {
+      if (event.type == "mouseover") {
+        if (this.onRightClick) {
+          this.oldOnContextMenu = document.oncontextmenu;
+          document.oncontextmenu = DoNothing;
+        }
+        return;
+      } else if (event.type == "mouseout") {
+        if (this.onRightClick) {
+          document.oncontextmenu = this.oldOnContextMenu;
+        }
+        return;
+      }
+      if (event.type == "mousedown") {
+        if (event.button == 1 && this.onMiddleClick) {
+          event.preventDefault(); // don't scroll if middle click handler exists
+        }
+      }
       if (method != null) {
         method(event.currentTarget, this.data, event, this);
       }
-      if (this.onClick != null) {
+      if (event.type == "click" && this.onClick != null) {
         var clickMethod = this.onClick.getMethod({ defaultName: "onClick" });
         if (clickMethod) {
-          clickMethod(event.currentTarget, this.data, event, this);
+          clickMethod(this.getEventItem(event), this.data, event, this);
+        }
+      }
+      if (event.type == "mouseup") {
+        if (event.button == 0) {
+          this.callIf(event, this.onLeftClick, "onLeftClick");
+        }
+        if (event.button == 1) {
+          this.callIf(event, this.onMiddleClick, "onMiddleClick");
+        }
+        if (event.button == 2) {
+          if (this.callIf(event, this.onRightClick, "onRightClick")) {
+            document.oncontextmenu = DoNothing;
+            setTimeout(() => {
+              document.oncontextmenu = null;
+            }, 100);
+          }
         }
       }
     } catch (ex) {
