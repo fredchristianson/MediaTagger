@@ -35,8 +35,25 @@
             height: 100%;
 
             rect {
-                fill: hsla(130,100,50,0.3);
+                fill: hsla(230deg,100%,50%,1);
                 height: 100%;
+                width: 20px;
+                top: 0;
+                
             }
           }
+          .popup-details{
+            position: absolute;
+            left: 50px;
+            top: 200px;
+            height: auto;
+            border: 2px solid black;
+            display: none;
+            z-index: 100;
+            background-color: #ffffff;
+          }
+
+           .popup-details.show {
+            display: block;
+           }
 }

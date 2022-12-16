@@ -60,17 +60,19 @@ export class Layout {
     });
     this.resizeObserver.observe(this.container);
     this.listeners = new Listeners(
-      new EventListener(ZoomChangeEvent, this, this.onZoomChange)
+      new EventListener(ZoomChangeEvent, this, this.onZoomChange),
+      BuildScrollHandler().listenTo(this.container).onScroll(this).build()
     );
 
     this.list.getUpdatedEvent().createListener(this, this.onListUpdated);
-    this.listeners = new Listeners(
-      BuildScrollHandler().listenTo(this.container).onScroll(this).build()
-    );
 
     OnNextLoop(() => {
       this.onListUpdated(this.list);
     });
+  }
+
+  detach() {
+    this.listeners.removeAll();
   }
 
   getItem(index) {
@@ -170,6 +172,9 @@ export class GridLayout extends Layout {
     var gap = this.gap;
     var viewWidth = view.clientWidth;
     var viewHeight = view.clientHeight;
+    if (viewWidth == 0 || viewHeight == 0) {
+      return;
+    }
     var cols = Math.floor(viewWidth / (width + gap));
     var rows = Math.floor(viewHeight / (gap + height)) + 1; // draw an extra row
     var visibleCount = cols * rows;

@@ -27,6 +27,39 @@ export class Listeners extends Array {
   }
 }
 
+class MousePosition {
+  constructor(event = null) {
+    this.event = event;
+    this.x = 0;
+    this.y = 0;
+    this.pctX = 0;
+    this.pctY = 0;
+    this.update(event);
+  }
+
+  update(event) {
+    this.event = event;
+    if (event != null) {
+      var target = event.currentTarget;
+      this.width = target.clientWidth;
+      this.height = target.clientHeight;
+      this.x = event.offsetX;
+      this.y = event.offsetY;
+      this.pctX = this.width > 0 ? (this.x * 1.0) / this.width : 0;
+      this.pctY = this.height > 0 ? (this.y * 1.0) / this.height : 0;
+    }
+  }
+
+  // pctX and pctY are [0...1].
+  // xPercent() and yPercent() are integers [0...100]
+  xPercent() {
+    return Math.floor(this.pctX * 100);
+  }
+  yPercent() {
+    return Math.floor(this.pctY * 100);
+  }
+}
+
 export class ObjectEventType {
   constructor(name) {
     this.name = name;
@@ -269,6 +302,10 @@ export class HoverHandlerBuilder extends EventHandlerBuilder {
   }
   endDelayMSecs(msecs = 300) {
     this.handler.setEndDelayMSecs(msecs);
+    return this;
+  }
+  disableContextMenu() {
+    this.handler.setDisableContextMenu(true);
     return this;
   }
 }
@@ -688,6 +725,9 @@ export class HoverHandler extends EventHandler {
     this.mouseMoveBodyHandler = this.onMouseMoveBody.bind(this);
     this.endTimeout = null;
     this.inHover = false;
+    this.disableContextMenuOnHover = false;
+    this.originalConextMenu = document.oncontextmenu;
+    this.mousePosition = new MousePosition();
   }
   setOnStart(handler) {
     this.onStartHandler = handler;
@@ -703,6 +743,10 @@ export class HoverHandler extends EventHandler {
   }
   setEndDelayMSecs(msecs) {
     this.endDelayMSecs = msecs;
+  }
+
+  setDisableContextMenu(disabled = true) {
+    this.disableContextMenuOnHover = disabled;
   }
 
   onMouseMoveBody(event) {
@@ -724,30 +768,44 @@ export class HoverHandler extends EventHandler {
   resetEndTimeout(event) {
     this.cancelEndTimeout();
     this.endTimeout = setTimeout(() => {
-      this.inHover = false;
-      dom.getBody().removeEventListener("mousemove", this.mouseMoveBodyHandler);
-      if (this.onEndHandler) {
-        var method = this.onEndHandler.getMethod("onHoverEnd");
-
-        if (method) {
-          method(event, this.data, this);
-        }
-      }
+      this.endHover();
     }, this.endDelayMSecs);
   }
 
-  endHover() {
+  startHover(event) {
+    if (this.disableContextMenuOnHover) {
+      document.oncontextmenu = function () {
+        return false;
+      };
+    }
+
+    this.inHover = true;
+    dom.getBody().addEventListener("mousemove", this.mouseMoveBodyHandler);
+    if (this.onStartHandler) {
+      var method = this.onStartHandler.getMethod("onHoverStart");
+      if (method) {
+        method(this.mousePosition, event, this.data, this);
+      }
+    }
+  }
+
+  endHover(event) {
+    this.inHover = false;
     dom.getBody().removeEventListener("mousemove", this.mouseMoveBodyHandler);
     if (this.onEndHandler) {
       var method = this.onEndHandler.getMethod("onHoverEnd");
 
       if (method) {
-        method(event, this.data, this);
+        method(this.mousePosition, event, this.data, this);
       }
+    }
+    if (this.disableContextMenuOnHover) {
+      document.oncontextmenu = this.originalConextMenu;
     }
   }
 
   callHandler(method, event) {
+    this.mousePosition.update(event);
     try {
       if (event.type == "mouseover") {
         this.cancelEndTimeout();
@@ -755,29 +813,14 @@ export class HoverHandler extends EventHandler {
         if (this.inHover) {
           return;
         }
-        this.inHover = true;
-        dom.getBody().addEventListener("mousemove", this.mouseMoveBodyHandler);
-        if (this.onStartHandler) {
-          var method = this.onStartHandler.getMethod("onHoverStart");
-          if (method) {
-            method(event, this.data, this);
-          }
-        }
+        this.startHover();
       } else if (event.type == "mouseout") {
         this.resetEndTimeout(event);
       } else if (event.type == "mousemove") {
         if (this.onMoveHandler) {
           var method = this.onMoveHandler.getMethod("onMouseMove");
           if (method) {
-            var target = event.currentTarget;
-            var width = target.clientWidth;
-            var height = target.clientHeight;
-            var x = event.offsetX;
-            var y = event.offsetY;
-            var pctX = width > 0 ? (x * 1.0) / width : 0;
-            var pctY = height > 0 ? (y * 1.0) / height : 0;
-            var pos = { x, y, width, height, pctX, pctY };
-            method(pos, event, this.data, this);
+            method(this.mousePosition, event, this.data, this);
           }
         }
       }
@@ -798,9 +841,7 @@ export class MouseHandler extends EventHandler {
     this.onRightDown = null;
     this.onRightUp = null;
     this.onMouseMove = null;
-    document.oncontextmenu = function () {
-      return false;
-    };
+    this.mousePosition = new MousePosition();
   }
   setOnLeftDown(handler) {
     this.onLeftDown = handler;
@@ -823,25 +864,18 @@ export class MouseHandler extends EventHandler {
   callIfSet(event, handler, name) {
     if (handler) {
       var method = handler.getMethod(name);
-      method(event, this.data, this);
+      method(this.mousePosition, event, this.data, this);
     }
   }
 
   callHandler(method, event) {
+    this.mousePosition.update(event);
     try {
       if (event.type == "mousemove") {
-        var method = this.onMouseMove.getMethod("onMouseMove");
+        var moveMethod = this.onMouseMove.getMethod("onMouseMove");
 
-        if (method) {
-          var target = event.currentTarget;
-          var width = target.clientWidth;
-          var height = target.clientHeight;
-          var x = event.offsetX;
-          var y = event.offsetY;
-          var pctX = width > 0 ? (x * 1.0) / width : 0;
-          var pctY = height > 0 ? (y * 1.0) / height : 0;
-          var pos = { x, y, width, height, pctX, pctY };
-          method(pos, event, this.data, this);
+        if (moveMethod) {
+          moveMethod(this.mousePosition, event, this.data, this);
         }
       } else if (event.type == "mousedown") {
         if (event.button == 0) {

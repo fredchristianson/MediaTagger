@@ -21,9 +21,6 @@ var MAX_MEDIA_ITEMS = 5000;
 export class MediaComponent extends ComponentBase {
   constructor(selector, htmlName = "media") {
     super(selector, htmlName);
-    this.loadCompleteHandler = this.loadComplete.bind(this);
-    this.loadErrorHandler = this.loadError.bind(this);
-    this.doLoadNext = this.loadNext.bind(this);
     this.listeners = new Listeners();
   }
 
@@ -46,93 +43,10 @@ export class MediaComponent extends ComponentBase {
       asyncLoader.setConcurrentLoadLimit(5);
       return htmlItem;
     });
-
-    // load multiple images at a time but limit
-    this.scheduled = 0;
-    this.running = 0;
-    for (var cnt = 0; cnt < 5; cnt++) {
-      this.scheduleLoadNext();
-    }
   }
 
-  scheduleLoadNext() {
-    if (this.running > 5 || this.scheduled > 5) {
-      log.error("too many requests");
-      return;
-    }
-    setTimeout(this.doLoadNext, 0);
-    this.scheduled += 1;
-    log.never("scheduled " + this.scheduled);
-  }
-  loadNext() {
-    this.scheduled -= 1;
-    this.running += 1;
-    log.never("running " + this.running + "scheduled " + this.scheduled);
-    // first do ones in view
-    var img = this.dom.first(".in-view [data-unloaded='true']");
-    if (img == null) {
-      // none in view so get the next
-      img = this.dom.first("[data-unloaded='true']");
-    }
-    if (img == null) {
-      // none still .loading, so done
-      this.running -= 1;
-      log.never("running " + this.running + "scheduled " + this.scheduled);
-
-      return;
-    }
-    if (img.loadComplete) {
-      this.scheduleLoadNext();
-      return;
-    }
-    var src = this.dom.getData(img, "src");
-    if (!UTIL.isEmpty(src)) {
-      this.dom.setData(img, "unloaded", "false");
-      this.dom.setData(img, "loading", "true");
-      var parent = img.parentNode;
-      var name = this.dom.first(parent, ".name").innerText;
-      log.never("loading ", name, " ", src);
-      img.addEventListener("load", this.loadCompleteHandler);
-      img.addEventListener("error", this.loadErrorHandler);
-
-      //   img.setAttribute("src", src);
-      if (img.loadComplete) {
-        this.dom.setData(img, "loading", "false");
-        img.removeEventListener("load", this.loadCompleteHandler);
-        img.removeEventListener("error", this.loadErrorHandler);
-        this.running -= 1;
-        this.scheduleLoadNext();
-        log.never("already loaded");
-      }
-    } else {
-      log.never("done loading");
-    }
-  }
-
-  loadComplete(event) {
-    log.never("loaded");
-    var img = event.target;
-    if (this.dom.getData(img, "loading") != "true") {
-      return;
-    }
-    this.dom.setData(img, "loading", "false");
-    img.removeEventListener("error", this.loadErrorHandler);
-    img.removeEventListener("load", this.loadCompleteHandler);
-    this.running -= 1;
-    this.scheduleLoadNext();
-  }
-
-  loadError(event) {
-    var img = event.target;
-    log.never("error ");
-    img.removeEventListener("error", this.loadErrorHandler);
-    img.removeEventListener("error", this.loadCompleteHandler);
-    this.dom.removeClass(img, "load-waiting");
-    this.dom.removeClass(img, "loading");
-    this.dom.addClass(img, "error");
-    img.setAttribute("src", "image/error.png");
-    this.running -= 1;
-    this.scheduleLoadNext();
+  async onDetach() {
+    this.layout.detach();
   }
 }
 

@@ -4,6 +4,7 @@ import util, { Util } from "../util.js";
 
 const log = Logger.create("DOM");
 const NO_SELECTION = "~-NOSEL-~";
+const svgns = "http://www.w3.org/2000/svg";
 export class DOM {
   constructor(rootSelector = null) {
     this.rootSelector = rootSelector;
@@ -74,7 +75,10 @@ export class DOM {
     const sel = this.getParentAndSelector(opts);
     try {
       var element = null;
-      if (sel.selector instanceof HTMLElement) {
+      if (
+        sel.selector instanceof HTMLElement ||
+        sel.selector instanceof SVGElement
+      ) {
         // a DOM element was passed as a selector, so return it
         element = sel.selector;
       } else if (Array.isArray(sel.parent)) {
@@ -458,8 +462,27 @@ export class DOM {
     return element;
   }
 
-  appendChild(child) {
-    this.root.appendChild(child);
+  createElementNS(tagName, values = null) {
+    var element = document.createElementNS(svgns, tagName);
+    if (values == null) {
+      return element;
+    }
+    if (typeof values == "string") {
+      element.innerHTML = values;
+      return element;
+    }
+    Object.getOwnPropertyNames(values).forEach((prop) => {
+      var val = values[prop];
+      if (prop[0] == "@") {
+        var attr = prop.substr(1);
+        element.setAttribute(attr, val);
+      } else if (prop == "innerHTML" || prop == "text" || prop == "html") {
+        element.innerHTML = val;
+      } else {
+        element[prop] = val;
+      }
+    });
+    return element;
   }
 
   removeChildren(selector) {
@@ -476,7 +499,9 @@ export class DOM {
     var elements = array.map((e) => {
       return this.first(e);
     });
-    return elements.filter((item) => item instanceof HTMLElement);
+    return elements.filter(
+      (item) => item instanceof HTMLElement || item instanceof SVGElement
+    );
   }
 
   isEmpty(...opts) {

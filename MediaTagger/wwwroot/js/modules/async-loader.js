@@ -125,7 +125,7 @@ class AsyncLoader {
             this.activeLoadCount
           }) ${itemStatus.item.getThumbnailUrl()}`
         );
-        scheduleCheck();
+        this.scheduleCheck();
       }
 
       itemStatus = this.getNextItemStatus();

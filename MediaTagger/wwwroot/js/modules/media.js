@@ -198,13 +198,12 @@ class Media {
     if (!(await this.loadItemsFromDatabase())) {
       await this.loadItemsFromAPI();
       this.saveItemsToDatabase();
+    } else {
+      // using the browser DB items until server items are loaded
+      this.refreshItemsFromAPI().then(() => {
+        log.info("items refreshed");
+      });
     }
-  }
-
-  async saveItemsToDatabase() {
-    await this.databaseTable.set("mediaItems", [...this.mediaItems]);
-    await this.databaseTable.set("files", [...this.files]);
-    await this.databaseTable.set("groups", [...this.groups]);
   }
 
   async loadItemsFromDatabase() {
@@ -223,6 +222,10 @@ class Media {
       var mediaItemData = await api.GetAllMediaItems();
       var fileData = await api.GetAllMediaFiles();
       var groupData = await api.GetAllMediaGroups();
+      await this.databaseTable.set("mediaItems", mediaItemData);
+      await this.databaseTable.set("files", fileData);
+      await this.databaseTable.set("groups", groupData);
+
       this.setupDataViews(mediaItemData, fileData, groupData);
     } catch (ex) {
       log.error(ex, "failed to get items");
@@ -265,8 +268,73 @@ class Media {
         })
       );
 
-      this.filteredItems = new FilteredObservableView(this.mediaItems);
-      this.sortedItems = new SortedObservableView(this.filteredItems);
+      this.dateFilterItems = new FilteredObservableView(this.mediaItems);
+      this.searchFilterItems = new FilteredObservableView(this.dateFilterItems);
+      this.sortedItems = new SortedObservableView(this.searchFilterItems);
+      this.setSortType("name");
+      this.visibleItems.setCollection(this.sortedItems);
+      return true;
+    } catch (ex) {
+      log.error(ex, "failed to get items");
+      return false;
+    }
+  }
+
+  async refreshItemsFromAPI() {
+    try {
+      log.debug("Media.getAll ");
+      var mediaItemData = await api.GetAllMediaItems();
+      var fileData = await api.GetAllMediaFiles();
+      var groupData = await api.GetAllMediaGroups();
+      await this.databaseTable.set("mediaItems", mediaItemData);
+      await this.databaseTable.set("files", fileData);
+      await this.databaseTable.set("groups", groupData);
+      this.refreshDataViews(mediaItemData, fileData, groupData);
+    } catch (ex) {
+      log.error(ex, "failed to get items");
+    }
+  }
+
+  async refreshDataViews(items, files, groups) {
+    try {
+      // todo: update instead of replace collection data
+      log.debug("Media.getAll ");
+      this.mediaItems = new ObservableView(
+        items.map((i) => {
+          return new MediaItem(i);
+        })
+      );
+
+      var itemsById = {};
+      var filesById = {};
+      for (var item of this.mediaItems) {
+        itemsById[item.getId()] = item;
+      }
+      this.files = new ObservableView(
+        files.map((f) => {
+          return new MediaFile(f);
+        })
+      );
+      for (var file of this.files) {
+        filesById[file.fileId] = file;
+        var mediaItem = itemsById[file.getMediaId()];
+        if (mediaItem != null) {
+          file.setMediaItem(mediaItem);
+          mediaItem.addFile(file);
+          if ("f" + mediaItem.getPrimaryFileId() == file.getId()) {
+            mediaItem.setPrimaryFile(file);
+          }
+        }
+      }
+      this.groups = new ObservableView(
+        groups.map((g) => {
+          return new MediaGroup(g);
+        })
+      );
+
+      this.dateFilterItems = new FilteredObservableView(this.mediaItems);
+      this.searchFilterItems = new FilteredObservableView(this.dateFilterItems);
+      this.sortedItems = new SortedObservableView(this.searchFilterItems);
       this.setSortType("name");
       this.visibleItems.setCollection(this.sortedItems);
       return true;
@@ -281,13 +349,28 @@ class Media {
     return this.visibleItems;
   }
 
+  getAllItems() {
+    log.debug("return all items ");
+    return this.mediaItems;
+  }
+
   setSearchText(text) {
     var lcText = text.toLowerCase();
-    this.filteredItems.setKeepFunction((item) => {
+    this.searchFilterItems.setKeepFunction((item) => {
       return item.getName().toLowerCase().includes(lcText);
     });
   }
 
+  setDateFilter(start, end) {
+    var starttime = start ? start.getTime() : null;
+    var endtime = end ? end.getTime() : null;
+    this.dateFilterItems.setKeepFunction((item) => {
+      return (
+        (starttime == null || item.getDateTaken().getTime() >= starttime) &&
+        (endtime == null || item.getDateTaken().getTime() <= endtime)
+      );
+    });
+  }
   setSortType(type) {
     type = type.toLowerCase();
     if (type == "id") {
