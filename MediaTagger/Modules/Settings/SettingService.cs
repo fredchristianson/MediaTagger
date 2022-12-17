@@ -25,7 +25,6 @@ namespace MediaTagger.Modules.Setting
         private MediaTaggerContext dbContext;
         private AppSettingsService appSettingsService;
         private IServiceProvider serviceProvider;
-        private BackgroundTaskManager backgroundTaskManager;
 
         public SettingService(MediaTaggerContext db,
       AppSettingsService appSettingsService,
@@ -68,7 +67,7 @@ namespace MediaTagger.Modules.Setting
         public async Task<AppSettings> GetAppSettings()
         {
             string? text = await Get(APP_SETTINGS_SCOPE, APP_SETTINGS_NAME);
-            AppSettings result = new AppSettings();
+            AppSettings? result = new AppSettings();
             if (!String.IsNullOrEmpty(text))
             {
                 result = AppSettings.ParseJson(text);

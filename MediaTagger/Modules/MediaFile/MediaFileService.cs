@@ -1,7 +1,6 @@
 ﻿using ImageMagick;
 using MediaTagger.Data;
 using MediaTagger.Modules.FileSystem;
-using MediaTagger.Modules.MediaItem;
 using Microsoft.EntityFrameworkCore;
 using System.Globalization;
 using System.Linq;
@@ -14,43 +13,41 @@ namespace MediaTagger.Modules.MediaFile
     {
         string GetFileMimeType(MediaFileModel file);
         string GetFilePath(MediaFileModel file);
-        Task<MediaFileModel?> GetMediaFileById(int id);
+        Task<MediaFileModel?> GetMediaFileById(long id);
         Task<MediaFileModel?> Process(string path);
         public bool IsWebImageType(MediaFileModel file);
-        public Task<List<int>> GetAllMediaFileIds();
-        Task UpdateMediaFileProperties(int id);
+        public Task<List<long>> GetAllMediaFileIds();
+        Task UpdateMediaFileProperties(long id);
         bool IsVideoType(MediaFileModel mediaFile);
         bool IsRawImage(MediaFileModel mediaFile);
     }
     public class MediaFileService : IMediaFileService
     {
-        private MediaTaggerContext? db;
+        private MediaTaggerContext db;
         private ILogger<MediaFileService> logger;
         private IPathService pathService;
-        private IMediaItemService mediaItemService;
 
-        public MediaFileService(MediaTaggerContext context, IMediaItemService mediaItemService, IPathService path, ILogger<MediaFileService> logger)
+        public MediaFileService(MediaTaggerContext context, IPathService path, ILogger<MediaFileService> logger)
         {
             this.db = context;
             this.logger = logger;
             this.pathService = path;
-            this.mediaItemService = mediaItemService;
         }
 
-        public async Task<MediaFileModel?> GetMediaFileById(int id)
+        public async Task<MediaFileModel> GetMediaFileById(long id)
         {
             var mediaFile = await db.MediaFiles
-            .Include(e => e.Path)
-            .FirstAsync(mf => mf.MediaFileId == id);
+            .Include(e => e.Directory)
+            .FirstAsync(mf => mf.Id == id);
             return mediaFile;
 
 
         }
 
-        public async Task<List<int>> GetAllMediaFileIds()
+        public async Task<List<long>> GetAllMediaFileIds()
         {
-            var ids = db.MediaFiles.Select(f => f.MediaFileId);
-            return ids.ToList();
+            var ids = await db.MediaFiles.Select(f => f.Id).ToListAsync();
+            return ids;
         }
 
         public async Task<MediaFileModel?> Process(string path)
@@ -94,7 +91,7 @@ namespace MediaTagger.Modules.MediaFile
 
         private async Task<MediaFileModel> GetOrCreateFile(PathModel pathModel, FileInfo file)
         {
-            var fileModel = await db.MediaFiles.Where(f => f.Name == file.Name && f.Path == pathModel).FirstOrDefaultAsync();
+            var fileModel = await db.MediaFiles.Where(f => f.Name == file.Name && f.Directory == pathModel).FirstOrDefaultAsync();
             if (fileModel == null)
             {
                 fileModel = await CreateFile(pathModel, file);
@@ -106,16 +103,14 @@ namespace MediaTagger.Modules.MediaFile
         {
             var fileModel = new MediaFileModel();
             fileModel.Name = file.Name;
-            fileModel.Created = file.CreationTime;
-            fileModel.Modified = file.LastWriteTime;
+            fileModel.FileCreated = file.CreationTime;
+            fileModel.FileModified = file.LastWriteTime;
             fileModel.DateTaken = null;
             fileModel.FileSize = file.Length;
             fileModel.PathId = pathModel.PathId;
 
             var createdModel = await db.MediaFiles.AddAsync(fileModel);
             await this.db.SaveChangesAsync();
-            fileModel.MediaItem = await mediaItemService.GetOrCreate(fileModel);
-            //fileModel.MediaItem = await mediaItemService.Create(fileModel);
             return createdModel.Entity;
         }
 
@@ -126,11 +121,11 @@ namespace MediaTagger.Modules.MediaFile
             {
                 throw new ArgumentException();
             }
-            if (file.Path == null)
+            if (file.Directory == null)
             {
-                db.Entry(file).Reference(f => f.Path).Load();
+                db.Entry(file).Reference(f => f.Directory).Load();
             }
-            return Path.Combine(file.Path.Value, file.Name);
+            return Path.Combine(file.Directory.Value, file.Name);
         }
 
         public string GetFileMimeType(MediaFileModel file)
@@ -161,7 +156,7 @@ namespace MediaTagger.Modules.MediaFile
             return mediaFile.Name.ToLower().EndsWith(".rw2");
         }
 
-        public async Task UpdateMediaFileProperties(int id)
+        public async Task UpdateMediaFileProperties(long id)
         {
             var fileModel = await this.db.MediaFiles.FindAsync(id);
             if (fileModel != null)
@@ -180,7 +175,7 @@ namespace MediaTagger.Modules.MediaFile
                     using (var image = new MagickImage(path))
                     {
 
-                        IExifProfile exifProfile = image.GetExifProfile();
+                        IExifProfile? exifProfile = image?.GetExifProfile();
                         if (exifProfile != null)
                         {
                             List<Tuple<string, object>> exifValues = new List<Tuple<string, object>>();

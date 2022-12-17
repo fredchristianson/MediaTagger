@@ -1,10 +1,10 @@
 ﻿using MediaTagger.Modules.FileSystem;
 using MediaTagger.Modules.MediaFile;
-using MediaTagger.Modules.MediaGroup;
-using MediaTagger.Modules.MediaItem;
 using MediaTagger.Modules.Setting;
 using MediaTagger.Modules.Tag;
+using MediaTagger.Modules.Property;
 using Microsoft.EntityFrameworkCore;
+using MediaTagger.Modules.Album;
 
 namespace MediaTagger.Data
 {
@@ -29,48 +29,45 @@ namespace MediaTagger.Data
 
         public DbSet<SettingModel> Settings => Set<SettingModel>();
         public DbSet<TagModel> Tags => Set<TagModel>();
-        public DbSet<MediaItemModel> MediaItems => Set<MediaItemModel>();
+        public DbSet<AlbumModel> Albums => Set<AlbumModel>();
         public DbSet<MediaFileModel> MediaFiles => Set<MediaFileModel>();
         public DbSet<PathModel> Paths => Set<PathModel>();
-        public DbSet<MediaGroupModel> MediaGroups => Set<MediaGroupModel>();
+        public DbSet<PropertyModel> Properties => Set<PropertyModel>();
+        public DbSet<PropertyValueModel> PropertyValues => Set<PropertyValueModel>();
 
+        // public DbSet<AlbumFileModel> AlbumFiles => Set<AlbumFileModel>();
+        // public DbSet<FileTagModel> FileTags => Set<FileTagModel>();
+        // public DbSet<FilePropertyValueModel> FileProperties => Set<FilePropertyValueModel>();
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
 
+
+            // modelBuilder.Entity<AlbumFileModel>().HasKey(af => new { af.AlbumId, af.MediaFileId });
+            // modelBuilder.Entity<AlbumFileModel>()
+            //     .HasOne<AlbumModel>(sc => sc.Album)
+            //     .WithMany(s => s.AlbumFiles)
+            //     .HasForeignKey(sc => sc.AlbumId);
+            // modelBuilder.Entity<AlbumFileModel>()
+            //     .HasOne<MediaFileModel>(sc => sc.MediaFile)
+            //     .WithMany(s => s.AlbumFiles)
+            //     .HasForeignKey(sc => sc.MediaFileId);
+            // modelBuilder.Entity<AlbumFileModel>().ToTable("AlbumFileMap");
+
+
             modelBuilder.Entity<SettingModel>()
-             .HasKey(s => new { s.Scope, s.Name });
-            modelBuilder.Entity<SettingModel>().ToTable("Setting");
-
-            modelBuilder.Entity<TagModel>().HasIndex(t => t.Name).IsUnique();
-            modelBuilder.Entity<TagModel>().ToTable("Tag");
+              .HasKey(s => new { s.Scope, s.Name });
 
 
-            modelBuilder.Entity<MediaFileModel>().HasKey(file => file.MediaFileId);
-            modelBuilder.Entity<MediaItemModel>().HasKey(file => file.MediaItemId);
-
-
-            modelBuilder.Entity<MediaFileModel>()
-              .HasOne<MediaItemModel>(item => item.MediaItem)
-              .WithMany(item => item.Files)
-              .HasForeignKey(file => file.MediaItemId)
-              .OnDelete(DeleteBehavior.NoAction);
-
-            modelBuilder.Entity<MediaItemModel>().HasOne(item => item.PrimaryFile);
-
-            modelBuilder.Entity<MediaItemModel>().ToTable("MediaItem");
-
-            modelBuilder.Entity<PathModel>().ToTable("FileSystemPath");
-
-            modelBuilder.Entity<MediaFileModel>()
-            .HasOne<PathModel>(item => item.Path)
-            .WithMany(item => item.Files)
-            .HasForeignKey(file => file.PathId)
-            .OnDelete(DeleteBehavior.NoAction);
-            modelBuilder.Entity<MediaFileModel>().HasIndex(file => file.Name);
-            modelBuilder.Entity<MediaFileModel>().HasIndex(file => file.PathId);
             modelBuilder.Entity<MediaFileModel>().ToTable("MediaFile");
+            modelBuilder.Entity<AlbumModel>().ToTable("Album");
+            modelBuilder.Entity<SettingModel>().ToTable("Setting");
+            modelBuilder.Entity<TagModel>().ToTable("Tags");
+            modelBuilder.Entity<PathModel>().ToTable("Paths");
+            modelBuilder.Entity<PropertyModel>().ToTable("Properties");
+            modelBuilder.Entity<PropertyValueModel>().ToTable("PropertyValues");
+            modelBuilder.Entity<PropertyModel>().ToTable("Propertiess");
 
 
         }

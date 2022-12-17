@@ -1,0 +1,27 @@
+[
+    {
+        "type": "Group",
+        "name": "c#",
+        "parent_id": null,
+        "workspaceRoot": null,
+        "workspacePath": null,
+        "id": "HsbuTFLvdpMG83x0"
+    },
+    {
+        "type": "Directory",
+        "name": "d:\\dev\\media\\MediaTagger\\MediaTagger\\Modules",
+        "parent_id": "HsbuTFLvdpMG83x0",
+        "fsPath": "d:\\dev\\media\\MediaTagger\\MediaTagger\\Modules",
+        "workspaceRoot": null,
+        "workspacePath": null,
+        "id": "yFnEDkZazog3cAhJ"
+    },
+    {
+        "type": "Group",
+        "name": "Browser",
+        "parent_id": null,
+        "workspaceRoot": null,
+        "workspacePath": null,
+        "id": "GY4RtOwCbAkfDJ0T"
+    }
+]

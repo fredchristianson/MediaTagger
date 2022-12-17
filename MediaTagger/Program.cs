@@ -17,7 +17,6 @@ builder.Services.AddDbContext<MediaTaggerContext>(options =>
   options.UseSqlServer(builder.Configuration.GetConnectionString("MediaTaggerContext")));
 
 
-builder.Services.AddSingleton<IBackgroundMessageService, BackgroundMessageService>();
 builder.Services.AddSession();
 //builder.Services.AddHostedService<FileSystemService>();
 //builder.WebHost.UseUrls("https://localhost:7094", "http://192.168.10.128:8094");

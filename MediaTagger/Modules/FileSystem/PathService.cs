@@ -22,7 +22,7 @@ namespace MediaTagger.Modules.FileSystem
     {
 
       var lowerPath = pathValue.ToLower();
-      PathModel path;
+      PathModel? path;
       if (pathCache.TryGetValue(lowerPath,out path))
       {
         return path;

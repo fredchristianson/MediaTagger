@@ -22,14 +22,16 @@ namespace MediaTagger.Modules.BackgroundTasks
         private DateTime lastRun;
         private int frequencySeconds;
         private int iterations;
+        private ILogger logger;
         private int runCount = 0;
 
-        public ScheduledWorker(int frequencySeconds, IServiceScopeFactory scopeFactory, int iterations)
+        public ScheduledWorker(int frequencySeconds, IServiceScopeFactory scopeFactory, int iterations, ILogger logger)
         {
             this.scopeFactory = scopeFactory;
             this.lastRun = DateTime.MinValue;
             this.frequencySeconds = frequencySeconds;
             this.iterations = iterations;
+            this.logger = logger;
         }
 
 
@@ -46,8 +48,13 @@ namespace MediaTagger.Modules.BackgroundTasks
 
         public async void Run()
         {
-            using (var scope = this.scopeFactory.CreateScope())
+            using (var scope = this.scopeFactory?.CreateScope())
             {
+                if (scope == null)
+                {
+                    logger.LogError("failed to create scope");
+                    return;
+                }
                 var task = scope.ServiceProvider.GetRequiredService<T>();
                 task.Scope = scope;
                 this.lastRun = DateTime.Now;
@@ -72,7 +79,7 @@ namespace MediaTagger.Modules.BackgroundTasks
 
         public ScheduledWorker<T> ScheduleWorker<T>(int frequencySeconds, int iterations = int.MaxValue) where T : BackgroundWorker
         {
-            var scheduledWorker = new ScheduledWorker<T>(frequencySeconds, scopeFactory, iterations);
+            var scheduledWorker = new ScheduledWorker<T>(frequencySeconds, scopeFactory, iterations, logger);
             scheduledWorkers.Add(scheduledWorker);
             return scheduledWorker;
         }

@@ -1,10 +1,6 @@
 ﻿using ImageMagick;
 using MediaTagger.Data;
-using MediaTagger.Hubs;
 using MediaTagger.Modules.MediaFile;
-using MediaTagger.Modules.Setting;
-using Microsoft.AspNetCore.SignalR;
-using Microsoft.EntityFrameworkCore;
 
 namespace MediaTagger.Modules.Image
 {
@@ -31,7 +27,7 @@ namespace MediaTagger.Modules.Image
 
         public string GetMimeType() { return "image/webp"; }
 
-        async public Task<FileInfo> GetThumbnailFileInfo(int id)
+        async public Task<FileInfo> GetThumbnailFileInfo(long id)
         {
             FileInfo? path = await GetOrCreateThumbnailFile(id);
             if (path == null)
@@ -41,7 +37,7 @@ namespace MediaTagger.Modules.Image
             return path;
         }
 
-        async private Task<FileInfo?> GetOrCreateThumbnailFile(int id)
+        async private Task<FileInfo?> GetOrCreateThumbnailFile(long id)
         {
             var settings = settingsService.get();
             var dir = settings.StorageDirectory;

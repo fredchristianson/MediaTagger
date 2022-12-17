@@ -14,23 +14,22 @@ namespace MediaTagger.Modules.MediaFile
             routes.MapGet(V1_URL_PREFIX + "/MediaFiles", async (MediaTaggerContext db, AppSettingsService settingsService) =>
                   {
                       var settings = settingsService.get();
-                      var files = await db.MediaFiles.Include(f => f.Path).ToListAsync();
+                      var files = await db.MediaFiles.Include(f => f.Directory).ToListAsync();
                       // only keep ones under the current settings directories
                       var keep = files.Where(file =>
                       {
-                          var dir = file.Path?.Value;
+                          var dir = file.Directory?.Value;
                           return settingsService.IsPathSelected(dir);
                       }).Select(f =>
                      new
                      {
-                         mediaFileId = f.MediaFileId,
-                         mediaItemId = f.MediaItemId,
+                         mediaFileId = f.Id,
                          dateTaken = f.DateTaken,
-                         dateCreated = f.Created,
+                         dateCreated = f.CreatedOn,
                          fileSize = f.FileSize,
-                         dateModified = f.Modified,
+                         dateModified = f.ModifiedOn,
                          name = f.Name,
-                         path = f.Path?.Value
+                         path = f.Directory?.Value
                      }
 
                       );

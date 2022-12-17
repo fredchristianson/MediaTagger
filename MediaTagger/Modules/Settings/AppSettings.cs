@@ -1,13 +1,12 @@
 using System.Text.Json;
 using ImageMagick;
-using MediaTagger.Data;
 
 public class AppSettings
 {
-    public static AppSettings ParseJson(string text)
+    public static AppSettings? ParseJson(string text)
     {
         var settings = JsonSerializer.Deserialize<AppSettings>(text);
-        settings.CleanMediaDirectories();
+        settings?.CleanMediaDirectories();
         return settings;
     }
 
@@ -77,8 +76,13 @@ public class AppSettingsService
     private ILogger<AppSettingsService> logger;
 
     public AppSettings get() { return appSettings; }
-    internal void set(AppSettings settings)
+    internal void set(AppSettings? settings)
     {
+        if (settings == null)
+        {
+            logger.LogDebug("trying to set AppSettings to null");
+            return;
+        }
         lock (this)
         {
             if (get() == null || get().isChanged(settings))
@@ -105,8 +109,12 @@ public class AppSettingsService
 
     }
 
-    public bool IsPathSelected(string path)
+    public bool IsPathSelected(string? path)
     {
+        if (path == null)
+        {
+            return false;
+        }
         var len = path.Length;
         var selected = appSettings.MediaDirectories.Any(dir =>
         {

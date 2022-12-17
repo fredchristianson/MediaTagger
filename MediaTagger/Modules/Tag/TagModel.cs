@@ -1,24 +1,22 @@
-﻿using SqlExpress;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-using MediaTagger.Data;
-using Microsoft.EntityFrameworkCore;
+﻿using System.ComponentModel.DataAnnotations.Schema;
+using MediaTagger.Modules.MediaFile;
 
 namespace MediaTagger.Modules.Tag
 {
-    public class TagModel
+    public class TagModel : MediaEntity
     {
         public TagModel()
         {
 
         }
+        public TagModel? Parent { get; set; } = null;
 
-        [Key]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public int ID { get; set; }
+        //public long? ParentId { get; set; } = null;
 
-        public string Name { get; set; } = string.Empty;
+
+        virtual public ICollection<TagModel> Children { get; set; } = null!;
+        virtual public ICollection<MediaFileModel> MediaFiles { get; set; } = null!;
     }
 
 
-  }
+}
