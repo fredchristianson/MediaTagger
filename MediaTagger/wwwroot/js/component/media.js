@@ -55,6 +55,16 @@ export class MediaComponent extends ComponentBase {
         .onLeftClick(this, this.leftClick)
         .onRightClick(this, this.rightClick)
         .onMiddleClick(this, this.middleClick)
+        .setData((element) => {
+          return {
+            item: Media.getAllItems().getById(
+              this.dom.getData(element, "mediaid")
+            ),
+            file: Media.getAllItems().getById(
+              this.dom.getData(element, "fileid")
+            ),
+          };
+        })
         .build()
     );
   }
@@ -64,17 +74,24 @@ export class MediaComponent extends ComponentBase {
     this.listeners.removeAll();
   }
 
-  clickItem(item, data, event, handler) {
-    log.debug("click item ");
+  clickItem(element, data, event, handler) {
+    log.debug("click element ");
   }
-  leftClick(item, data, event, handler) {
-    log.debug("leftClick item ");
+  leftClick(element, data, event, handler) {
+    log.debug("leftClick element ");
+    if (event.hasShift) {
+      Media.selectToItem(data.item);
+    } else if (event.hasCtrl) {
+      Media.toggleSelectItem(data.item);
+    } else {
+      Media.selectItem(data.item);
+    }
   }
-  rightClick(item, data, event, handler) {
-    log.debug("right click item ");
+  rightClick(element, data, event, handler) {
+    Media.selectToItem(data.item);
   }
-  middleClick(item, data, event, handler) {
-    log.debug("middle click item ");
+  middleClick(element, data, event, handler) {
+    Media.toggleSelectItem(data.item);
   }
 }
 

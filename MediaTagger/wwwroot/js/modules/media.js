@@ -1,5 +1,4 @@
 import { LOG_LEVEL, Logger } from "../../drjs/logger.js";
-const log = Logger.create("Media", LOG_LEVEL.INFO);
 import api from "../mt-api.js";
 import Database from "../../drjs/browser/database.js";
 
@@ -8,6 +7,8 @@ import {
   SortedObservableView,
   FilteredObservableView,
 } from "./collections.js";
+
+const log = Logger.create("Media", LOG_LEVEL.DEBUG);
 
 function compareIds(a, b) {
   if (a == null) {
@@ -197,6 +198,8 @@ class Media {
     this.visibleItems = null;
     this.database = new Database("media", 3, ["items"]);
     this.visibleItems = new ObservableView([]);
+    this.selectedItems = new ObservableView([]);
+    this.lastSelect = null;
   }
 
   async loadItems() {
@@ -351,15 +354,18 @@ class Media {
   }
 
   getVisibleItems() {
-    log.debug("return visibleItems ");
+    log.never("return visibleItems ");
     return this.visibleItems;
   }
 
   getAllItems() {
-    log.debug("return all items ");
+    log.never("return all items ");
     return this.mediaItems;
   }
 
+  getSelectedItems() {
+    return this.selectedItems;
+  }
   setSearchText(text) {
     var lcText = text.toLowerCase();
     this.searchFilterItems.setKeepFunction((item) => {
@@ -386,6 +392,60 @@ class Media {
     } else {
       this.sortedItems.setSortComparison(compareNames);
     }
+  }
+
+  selectItem(item) {
+    var index = this.visibleItems.indexOf(item);
+    log.debug("inserting index ", index);
+    this.selectedItems.clear();
+    if (item == null) {
+      log.error("selecting null item");
+      return;
+    }
+    this.selectedItems.insertOnce(item);
+    this.lastSelect = item;
+  }
+
+  addSelectItem(item) {
+    if (item == null) {
+      log.error("selecting null item");
+      return;
+    }
+    this.selectedItems.insertOnce(item);
+    this.lastSelect = item;
+  }
+  toggleSelectItem(item) {
+    if (item == null) {
+      log.error("selecting null item");
+      return;
+    }
+    if (this.selectedItems.indexOf(item) != null) {
+      this.selectedItems.remove(item);
+    } else {
+      this.selectedItems.insertOnce(item);
+    }
+    this.lastSelect = item;
+  }
+
+  selectToItem(item) {
+    if (this.lastSelect == null) {
+      this.selectItem(item);
+    }
+    var visible = this.getVisibleItems();
+    var idx1 = visible.indexOf(item);
+    var idx2 = visible.indexOf(this.lastSelect);
+    if (idx1 == null || idx1 == null) {
+      return this.selectItem(item);
+    }
+    log.debug(`select items ${idx1}-${idx2}`);
+    var start = Math.min(idx1, idx2);
+    var end = Math.max(idx1, idx2);
+
+    for (var i = start; i <= end; i++) {
+      // todo: an event is emitted each insert.  add a bulk insert so only 1 event results
+      this.selectedItems.insertOnce(visible.getItemAt(i));
+    }
+    this.lastSelect = item;
   }
 }
 

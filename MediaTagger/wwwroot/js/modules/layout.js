@@ -8,6 +8,7 @@ import {
   EventEmitter,
   BuildScrollHandler,
 } from "../../drjs/browser/event.js";
+import Media from "./media.js";
 import asyncLoader from "./async-loader.js";
 import { OnNextLoop } from "./timer.js";
 
@@ -61,10 +62,12 @@ export class Layout {
     this.resizeObserver.observe(this.container);
     this.listeners = new Listeners(
       new EventListener(ZoomChangeEvent, this, this.onZoomChange),
-      BuildScrollHandler().listenTo(this.container).onScroll(this).build()
+      BuildScrollHandler().listenTo(this.container).onScroll(this).build(),
+      this.list.getUpdatedEvent().createListener(this, this.onListUpdated),
+      Media.getSelectedItems()
+        .getUpdatedEvent()
+        .createListener(this, this.onSelectionChanged)
     );
-
-    this.list.getUpdatedEvent().createListener(this, this.onListUpdated);
 
     OnNextLoop(() => {
       this.onListUpdated(this.list);
@@ -108,6 +111,13 @@ export class Layout {
     throw new Error("layout class must implement scrollToItem");
   }
 
+  onSelectionChanged(list) {
+    this.scrollToItem(
+      this.scrollItemIndex,
+      this.scrollItemPercent,
+      this.layoutView
+    );
+  }
   onListUpdated(list) {
     this.layoutScroll.style.height = px(list.getLength() * 100);
 
@@ -162,6 +172,8 @@ export class GridLayout extends Layout {
   }
 
   scrollToItem(itemIndex, itemPercent, view) {
+    var selection = Media.getSelectedItems();
+    var visibleItems = Media.getVisibleItems();
     var oldItems = dom.find(view, `[${this.gridDataName}='true']`);
     dom.setData(oldItems, `${this.gridDataName}`, "false");
     var visible = true;
@@ -213,6 +225,8 @@ export class GridLayout extends Layout {
             visible = top < viewHeight + 2 * height + gap;
           }
           dom.setData(added, this.gridDataName, "true");
+          var item = visibleItems.getItemAt(itemIndex);
+          dom.toggleClass(added, "selected", selection.contains(item));
         }
       }
       itemIndex += 1;

@@ -85,6 +85,11 @@
             }
         }
 
+        .media-item.selected {
+            outline: 6px solid #ffa;
+            
+        }
+
         .media-item.loaded {
             background-image: unset;
         }

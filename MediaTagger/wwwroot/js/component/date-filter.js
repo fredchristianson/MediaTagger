@@ -27,7 +27,7 @@ export class DateFilterComponent extends ComponentBase {
         .listenTo(this.dom.first(".svg-container"))
         .onStart(this, this.startHover)
         .onEnd(this, this.endHover)
-        .include([".date-popup", ".media-items", ".edge"])
+        .include([".date-popup", ".edge"])
         .endDelayMSecs(300)
         .disableContextMenu()
         .build(),

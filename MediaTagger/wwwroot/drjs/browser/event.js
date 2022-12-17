@@ -3,7 +3,7 @@ import { LOG_LEVEL } from "../logger-interface.js";
 import Logger from "../logger.js";
 import Util from "../util.js";
 import { DOM, default as dom } from "./dom.js";
-
+import { OnNextLoop } from "./timer.js";
 const log = Logger.create("Event", LOG_LEVEL.WARN);
 
 export class HandlerResponse {}
@@ -377,6 +377,7 @@ export class EventHandler {
     this.selector = null;
     this.excludeSelector = null;
     this.data = null;
+    this.dataSource = null;
     this.debounceMSecs = 0;
     this.debounceTimer = null;
     this.withShift = null;
@@ -452,7 +453,7 @@ export class EventHandler {
   }
 
   setData(data) {
-    this.data = data;
+    this.dataSource = data;
     return this;
   }
 
@@ -494,9 +495,12 @@ export class EventHandler {
     return this;
   }
 
-  getEventItem(event) {
+  getEventTarget(event) {
     if (this.selector == null) {
       return event.currentTarget;
+    }
+    if (event.target == null) {
+      return null;
     }
     if (event.target.matches(this.selector)) {
       return event.target;
@@ -520,6 +524,9 @@ export class EventHandler {
     if (this.withShift && !event.shiftKey) {
       return ResponseContinue;
     }
+    event.hasShift = event.shiftKey;
+    event.hasAlt = event.altKey;
+    event.hasCtrl = event.ctrlKey;
     if (this.debounceMSecs > 0) {
       if (this.debounceTimer) {
         clearTimeout(this.debounceTimer);
@@ -543,6 +550,13 @@ export class EventHandler {
       event.target.matches(this.excludeSelector)
     ) {
       return;
+    }
+    if (this.dataSource) {
+      if (typeof this.dataSource == "function") {
+        this.data = this.dataSource(this.getEventTarget(event));
+      } else {
+        this.data = this.dataSource;
+      }
     }
     if (this.handlerFunc) {
       var func = this.handlerFunc;
@@ -641,7 +655,7 @@ export class ClickHandler extends EventHandler {
     if (method != null) {
       var func = method.getMethod(defaultName);
       if (func) {
-        func(this.getEventItem(event), this.data, event, this);
+        func(this.getEventTarget(event), this.data, event, this);
         return true;
       }
     }
@@ -672,7 +686,7 @@ export class ClickHandler extends EventHandler {
       if (event.type == "click" && this.onClick != null) {
         var clickMethod = this.onClick.getMethod({ defaultName: "onClick" });
         if (clickMethod) {
-          clickMethod(this.getEventItem(event), this.data, event, this);
+          clickMethod(this.getEventTarget(event), this.data, event, this);
         }
       }
       if (event.type == "mouseup") {
@@ -1083,7 +1097,7 @@ export class EventEmitter {
     return listener;
   }
 
-  emit(data) {
+  emit(data, asynchronous = true) {
     const detail = {
       object: this.object,
       data: data,
@@ -1092,6 +1106,12 @@ export class EventEmitter {
     };
     log.debug(`EventEmitter.emit ${this.typeName}`);
     const event = new CustomEvent(this.typeName, { detail: detail });
-    dom.getBody().dispatchEvent(event);
+    if (asynchronous) {
+      OnNextLoop(() => {
+        dom.getBody().dispatchEvent(event);
+      });
+    } else {
+      dom.getBody().dispatchEvent(event);
+    }
   }
 }
