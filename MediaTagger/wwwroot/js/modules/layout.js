@@ -234,7 +234,8 @@ export class GridLayout extends Layout {
     }
     oldItems = dom.find(view, `[${this.gridDataName}='false']`);
     oldItems.forEach((child) => {
-      view.removeChild(child);
+      //view.removeChild(child);
+      child.style.display = "none";
     });
   }
 }

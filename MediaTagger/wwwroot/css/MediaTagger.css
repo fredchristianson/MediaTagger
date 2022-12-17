@@ -101,7 +101,7 @@ body {
   background-color: red;
 }
 #media-view .media-items .media-item.selected {
-  outline: 6px solid #ffa;
+  outline: 2px solid #ffa;
 }
 #media-view .media-items .media-item.loaded {
   background-image: unset;
