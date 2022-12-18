@@ -1,10 +1,43 @@
-﻿import ENV from "../drjs/env.js";
-import { LOG_LEVEL, Logger } from "../drjs/logger.js";
-import { HttpRequest } from "../drjs/browser/http-request.js";
-import util from "../drjs/util.js";
-import SignalR from "../drjs/browser/signalr.js";
+﻿import ENV from "../../drjs/env.js";
+import { LOG_LEVEL, Logger } from "../../drjs/logger.js";
+import { HttpRequest } from "../../drjs/browser/http-request.js";
+import util from "../../drjs/util.js";
+import SignalR from "../../drjs/browser/signalr.js";
 
 const log = Logger.create("MTApi", LOG_LEVEL.DEBUG);
+const httpAPI = new HttpRequest("/api/v1");
+
+export async function getMediaFiles(startPos, count) {
+  return await httpAPI.get(
+    "MediaFiles",
+    { start: startPos, count: count },
+    "json"
+  );
+}
+
+export async function getTags(startPos, count) {
+  return await httpAPI.get("Tags", { start: startPos, count: count }, "json");
+}
+
+export async function getProperties(startPos, count) {
+  return await httpAPI.get(
+    "Properties",
+    { start: startPos, count: count },
+    "json"
+  );
+}
+
+export async function getPropertyValues(startPos, count) {
+  return await httpAPI.get(
+    "PropertValues",
+    { start: startPos, count: count },
+    "json"
+  );
+}
+
+export async function getAlbums(startPos, count) {
+  return await httpAPI.get("Albums", { start: startPos, count: count }, "json");
+}
 
 export class MediaTaggerApi {
   constructor() {

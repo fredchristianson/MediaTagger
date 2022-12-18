@@ -23,5 +23,32 @@
         "workspaceRoot": null,
         "workspacePath": null,
         "id": "GY4RtOwCbAkfDJ0T"
+    },
+    {
+        "type": "Directory",
+        "name": "d:\\dev\\media\\MediaTagger\\MediaTagger\\wwwroot\\component",
+        "parent_id": "GY4RtOwCbAkfDJ0T",
+        "fsPath": "d:\\dev\\media\\MediaTagger\\MediaTagger\\wwwroot\\component",
+        "workspaceRoot": null,
+        "workspacePath": null,
+        "id": "dYH0yqlUp1Bwm56Z"
+    },
+    {
+        "type": "Directory",
+        "name": "d:\\dev\\media\\MediaTagger\\MediaTagger\\wwwroot\\drjs",
+        "parent_id": "GY4RtOwCbAkfDJ0T",
+        "fsPath": "d:\\dev\\media\\MediaTagger\\MediaTagger\\wwwroot\\drjs",
+        "workspaceRoot": null,
+        "workspacePath": null,
+        "id": "5xzHPF21NUT8ZcGC"
+    },
+    {
+        "type": "Directory",
+        "name": "d:\\dev\\media\\MediaTagger\\MediaTagger\\wwwroot\\js",
+        "parent_id": "GY4RtOwCbAkfDJ0T",
+        "fsPath": "d:\\dev\\media\\MediaTagger\\MediaTagger\\wwwroot\\js",
+        "workspaceRoot": null,
+        "workspacePath": null,
+        "id": "Cns8e6wE9LSuK2tN"
     }
 ]

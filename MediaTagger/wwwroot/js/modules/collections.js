@@ -38,6 +38,15 @@ export class ObservableCollection {
     return this.updatedEvent;
   }
 
+  findById(id) {
+    for (var item of this) {
+      if (item.getId() == id) {
+        return item;
+      }
+    }
+    return null;
+  }
+
   [Symbol.iterator]() {
     let index = 0;
     const count = this.getLength();
@@ -101,7 +110,7 @@ export class ObservableArray extends ObservableCollection {
 
   insert(item) {
     this.items.push(item);
-    this.itemsAddedEvent.emit(item);
+    this.itemsAddedEvent.emitNow(item);
     this.updatedEvent.emit(this.items);
   }
 
@@ -123,9 +132,9 @@ export class ObservableArray extends ObservableCollection {
   remove(item) {
     var idx = this.indexOf(item);
     if (idx != null) {
-      var item = this.items.splice(idx, 1);
-      this.itemsRemovedEvent.emit(item);
-      this.updatedEvent.emit(this.items);
+      var removed = this.items.splice(idx, 1);
+      this.itemsRemovedEvent.emitNow(removed);
+      this.updatedEvent.emit(this.removed);
     }
     return null;
   }
@@ -137,7 +146,7 @@ export class ObservableArray extends ObservableCollection {
     return found != null;
   }
 
-  getById(id) {
+  findById(id) {
     return this.items.find((item) => {
       return id == item.getId();
     });
@@ -168,20 +177,20 @@ export class ObservableView extends ObservableCollection {
   }
 
   onBaseSorted() {
-    this.sortedEvent.emit(this);
+    this.sortedEvent.emitNow(this);
     this.updatedEvent.emit(this);
   }
 
   onBaseFiltered() {
-    this.filteredEvent.emit(this);
+    this.filteredEvent.emitNow(this);
     this.updatedEvent.emit(this);
   }
-  onBaseItemsAdded() {
-    this.itemsAddedEvent.emit(this);
+  onBaseItemsAdded(item) {
+    this.itemsAddedEvent.emitNow(item);
     this.updatedEvent.emit(this);
   }
-  onBaseItemsRemoved() {
-    this.itemsRemovedEvent.emit(this);
+  onBaseItemsRemoved(item) {
+    this.itemsRemovedEvent.emitNow(item);
     this.updatedEvent.emit(this);
   }
   onBaseUpdated() {
@@ -264,18 +273,8 @@ export class ObservableView extends ObservableCollection {
   }
 }
 
-function defaultSortCompare(a, b) {
-  if (a == null) {
-    return b == null ? 0 : -1;
-  }
-  if (b == null) {
-    return 1;
-  }
-  return a < b ? -1 : 1;
-}
-
 export class SortedObservableView extends ObservableView {
-  constructor(collectionIn = null, comparisonFunction = defaultSortCompare) {
+  constructor(collectionIn = null, comparisonFunction = null) {
     super(collectionIn);
     this.comparisonFunction = comparisonFunction;
     this.sortedItems = new ObservableArray(collectionIn);
@@ -307,6 +306,9 @@ export class SortedObservableView extends ObservableView {
     return this.sortedItems.getLength();
   }
   sort() {
+    if (this.comparisonFunction == null) {
+      return;
+    }
     this.sortedItems.__sort(this.comparisonFunction);
     this.sortedEvent.emit(this);
     this.updatedEvent.emit(this);
@@ -345,10 +347,18 @@ export class FilteredObservableView extends ObservableView {
     return this.filteredItems.indexOf(item);
   }
 
+  findById(id) {
+    return this.filteredItems.findById(id);
+  }
+
   getLength() {
     return this.filteredItems.getLength();
   }
   filter() {
+    if (this.keepFunction == null) {
+      this.filteredItems = this.collectionIn;
+      return;
+    }
     this.filteredItems = new ObservableArray(this.collectionIn);
     this.filteredItems.__filter(this.keepFunction);
     this.filteredEvent.emit(this);

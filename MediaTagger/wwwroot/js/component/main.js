@@ -2,9 +2,9 @@ import { ComponentBase } from "../../drjs/browser/component.js";
 
 import ViewOptionsComponent from "./view-options.js";
 import StatusBarComponent from "./status-bar.js";
-import MediaComponent from "./media.js";
+import FileViewComponent from "./file-view.js";
 import SettingsComponent from "./settings.js";
-import api from "../mt-api.js";
+import api from "../modules/mt-api.js";
 
 export class MainComponent extends ComponentBase {
   constructor(selector, htmlName = "main") {
@@ -21,17 +21,17 @@ export class MainComponent extends ComponentBase {
       appSettings.mediaDirectories != null &&
       appSettings.mediaDirectories.length > 0
     ) {
-      this.showMedia();
+      this.showFiles();
     } else {
       this.showSettings();
     }
   }
   showSettings() {
-    this.media = new SettingsComponent("#content-view");
+    this.contentView = new SettingsComponent("#content-view");
   }
 
-  showMedia() {
-    this.media = new MediaComponent("#content-view");
+  showFiles() {
+    this.contentView = new FileViewComponent("#content-view");
   }
 }
 

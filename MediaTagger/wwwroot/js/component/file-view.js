@@ -16,7 +16,7 @@ import asyncLoader from "../modules/async-loader.js";
 
 const log = Logger.create("MediaComponent", LOG_LEVEL.DEBUG);
 
-export class MediaComponent extends ComponentBase {
+export class FileViewComponent extends ComponentBase {
   constructor(selector, htmlName = "media") {
     super(selector, htmlName);
     this.listeners = new Listeners();
@@ -32,7 +32,7 @@ export class MediaComponent extends ComponentBase {
 
     this.layout = new GridLayout(".items", allItems, (item) => {
       var htmlItem = template.fill({
-        ".media-item": [new DataValue("media-id", item.getId())],
+        ".media-item": [new DataValue("file-id", item.getId())],
         ".name": item.name,
         ".thumbnail": new ReplaceTemplateValue(
           "{thumbnail}",
@@ -51,11 +51,8 @@ export class MediaComponent extends ComponentBase {
         .onMiddleClick(this, this.middleClick)
         .setData((element) => {
           return {
-            item: Media.getAllItems().getById(
-              this.dom.getData(element, "mediaid")
-            ),
-            file: Media.getAllItems().getById(
-              this.dom.getData(element, "fileid")
+            item: Media.getAllFiles().findById(
+              this.dom.getData(element, "file-id")
             ),
           };
         })
@@ -89,4 +86,4 @@ export class MediaComponent extends ComponentBase {
   }
 }
 
-export default MediaComponent;
+export default FileViewComponent;

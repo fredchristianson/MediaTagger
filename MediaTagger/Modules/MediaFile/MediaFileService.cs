@@ -38,7 +38,7 @@ namespace MediaTagger.Modules.MediaFile
         {
             var mediaFile = await db.MediaFiles
             .Include(e => e.Directory)
-            .FirstAsync(mf => mf.Id == id);
+            .FirstOrDefaultAsync(mf => mf.Id == id);
             return mediaFile;
 
 
@@ -172,13 +172,14 @@ namespace MediaTagger.Modules.MediaFile
                 if (IsVideoType(fileModel)) { return; }
                 try
                 {
-                    using (var image = new MagickImage(path))
-                    {
 
-                        IExifProfile? exifProfile = image?.GetExifProfile();
+                    using (var image = new MagickImage()) //path))
+                    {
+                        image.Ping(path);
+                        IExifProfile? exifProfile = image.GetExifProfile();
+                        List<Tuple<string, object>> exifValues = new List<Tuple<string, object>>();
                         if (exifProfile != null)
                         {
-                            List<Tuple<string, object>> exifValues = new List<Tuple<string, object>>();
                             var dateTaken = exifProfile.GetValue(ExifTag.DateTimeOriginal);
                             if (dateTaken != null)
                             {
@@ -194,11 +195,12 @@ namespace MediaTagger.Modules.MediaFile
                                 }
 
                             }
-                            string json = JsonSerializer.Serialize(exifValues);
-                            if (json != null && !json.Equals(fileModel.ExifJson))
-                            {
-                                fileModel.ExifJson = json;
-                            }
+
+                        }
+                        string json = JsonSerializer.Serialize(exifValues);
+                        if (json != null && !json.Equals(fileModel.ExifJson))
+                        {
+                            fileModel.ExifJson = json;
                         }
                     }
 

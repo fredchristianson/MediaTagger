@@ -69,25 +69,25 @@ namespace MediaTagger.Modules.Image
 
                 var responseStream = new MemoryStream();
                 IMagickImage? img = null;
-                if (false && fileService.IsVideoType(mediaFile))
+                if (fileService.IsVideoType(mediaFile))
                 {
+                    return null;
+                    // using (var videoFrames = new MagickImageCollection(path))
+                    // {
+                    //     img = videoFrames.First(); //save last full frame, as initial it will be first in collection
+                    //     if (img != null)
+                    //     {
+                    //         img.Thumbnail(new MagickGeometry(255, 255));
+                    //         if (fileService.IsRawImage(mediaFile))
+                    //         {
+                    //             img.GammaCorrect(2.2);
+                    //         }
 
-                    using (var videoFrames = new MagickImageCollection(path))
-                    {
-                        img = videoFrames.First(); //save last full frame, as initial it will be first in collection
-                        if (img != null)
-                        {
-                            img.Thumbnail(new MagickGeometry(255, 255));
-                            if (fileService.IsRawImage(mediaFile))
-                            {
-                                img.GammaCorrect(2.2);
-                            }
-
-                            img.Write(thumbFile, MagickFormat.WebP);
-                            img.Dispose();
-                            return new FileInfo(thumbFile);
-                        }
-                    }
+                    //         img.Write(thumbFile, MagickFormat.WebP);
+                    //         img.Dispose();
+                    //         return new FileInfo(thumbFile);
+                    //     }
+                    // }
                 }
                 else
                 {

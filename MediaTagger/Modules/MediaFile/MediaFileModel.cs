@@ -14,6 +14,9 @@ namespace MediaTagger.Modules.MediaFile
         public DateTime FileCreated { get; set; } = DateTime.Now;
         public DateTime? DateTaken { get; set; } = DateTime.Now;
 
+        // if multiple files are in a set, the fileSetPrimaryId is the main one to display
+        public long? fileSetPrimaryId { get; set; }
+
         [ForeignKey("PathId")]
         public virtual PathModel Directory { get; set; } = null!;
 

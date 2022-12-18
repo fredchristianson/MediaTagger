@@ -59,7 +59,7 @@ namespace MediaTagger.Modules.BackgroundTasks.Workers
                 List<string> dirs = this.appSettings.MediaDirectories;
                 if (dirs.Count == 0)
                 {
-                    logger.LogInformation("Not media directories to scan");
+                    logger.LogInformation("No media directories to scan");
                     return;
                 }
                 // can't use lastScan when directory settings change.  
@@ -169,8 +169,7 @@ namespace MediaTagger.Modules.BackgroundTasks.Workers
             var appSettings = await settingService.GetAppSettings();
             // don't scan the app storage directory where thumbnails and other temp files are kept
             // in case user picked a storage directory under a media directory
-            var storageDir = new DirectoryInfo(normalizePath(appSettings.StorageDirectory));
-            if (IsPathBelow(new DirectoryInfo(normalizePath(path)), storageDir))
+            if (AppSettingsService.IsAppStorageDirectory(path))
             {
                 return result;
             }

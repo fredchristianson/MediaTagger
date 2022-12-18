@@ -14,6 +14,7 @@ public abstract class MediaEntity
     [Required]
     public DateTime ModifiedOn { get; set; } = DateTime.Now;
 
+    // Hidden items are not normally shown (could be called Deleted to Trash)
     [Required]
     public Boolean Hidden { get; set; } = false;
 }

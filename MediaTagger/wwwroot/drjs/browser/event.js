@@ -1079,6 +1079,45 @@ export class ObjectListener extends EventHandler {
   }
 }
 
+class AsyncEventDispatcher {
+  constructor() {
+    this.queue = null;
+  }
+
+  schedule(typeName, details) {
+    if (this.queue == null) {
+      this.queue = [];
+      // schedule dispatch on next loop
+      OnNextLoop(() => {
+        this.dispatchEvents();
+      });
+    }
+    this.queue.push({ typeName, details });
+  }
+  dispatchEvents() {
+    if (this.queue == null) {
+      return;
+    }
+    var todo = this.queue;
+    this.queue = null;
+    while (todo.length > 0) {
+      const def = todo.shift();
+      const event = new CustomEvent(def.typeName, { detail: def.details });
+      dom.getBody().dispatchEvent(event);
+    }
+  }
+  isScheduled(typeName, detailsMatchFunction) {
+    if (this.queue == null) {
+      return false;
+    }
+    return this.queue.find((def) => {
+      return def.typeName == typeName && detailsMatchFunction(def.details);
+    });
+  }
+}
+
+const asyncDispatcher = new AsyncEventDispatcher();
+
 export class EventEmitter {
   constructor(type, object) {
     this.type = type;
@@ -1097,7 +1136,7 @@ export class EventEmitter {
     return listener;
   }
 
-  emit(data, asynchronous = true) {
+  emit(data) {
     const detail = {
       object: this.object,
       data: data,
@@ -1105,13 +1144,23 @@ export class EventEmitter {
       type: this.type,
     };
     log.debug(`EventEmitter.emit ${this.typeName}`);
-    const event = new CustomEvent(this.typeName, { detail: detail });
-    if (asynchronous) {
-      OnNextLoop(() => {
-        dom.getBody().dispatchEvent(event);
-      });
-    } else {
-      dom.getBody().dispatchEvent(event);
+    if (
+      !asyncDispatcher.isScheduled(this.typeName, (details) => {
+        return details.data == data;
+      })
+    ) {
+      asyncDispatcher.schedule(this.typeName, detail);
     }
+  }
+
+  emitNow(data) {
+    const detail = {
+      object: this.object,
+      data: data,
+      typeName: this.typeName,
+      type: this.type,
+    };
+    const event = new CustomEvent(this.typeName, { detail: detail });
+    dom.getBody().dispatchEvent(event);
   }
 }

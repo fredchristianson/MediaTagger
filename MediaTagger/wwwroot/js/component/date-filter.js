@@ -214,7 +214,7 @@ export class DateFilterComponent extends ComponentBase {
     var start = null;
     var end = null;
     var photosPerDay = {};
-    for (var item of Media.getAllItems()) {
+    for (var item of Media.getAllFiles()) {
       var taken = item.getDateTaken();
       if (start == null || start > taken) {
         start = taken;
