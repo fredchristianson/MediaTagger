@@ -39,8 +39,8 @@
             top: 0;
             overflow: hidden;
             border: 1px solid green;
-            display: none;
-            position: relative;
+            display: block;
+            position: absolute;
             aspect-ratio: 1/1;
             background-size: 32px;
             background-repeat: no-repeat;

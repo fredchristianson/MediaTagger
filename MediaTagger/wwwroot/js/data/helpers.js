@@ -5,7 +5,7 @@ export function compareIds(a, b) {
   if (b == null) {
     return 1;
   }
-  return a.getId().localeCompare(b.getId());
+  return a.getId() - b.getId();
 }
 
 export function compareDates(a, b) {

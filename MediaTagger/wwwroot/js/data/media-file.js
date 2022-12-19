@@ -25,11 +25,11 @@ export class MediaFile extends MediaEntity {
     if (this.dateTaken && !isNaN(this.dateTaken)) {
       return this.dateTaken;
     }
-    if (this.dateModified && !isNaN(this.dateModified)) {
-      return this.dateModified;
+    if (this.modifiedOn && !isNaN(this.modifiedOn)) {
+      return this.modifiedOn;
     }
-    if (this.dateCreated && !isNaN(this.dateCreated)) {
-      return this.dateCreated;
+    if (this.createdOn && !isNaN(this.createdOn)) {
+      return this.createdOn;
     }
     return new Date(2000, 0, 1);
   }

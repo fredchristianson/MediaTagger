@@ -108,6 +108,13 @@ export class ObservableArray extends ObservableCollection {
     this.updatedEvent.emit(this.items);
   }
 
+  insertBatch(newItems) {
+    for (var item of newItems) {
+      this.items.push(item);
+    }
+    this.itemsAddedEvent.emitNow(newItems);
+    this.updatedEvent.emit(this.items);
+  }
   insert(item) {
     this.items.push(item);
     this.itemsAddedEvent.emitNow(item);
@@ -199,6 +206,9 @@ export class ObservableView extends ObservableCollection {
 
   clear() {
     this.collectionIn.clear();
+  }
+  insertBatch(newItems) {
+    this.collectionIn.insertBatch(newItems);
   }
   insert(item) {
     this.collectionIn.insert(item);

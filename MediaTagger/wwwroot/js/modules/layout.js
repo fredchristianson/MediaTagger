@@ -174,8 +174,6 @@ export class GridLayout extends Layout {
   scrollToItem(itemIndex, itemPercent, view) {
     var selection = Media.getSelectedItems();
     var visibleItems = Media.getVisibleItems();
-    var oldItems = dom.find(view, `[${this.gridDataName}='true']`);
-    dom.setData(oldItems, `${this.gridDataName}`, "false");
     var visible = true;
     var left = 0;
     var top = 0;
@@ -207,36 +205,26 @@ export class GridLayout extends Layout {
       topOffset = 0;
     }
     var html = this.getItemHtml(itemIndex);
-    asyncLoader.setNextItemIndex(itemIndex);
+    var fragment = document.createDocumentFragment();
     while (visible && html != null) {
-      if (html != null) {
-        var added = dom.append(view, html);
-        if (added != null) {
-          added.style.display = "block";
-          added.style.position = "absolute";
-          added.style.left = px(left);
-          added.style.top = px(top - topOffset);
-          added.style.width = px(width);
-          added.style.height = px(height);
-          left += width + gap;
-          if (left + width > viewWidth) {
-            left = 0;
-            top += height + gap;
-            visible = top < viewHeight + 2 * height + gap;
-          }
-          dom.setData(added, this.gridDataName, "true");
-          var item = visibleItems.getItemAt(itemIndex);
-          dom.toggleClass(added, "selected", selection.contains(item));
-        }
+      fragment.appendChild(html);
+      html.style.left = px(left);
+      html.style.top = px(top - topOffset);
+      html.style.width = px(width);
+      html.style.height = px(height);
+      left += width + gap;
+      if (left + width > viewWidth) {
+        left = 0;
+        top += height + gap;
+        visible = top < viewHeight + 2 * height + gap;
       }
+      var item = visibleItems.getItemAt(itemIndex);
+      dom.toggleClass(html, "selected", selection.contains(item));
+
       itemIndex += 1;
       html = this.getItemHtml(itemIndex);
     }
-    oldItems = dom.find(view, `[${this.gridDataName}='false']`);
-    oldItems.forEach((child) => {
-      //view.removeChild(child);
-      child.style.display = "none";
-    });
+    view.replaceChildren(fragment);
   }
 }
 

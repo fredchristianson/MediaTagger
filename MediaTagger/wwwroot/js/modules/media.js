@@ -32,9 +32,9 @@ class Media {
     this.albums = new ObservableArray();
     this.properties = new ObservableArray();
     this.propertyValues = new ObservableArray();
-    this.nameFilterItems = new FilteredObservableView(this.files, null);
+    this.searchFilterItems = new FilteredObservableView(this.files, null);
     this.dateFilterItems = new FilteredObservableView(
-      this.nameFilterItems,
+      this.searchFilterItems,
       null
     );
     this.sortedItems = new SortedObservableView(
@@ -69,118 +69,6 @@ class Media {
       );
     } catch (ex) {
       log.error(ex, "failed to get items");
-    }
-  }
-
-  async setupDataViews(items, files, groups) {
-    try {
-      log.debug("Media.getAll ");
-      this.mediaItems = new ObservableView(
-        items.map((i) => {
-          return new MediaItem(i);
-        })
-      );
-
-      var itemsById = {};
-      var filesById = {};
-      for (var item of this.mediaItems) {
-        itemsById[item.getId()] = item;
-      }
-      this.files = new ObservableView(
-        files.map((f) => {
-          return new MediaFile(f);
-        })
-      );
-      for (var file of this.files) {
-        filesById[file.fileId] = file;
-        var mediaItem = itemsById[file.getMediaId()];
-        if (mediaItem != null) {
-          file.setMediaItem(mediaItem);
-          mediaItem.addFile(file);
-          if ("f" + mediaItem.getPrimaryFileId() == file.getId()) {
-            mediaItem.setPrimaryFile(file);
-          }
-        }
-      }
-      this.groups = new ObservableView(
-        groups.map((g) => {
-          return new MediaGroup(g);
-        })
-      );
-
-      this.dateFilterItems = new FilteredObservableView(this.mediaItems);
-      this.searchFilterItems = new FilteredObservableView(this.dateFilterItems);
-      this.sortedItems = new SortedObservableView(this.searchFilterItems);
-      this.setSortType("name");
-      this.visibleItems.setCollection(this.sortedItems);
-      return true;
-    } catch (ex) {
-      log.error(ex, "failed to get items");
-      return false;
-    }
-  }
-
-  async refreshItemsFromAPI() {
-    try {
-      log.debug("Media.getAll ");
-      var mediaItemData = await api.GetAllMediaItems();
-      var fileData = await api.GetAllMediaFiles();
-      var groupData = await api.GetAllMediaGroups();
-      await this.databaseTable.set("mediaItems", mediaItemData);
-      await this.databaseTable.set("files", fileData);
-      await this.databaseTable.set("groups", groupData);
-      this.refreshDataViews(mediaItemData, fileData, groupData);
-    } catch (ex) {
-      log.error(ex, "failed to get items");
-    }
-  }
-
-  async refreshDataViews(items, files, groups) {
-    try {
-      // todo: update instead of replace collection data
-      log.debug("Media.getAll ");
-      this.mediaItems = new ObservableView(
-        items.map((i) => {
-          return new MediaItem(i);
-        })
-      );
-
-      var itemsById = {};
-      var filesById = {};
-      for (var item of this.mediaItems) {
-        itemsById[item.getId()] = item;
-      }
-      this.files = new ObservableView(
-        files.map((f) => {
-          return new MediaFile(f);
-        })
-      );
-      for (var file of this.files) {
-        filesById[file.fileId] = file;
-        var mediaItem = itemsById[file.getMediaId()];
-        if (mediaItem != null) {
-          file.setMediaItem(mediaItem);
-          mediaItem.addFile(file);
-          if ("f" + mediaItem.getPrimaryFileId() == file.getId()) {
-            mediaItem.setPrimaryFile(file);
-          }
-        }
-      }
-      this.groups = new ObservableView(
-        groups.map((g) => {
-          return new MediaGroup(g);
-        })
-      );
-
-      this.dateFilterItems = new FilteredObservableView(this.mediaItems);
-      this.searchFilterItems = new FilteredObservableView(this.dateFilterItems);
-      this.sortedItems = new SortedObservableView(this.searchFilterItems);
-      this.setSortType("name");
-      this.visibleItems.setCollection(this.sortedItems);
-      return true;
-    } catch (ex) {
-      log.error(ex, "failed to get items");
-      return false;
     }
   }
 

@@ -2,6 +2,7 @@ import { ComponentLoader } from "../../drjs/browser/component-loader.js";
 import { LOG_LEVEL, Logger } from "../../drjs/logger.js";
 import dom from "../../drjs/browser/dom.js";
 import Media from "./media.js";
+import items from "../data/items.js";
 
 const log = Logger.create("AsyncLoader", LOG_LEVEL.WARN);
 
@@ -26,72 +27,71 @@ class AsyncLoader {
     this.container = dom.createElement("div");
     dom.append("body", this.container);
 
-    // put loading images in the dom so I can see them with debugger if needed
-    this.container.style.position = "absolute";
-    this.container.style.right = 0;
-    this.container.style.top = 0;
-    this.container.style.width = "100px";
-    this.container.style.height = "64px";
-    this.container.style.zIndex = -1;
-    this.container.style.overflow = "auto";
-    this.nextItemIndex = 0;
-    this.itemStatus = [];
-    Media.getVisibleItems()
+    this.loadedItems = {};
+    this.unloadedItems = {};
+    Media.getAllFiles()
       .getUpdatedEvent()
       .createListener(this, this.updateItems);
   }
 
   updateItems(items) {
     for (var item of items) {
-      var status = new LoadStatus(item);
-      this.itemStatus.push(status);
-    }
-    log.debug(`${this.itemStatus.length} items to be scanned`);
-    this.nextItemIndex = 0;
-    this.check();
-  }
-
-  setNextItemIndex(index) {
-    this.nextItemIndex = index % this.itemStatus.length;
-    log.debug(`scanning from index ${this.nextItemIndex}`);
-  }
-
-  setNextItem(item) {
-    for (
-      this.nextItemIndex = 0;
-      this.nextItemIndex < this.itemStatus.length;
-      this.nextItemIndex++
-    ) {
-      if (this.itemStatus[this.nextItemIndex].item == item) {
-        break;
+      if (
+        this.loadedItems[item.getId()] == null &&
+        this.unloadedItems[item.getId()] == null
+      ) {
+        var status = new LoadStatus(item);
+        this.unloadedItems[item.getId()] = status;
       }
     }
-    log.debug(`scanning from index ${this.nextItemIndex}`);
+    this.check();
   }
 
   setConcurrentLoadLimit(limit) {
     this.concurrentLoadLimit = limit;
   }
 
-  getNextItemStatus() {
-    var itemStatus = null;
-    var priority = 0;
-    for (
-      var index = 0;
-      itemStatus == null && index < this.itemStatus.length;
-      index++
-    ) {
-      var pos = (index + this.nextItemIndex) % this.itemStatus.length;
-      var stat = this.itemStatus[pos];
-      if (stat.thumbnail == null && !stat.error) {
-        itemStatus = stat;
+  findUnloadedElement() {
+    var element = dom.first(".media-item.unloaded");
+    while (element != null) {
+      var img = dom.first(element, "img");
+      var id = dom.getData(element, "file-id");
+      var status = this.loadedItems[id];
+      if (status != null) {
+        this.updateDOMImage(img, false);
+      } else {
+        status = this.unloadedItems[id];
+        if (status != null) {
+          return status;
+        } else {
+          log.error("found unloaded .media-item without a loadStatus");
+          dom.removeClass(element, "unloaded");
+        }
       }
+      element = dom.first(".media-item.unloaded");
+    }
+    return null;
+  }
+
+  getNextItemStatus() {
+    var itemStatus = this.findUnloadedElement();
+    if (itemStatus != null) {
+      return itemStatus;
+    }
+    var priority = 0;
+    var first = Object.entries(this.unloadedItems)[0];
+    if (first != null) {
+      delete this.unloadedItems[first[0]];
+      return first[1];
     }
 
     return itemStatus;
   }
 
   check() {
+    if (this.activeLoadCount >= this.concurrentLoadLimit) {
+      return;
+    }
     var itemStatus = this.getNextItemStatus();
     while (
       itemStatus != null &&
@@ -103,12 +103,14 @@ class AsyncLoader {
       this.activeLoadCount += 1;
       itemStatus.loading = true;
       itemStatus.thumbnail = new Image();
-      dom.append(this.container, itemStatus.thumbnail);
+      // uncomment this to display the loading thumbnails in the page
+      //dom.append(this.container, itemStatus.thumbnail);
       dom.setData(
         itemStatus.thumbnail,
         "orig-src",
         itemStatus.item.getThumbnailUrl()
       );
+      dom.setData(itemStatus.thumbnail, "file-id", itemStatus.item.getId());
       itemStatus.thumbnail.addEventListener("load", this.loadCompleteHandler);
       itemStatus.thumbnail.addEventListener("error", this.loadErrorHandler);
       itemStatus.thumbnail.src = itemStatus.item.getThumbnailUrl();
@@ -117,6 +119,8 @@ class AsyncLoader {
           this.activeLoadCount
         }) ${itemStatus.item.getThumbnailUrl()}`
       );
+      this.loadedItems[itemStatus.item.id] = itemStatus;
+      delete this.unloadedItems[itemStatus.item.id];
       if (itemStatus.thumbnail.complete) {
         this.finishLoading(itemStatus.thumbnail, false);
         this.activeLoadCount -= 1;
@@ -147,15 +151,16 @@ class AsyncLoader {
   }
 
   finishLoading(img, error) {
-    for (var f of this.itemStatus) {
-      if (f.thumbnail == img) {
-        f.loading = false;
-        f.loaded = true;
-        f.error = false;
-      }
+    var id = dom.getData(img, "file-id");
+    var stat = this.loadedItems[id];
+    if (stat != null) {
+      stat.loading = false;
+      stat.loaded = true;
+      stat.error = false;
     }
+
     var src = dom.getData(img, "orig-src");
-    var elements = dom.find(`[data-src$="${src}"]`);
+    var elements = dom.find(`[file-id="${id}"]`);
     elements.forEach((e) => {
       this.updateDOMImage(e, error);
     });
@@ -186,25 +191,17 @@ class AsyncLoader {
   }
 
   updateDOMImage(img, error = false) {
-    var datasrc = dom.getData(img, "src");
-    if (datasrc == null) {
-      return;
-    }
     if (error) {
       dom.addClass(dom.getParent(img), "error");
     }
-    var itemStatus = this.itemStatus.find((status) => {
-      return status.item.getThumbnailUrl() == datasrc;
-    });
-    if (
-      itemStatus != null &&
-      itemStatus.thumbnail != null &&
-      itemStatus.thumbnail.complete
-    ) {
+    var id = dom.getData(img, "file-id");
+    if (id == null) {
+      return;
+    }
+    var itemStatus = this.loadedItems[id];
+    if (itemStatus != null) {
       img.src = itemStatus.thumbnail.src;
-
       dom.addClass(dom.getParent(img), "loaded");
-
       dom.removeClass(dom.getParent(img), "unloaded");
     }
   }

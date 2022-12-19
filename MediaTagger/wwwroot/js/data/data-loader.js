@@ -1,8 +1,27 @@
 import { LOG_LEVEL, Logger } from "../../drjs/logger.js";
+import { ObservableCollection } from "../modules/collections.js";
 const log = Logger.create("DataLoader", LOG_LEVEL.DEBUG);
 
 export function dataUpdater(collection, type) {
-  return function update(data) {
+  function updateBatch(dataArray) {
+    var itemStatus = dataArray.reduce(
+      (status, data) => {
+        var old = collection.findById(data.id);
+        if (old) {
+          status.toUpdate.push({ item: old, update: data });
+        } else {
+          status.toAdd.push(new type(data));
+        }
+        return status;
+      },
+      { toUpdate: [], toAdd: [] }
+    );
+    for (var old of itemStatus.toUpdate) {
+      old.item.update(old.data);
+    }
+    collection.insertBatch(itemStatus.toAdd);
+  }
+  function updateSingle(data) {
     var exists = collection.findById(data.id);
     if (exists) {
       exists.update(data);
@@ -11,6 +30,15 @@ export function dataUpdater(collection, type) {
       var item = new type(data);
       collection.insert(item);
       return item;
+    }
+  }
+  return function update(data) {
+    if (Array.isArray(data)) {
+      updateBatch(data);
+    } else if (data instanceof ObservableCollection) {
+      updateBatch(...data);
+    } else {
+      updateSingle(data);
     }
   };
 }
@@ -27,9 +55,7 @@ export function dataLoader(source, dataUpdater, batchSize = 1000) {
           response.totalCount == null ||
           response.totalCount <= pos;
         if (!done) {
-          for (var item of response.data) {
-            dataUpdater(item);
-          }
+          dataUpdater(response.data);
           pos = pos + response.resultCount;
         }
       }

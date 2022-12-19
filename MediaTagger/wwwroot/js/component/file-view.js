@@ -34,10 +34,7 @@ export class FileViewComponent extends ComponentBase {
       var htmlItem = template.fill({
         ".media-item": [new DataValue("file-id", item.getId())],
         ".name": item.name,
-        ".thumbnail": new ReplaceTemplateValue(
-          "{thumbnail}",
-          item.getThumbnailUrl.bind(item)
-        ),
+        ".thumbnail": new DataValue("file-id", item.getId()),
       });
       asyncLoader.setConcurrentLoadLimit(5);
       return htmlItem;
