@@ -205,9 +205,10 @@ export class GridLayout extends Layout {
       topOffset = 0;
     }
     var html = this.getItemHtml(itemIndex);
-    var fragment = document.createDocumentFragment();
+    var layoutChildren = [];
     while (visible && html != null) {
-      fragment.appendChild(html);
+      //fragment.appendChild(html);
+      layoutChildren.push(html);
       html.style.left = px(left);
       html.style.top = px(top - topOffset);
       html.style.width = px(width);
@@ -224,8 +225,24 @@ export class GridLayout extends Layout {
       itemIndex += 1;
       html = this.getItemHtml(itemIndex);
     }
-    view.replaceChildren(fragment);
+
+    var change = true;
+    var children = view.children;
+    if (layoutChildren.length == children.length) {
+      change = false;
+      for (var i = 0; i < layoutChildren.length && !change; i++) {
+        if (layoutChildren[i] != children[i]) {
+          change = true;
+        }
+      }
+    }
+    if (change) {
+      var fragment = document.createDocumentFragment();
+      for (var child of layoutChildren) {
+        fragment.appendChild(child);
+      }
+      view.replaceChildren(fragment);
+    }
   }
 }
-
 export default GridLayout;

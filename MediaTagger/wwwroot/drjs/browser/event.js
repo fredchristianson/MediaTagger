@@ -1100,6 +1100,9 @@ class AsyncEventDispatcher {
     }
     var todo = this.queue;
     this.queue = null;
+    if (todo.length > 50) {
+      log.warn(`too many custom events queued ${todo.length}`);
+    }
     while (todo.length > 0) {
       const def = todo.shift();
       const event = new CustomEvent(def.typeName, { detail: def.details });

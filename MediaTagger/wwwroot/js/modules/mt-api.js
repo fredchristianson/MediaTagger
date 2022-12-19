@@ -29,7 +29,7 @@ export async function getProperties(startPos, count) {
 
 export async function getPropertyValues(startPos, count) {
   return await httpAPI.get(
-    "PropertValues",
+    "PropertyValues",
     { start: startPos, count: count },
     "json"
   );
