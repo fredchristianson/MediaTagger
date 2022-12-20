@@ -22,7 +22,7 @@ import {
   getTags,
   getAlbums,
 } from "./mt-api.js";
-import { dbGetMediaFiles, dbSaveMediaFile } from "../data/database.js";
+import { dbGetMediaFiles, dbSaveMediaFiles } from "../data/database.js";
 import { Listeners } from "../../drjs/browser/event.js";
 
 const log = Logger.create("Media", LOG_LEVEL.DEBUG);
@@ -60,17 +60,24 @@ class Media {
   }
 
   async updateDatabaseItems() {
-    for (var item of this.files) {
-      if (item.isUpdated()) {
-        await dbSaveMediaFile(item);
-        item.unsetUpdated();
-      }
-    }
+    var updates = [...this.files].filter((f) => {
+      return f.isUpdated();
+    });
+    await dbSaveMediaFiles(updates);
+    // for (var item of this.files) {
+
+    //   if (item.isUpdated()) {
+    //     await dbSaveMediaFile(item);
+    //     item.unsetUpdated();
+    //   }
+    // }
   }
 
   async loadItemsFromDatabase() {
     try {
-      runSerial(dataLoader(dbGetMediaFiles, dataAdder(this.files, MediaFile)));
+      await runSerial(
+        dataLoader(dbGetMediaFiles, dataAdder(this.files, MediaFile), 10000)
+      );
     } catch (ex) {
       log.error(ex, "failed to get items");
     }

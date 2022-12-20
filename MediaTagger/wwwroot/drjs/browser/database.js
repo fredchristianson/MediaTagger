@@ -16,7 +16,6 @@ function DBPromise(req) {
       } else {
         resolve(req);
       }
-      
     };
     req.onerror = () => {
       reject(req.result);
@@ -34,6 +33,14 @@ class Table {
     const transaction = this.store.transaction([this.name], "readwrite");
     const store = transaction.objectStore(this.name);
     store.put(value);
+    return DBPromise(transaction);
+  }
+  async writeItems(items) {
+    const transaction = this.store.transaction([this.name], "readwrite");
+    const store = transaction.objectStore(this.name);
+    for (var item of items) {
+      store.put(item);
+    }
     return DBPromise(transaction);
   }
 

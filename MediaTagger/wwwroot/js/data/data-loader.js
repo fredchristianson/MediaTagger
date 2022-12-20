@@ -10,9 +10,8 @@ export function dataAdder(collection, type) {
         if (old) {
           status.toUpdate.push({ item: old });
         } else {
-          if (!(data instanceof type)) {
-            data = new type(data);
-          }
+          data = new type(data);
+
           status.toAdd.push(data);
         }
         return status;
@@ -68,7 +67,7 @@ export function dataUpdater(collection, type) {
       { toUpdate: [], toAdd: [] }
     );
     for (var old of itemStatus.toUpdate) {
-      old.item.update(old.data);
+      old.item.update(old.update);
     }
     collection.insertBatch(itemStatus.toAdd);
   }
