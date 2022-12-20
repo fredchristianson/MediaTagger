@@ -61,9 +61,12 @@ class Media {
 
   async updateDatabaseItems() {
     var updates = [...this.files].filter((f) => {
-      return f.isUpdated();
+      return f.isChanged();
     });
     await dbSaveMediaFiles(updates);
+    for (var update of updates) {
+      update.unsetChanged();
+    }
     // for (var item of this.files) {
 
     //   if (item.isUpdated()) {

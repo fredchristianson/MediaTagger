@@ -108,6 +108,10 @@ export class ObservableArray extends ObservableCollection {
     this.updatedEvent.emit(this.items);
   }
 
+  // nothing for the collection to do, but listeners should be notified
+  itemsChanged(items) {
+    this.updatedEvent.emit(items);
+  }
   insertBatch(newItems) {
     for (var item of newItems) {
       this.items.push(item);

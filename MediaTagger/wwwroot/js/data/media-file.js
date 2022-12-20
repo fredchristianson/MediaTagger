@@ -14,11 +14,11 @@ export class MediaFile extends MediaEntity {
     this.fileSetPrimaryId = data.fileSetPrimaryId;
   }
 
-  update(data) {
-    super.update(data);
-    this.dateTaken = data.dateTaken;
-    this.fileSize = data.fileSize;
-  }
+  // update(data) {
+  //   super.update(data);
+  //   this.dateTaken = data.dateTaken;
+  //   this.fileSize = data.fileSize;
+  // }
   getThumbnailUrl() {
     return `/thumbnail/${this.getId()}?v=1.0`;
   }

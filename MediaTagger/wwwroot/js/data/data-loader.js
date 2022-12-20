@@ -66,9 +66,11 @@ export function dataUpdater(collection, type) {
       },
       { toUpdate: [], toAdd: [] }
     );
-    for (var old of itemStatus.toUpdate) {
-      old.item.update(old.update);
-    }
+    var changed = itemStatus.toUpdate.filter((change) => {
+      change.item.update(change.update);
+      return change.item.isChanged();
+    });
+    collection.itemsChanged(changed);
     collection.insertBatch(itemStatus.toAdd);
   }
   function updateSingle(data) {

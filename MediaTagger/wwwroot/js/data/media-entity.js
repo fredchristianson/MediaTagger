@@ -7,18 +7,18 @@ export class MediaEntity {
     this.createdOn = toDate(data.createdOn);
     this.modifiedOn = toDate(data.modifiedOn);
     this.hidden = !!data.hidden;
-    this._updated = typeof data._updated == "boolean" ? data._updated : true;
+    this._changed = typeof data._changed == "boolean" ? data._changed : true;
   }
 
-  isUpdated() {
-    return this._updated;
+  isChanged() {
+    return this._changed;
   }
 
-  setUpdated() {
-    this._updated = true;
+  setChanged() {
+    this._changed = true;
   }
-  unsetUpdated() {
-    this._updated = false;
+  unsetChanged() {
+    this._changed = false;
   }
 
   equals(other) {
@@ -33,11 +33,35 @@ export class MediaEntity {
     );
   }
   update(data) {
-    this.id = data.id;
-    this.name = data.name;
-    this.createdOn = data.createdOn;
-    this.modifiedOn = data.modifiedOn;
-    this.hidden = data.hidden;
+    // this.id = data.id;
+    // this.name = data.name;
+    // this.createdOn = data.createdOn;
+    // this.modifiedOn = data.modifiedOn;
+    // this.hidden = data.hidden;
+    Object.entries(this).forEach(([key, value]) => {
+      if (key[0] == "_") {
+        return;
+      }
+      if (value instanceof Date) {
+        var newDate = toDate(data[key]);
+        if (value.getTime() != newDate.getTime()) {
+          this.setChanged();
+          this[key] = newDate;
+        }
+      } else if (typeof value == "boolean") {
+        var newBool = !!data[key];
+        if (value != newBool) {
+          this.setChanged();
+          this[key] = newBool;
+        }
+      } else {
+        var newValue = data[key];
+        if (value != newValue) {
+          this.setChanged();
+          this[key] = newValue;
+        }
+      }
+    });
   }
 
   getId() {

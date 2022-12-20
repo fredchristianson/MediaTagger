@@ -29,7 +29,7 @@ export async function dbSaveMediaFile(file) {
   }
   try {
     await table.write(data);
-    file.unsetUpdated();
+    file.unsetChanged();
   } catch (ex) {
     log.error(ex, "failed to write MediaFile to indexedDB", data);
   }
@@ -51,7 +51,7 @@ export async function dbSaveMediaFiles(files) {
   try {
     await table.writeItems(data);
     for (var file of files) {
-      file.unsetUpdated();
+      file.unsetChanged();
     }
   } catch (ex) {
     log.error(ex, "failed to write MediaFile to indexedDB", data);

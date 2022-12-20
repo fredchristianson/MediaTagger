@@ -159,7 +159,6 @@ class AsyncLoader {
       stat.error = false;
     }
 
-    var src = dom.getData(img, "orig-src");
     var elements = dom.find(`[file-id="${id}"]`);
     elements.forEach((e) => {
       this.updateDOMImage(e, error);
@@ -171,7 +170,9 @@ class AsyncLoader {
     log.debug(
       `load error (${this.activeLoadCount}) ${img ? img.src : "no src"}`
     );
-    for (var f of this.itemStatus) {
+    var id = dom.getData(img, "file-id");
+    var stat = this.loadedItems[id];
+    if (stat != null) {
       if (f.thumbnail == img) {
         f.loading = false;
         f.loaded = false;
@@ -180,7 +181,10 @@ class AsyncLoader {
     }
     log.error("failed to load thumbnail ", event.target.src);
     this.activeLoadCount -= 1;
-    this.finishLoading(img, false);
+    var elements = dom.find(`[file-id="${id}"]`);
+    elements.forEach((e) => {
+      this.updateDOMImage(e, error);
+    });
     log.debug(
       `load error finished (${this.activeLoadCount}) ${
         img ? img.src : "no src"
