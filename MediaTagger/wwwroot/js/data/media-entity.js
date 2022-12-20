@@ -1,9 +1,11 @@
+import { toDate } from "./helpers.js";
+
 export class MediaEntity {
   constructor(data = {}) {
     this.id = data.id;
     this.name = data.name;
-    this.createdOn = data.createdOn;
-    this.modifiedOn = data.modifiedOn;
+    this.createdOn = toDate(data.createdOn);
+    this.modifiedOn = toDate(data.modifiedOn);
     this.hidden = !!data.hidden;
   }
 

@@ -17,10 +17,17 @@ export class StatusBarComponent extends ComponentBase {
     Media.getVisibleItems()
       .getUpdatedEvent()
       .createListener(this, "onItemsUpdated");
+    Media.getSelectedItems()
+      .getUpdatedEvent()
+      .createListener(this, "onSelectionUpdate");
   }
 
   onItemsUpdated(list) {
     this.setTotalCount(list.getLength());
+  }
+
+  onSelectionUpdate(list) {
+    this.setSelectedCount(list.getLength());
   }
 
   setTotalCount(count) {

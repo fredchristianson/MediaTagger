@@ -115,7 +115,7 @@ export class ViewOptionsComponent extends ComponentBase {
   }
 
   showMedia(target, event) {
-    main.instance.showMedia();
+    main.instance.showFiles();
   }
 }
 

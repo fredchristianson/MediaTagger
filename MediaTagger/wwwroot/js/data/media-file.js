@@ -1,5 +1,6 @@
 import { MediaEntity } from "./media-entity.js";
 import { LOG_LEVEL, Logger } from "../../drjs/logger.js";
+import { toDate } from "./helpers.js";
 const log = Logger.create("MediaFile", LOG_LEVEL.DEBUG);
 
 export class MediaFile extends MediaEntity {
@@ -7,6 +8,9 @@ export class MediaFile extends MediaEntity {
     super(data);
     this.dateTaken = data.dateTaken;
     this.fileSize = data.fileSize;
+    this.directory = data.directory;
+    this.fileModified = toDate(data.fileModifiedOn);
+    this.fileCreated = toDate(data.fileCreatedOn);
   }
 
   update(data) {
@@ -25,11 +29,11 @@ export class MediaFile extends MediaEntity {
     if (this.dateTaken && !isNaN(this.dateTaken)) {
       return this.dateTaken;
     }
-    if (this.modifiedOn && !isNaN(this.modifiedOn)) {
-      return this.modifiedOn;
+    if (this.fileModified && !isNaN(this.fileModified)) {
+      return this.fileModified;
     }
-    if (this.createdOn && !isNaN(this.createdOn)) {
-      return this.createdOn;
+    if (this.fileCreated && !isNaN(this.fileCreated)) {
+      return this.fileCreated;
     }
     return new Date(2000, 0, 1);
   }
