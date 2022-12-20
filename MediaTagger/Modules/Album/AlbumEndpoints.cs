@@ -25,7 +25,7 @@ namespace MediaTagger.Modules.Album
                           name = f.Name,
 
                       }).ToListAsync();
-                      var total = await db.MediaFiles.CountAsync();
+                      var total = await db.Albums.CountAsync();
                       return new
                       {
                           start = start,

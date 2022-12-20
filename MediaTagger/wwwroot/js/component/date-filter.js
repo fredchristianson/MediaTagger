@@ -4,7 +4,7 @@ import { LOG_LEVEL, Logger } from "../../drjs/logger.js";
 const log = Logger.create("DateFilter", LOG_LEVEL.DEBUG);
 import {
   BuildClickHandler,
-  BuildHoverHandler,
+  BuildMouseOverHandler,
   BuildMouseHandler,
   Listeners,
 } from "../../drjs/browser/event.js";
@@ -23,7 +23,7 @@ export class DateFilterComponent extends ComponentBase {
       Media.getVisibleItems()
         .getUpdatedEvent()
         .createListener(this, this.onItemsUpdated),
-      BuildHoverHandler()
+      BuildMouseOverHandler()
         .listenTo(this.dom.first(".svg-container"))
         .onStart(this, this.startHover)
         .onEnd(this, this.endHover)

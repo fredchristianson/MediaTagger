@@ -5,7 +5,11 @@ import {
   DataValue,
 } from "../../drjs/browser/html-template.js";
 import { LOG_LEVEL, Logger } from "../../drjs/logger.js";
-import { Listeners, BuildClickHandler } from "../../drjs/browser/event.js";
+import {
+  Listeners,
+  BuildClickHandler,
+  BuildMouseOverHandler,
+} from "../../drjs/browser/event.js";
 import MediaDetailsComponent from "./media-details.js";
 import DateFilterComponent from "./date-filter.js";
 import MediaFilterComponent from "./media-filter.js";
@@ -20,6 +24,13 @@ export class FileViewComponent extends ComponentBase {
   constructor(selector, htmlName = "media") {
     super(selector, htmlName);
     this.listeners = new Listeners();
+  }
+
+  async onFileHoverStart(pos, event, data, handler) {
+    log.debug("file hover start");
+  }
+  async onFileHoverEnd() {
+    log.debug("file hover end");
   }
 
   async onHtmlInserted(elements) {
@@ -46,6 +57,21 @@ export class FileViewComponent extends ComponentBase {
         .onLeftClick(this, this.leftClick)
         .onRightClick(this, this.rightClick)
         .onMiddleClick(this, this.middleClick)
+        .setData((element) => {
+          return {
+            item: Media.getAllFiles().findById(
+              this.dom.getData(element, "file-id")
+            ),
+          };
+        })
+        .build(),
+      BuildMouseOverHandler()
+        .listenTo(".media-items")
+        .selector(".media-item")
+        .onStart(this, this.onFileHoverStart)
+        .include([".popup"])
+        //   .startDelayMSecs(300)
+        .onEnd(this, this.onFileHoverEnd)
         .setData((element) => {
           return {
             item: Media.getAllFiles().findById(

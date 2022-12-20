@@ -27,7 +27,7 @@ namespace MediaTagger.Modules.Property
                           name = f.Name,
 
                       }).ToListAsync();
-                      var total = await db.MediaFiles.CountAsync();
+                      var total = await db.Properties.CountAsync();
                       return new
                       {
                           start = start,
@@ -53,7 +53,7 @@ namespace MediaTagger.Modules.Property
                     name = f.Name,
                     propertyId = f.PropertyId
                 }).ToListAsync();
-                var total = await db.MediaFiles.CountAsync();
+                var total = await db.PropertyValues.CountAsync();
                 return new
                 {
                     start = start,
