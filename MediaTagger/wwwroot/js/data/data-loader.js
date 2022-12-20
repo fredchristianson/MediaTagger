@@ -2,6 +2,54 @@ import { LOG_LEVEL, Logger } from "../../drjs/logger.js";
 import { ObservableCollection } from "../modules/collections.js";
 const log = Logger.create("DataLoader", LOG_LEVEL.DEBUG);
 
+export function dataAdder(collection, type) {
+  function addBatch(dataArray) {
+    var itemStatus = dataArray.reduce(
+      (status, data) => {
+        var old = collection.findById(data.id);
+        if (old) {
+          status.toUpdate.push({ item: old });
+        } else {
+          if (!(data instanceof type)) {
+            data = new type(data);
+          }
+          status.toAdd.push(data);
+        }
+        return status;
+      },
+      { toUpdate: [], toAdd: [] }
+    );
+    if (itemStatus.toUpdate.length > 0) {
+      log.error("dataAdder found existing data");
+    }
+    collection.insertBatch(itemStatus.toAdd);
+  }
+  function addSingle(data) {
+    var exists = collection.findById(data.id);
+    if (exists) {
+      log.error("dataAdder found existing data");
+      return exists;
+    } else {
+      if (data instanceof type) {
+        collection.insert(data);
+      } else {
+        data = new type(data);
+        collection.insert(data);
+      }
+      return data;
+    }
+  }
+  return function update(data) {
+    if (Array.isArray(data)) {
+      addBatch(data);
+    } else if (data instanceof ObservableCollection) {
+      addBatch(...data);
+    } else {
+      addSingle(data);
+    }
+  };
+}
+
 export function dataUpdater(collection, type) {
   function updateBatch(dataArray) {
     var itemStatus = dataArray.reduce(
@@ -10,7 +58,10 @@ export function dataUpdater(collection, type) {
         if (old) {
           status.toUpdate.push({ item: old, update: data });
         } else {
-          status.toAdd.push(new type(data));
+          if (!(data instanceof type)) {
+            data = new type(data);
+          }
+          status.toAdd.push(data);
         }
         return status;
       },

@@ -37,6 +37,10 @@ export class ViewOptionsComponent extends ComponentBase {
         .selector(".show-media")
         .setHandler(this, this.showMedia)
         .build(),
+      BuildClickHandler()
+        .selector(".find-groups")
+        .setHandler(this, this.findGroups)
+        .build(),
       BuildInputHandler()
         .selector("[name='zoom']")
         .onChange(this, this.zoom)
@@ -116,6 +120,10 @@ export class ViewOptionsComponent extends ComponentBase {
 
   showMedia(target, event) {
     main.instance.showFiles();
+  }
+
+  findGroups(target, event) {
+    main.instance.findGroups();
   }
 }
 

@@ -8,7 +8,7 @@ import {
   Album,
 } from "../data/items.js";
 import { runParallel, runSerial } from "./task.js";
-import { dataLoader, dataUpdater } from "../data/data-loader.js";
+import { dataAdder, dataLoader, dataUpdater } from "../data/data-loader.js";
 import {
   ObservableView,
   SortedObservableView,
@@ -22,6 +22,8 @@ import {
   getTags,
   getAlbums,
 } from "./mt-api.js";
+import { dbGetMediaFiles, dbSaveMediaFile } from "../data/database.js";
+import { Listeners } from "../../drjs/browser/event.js";
 
 const log = Logger.create("Media", LOG_LEVEL.DEBUG);
 
@@ -44,6 +46,10 @@ class Media {
     this.visibleItems = new ObservableView(this.sortedItems);
     this.selectedItems = new ObservableView([]);
     this.lastSelect = null;
+
+    this.listeners = new Listeners(
+      this.files.updatedEvent.createListener(this, this.updateDatabaseItems)
+    );
   }
 
   async loadItems() {
@@ -53,7 +59,22 @@ class Media {
     );
   }
 
-  async loadItemsFromDatabase() {}
+  async updateDatabaseItems() {
+    for (var item of this.files) {
+      if (item.isUpdated()) {
+        await dbSaveMediaFile(item);
+        item.unsetUpdated();
+      }
+    }
+  }
+
+  async loadItemsFromDatabase() {
+    try {
+      runSerial(dataLoader(dbGetMediaFiles, dataAdder(this.files, MediaFile)));
+    } catch (ex) {
+      log.error(ex, "failed to get items");
+    }
+  }
 
   async loadItemsFromAPI() {
     try {

@@ -7,6 +7,18 @@ export class MediaEntity {
     this.createdOn = toDate(data.createdOn);
     this.modifiedOn = toDate(data.modifiedOn);
     this.hidden = !!data.hidden;
+    this.updated = true;
+  }
+
+  isUpdated() {
+    return this.updated;
+  }
+
+  setUpdated() {
+    this.updated = true;
+  }
+  unsetUpdated() {
+    this.updated = false;
   }
 
   equals(other) {

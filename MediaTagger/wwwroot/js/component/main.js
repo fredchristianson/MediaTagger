@@ -3,6 +3,7 @@ import { ComponentBase } from "../../drjs/browser/component.js";
 import ViewOptionsComponent from "./view-options.js";
 import StatusBarComponent from "./status-bar.js";
 import FileViewComponent from "./file-view.js";
+import FindGroupsComponent from "./find-groups.js";
 import SettingsComponent from "./settings.js";
 import api from "../modules/mt-api.js";
 
@@ -32,6 +33,10 @@ export class MainComponent extends ComponentBase {
 
   showFiles() {
     this.contentView = new FileViewComponent("#content-view");
+  }
+
+  findGroups() {
+    this.contentView = new FindGroupsComponent("#content-view");
   }
 }
 

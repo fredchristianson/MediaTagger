@@ -1,12 +1,5 @@
-// a very simple implementaion of indexDB to get & set of name/value pairs
-// it could be simpler but has the start of a more complete DB implementation
-import assert from "../assert.js";
 import { LOG_LEVEL } from "../logger-interface.js";
 import Logger from "../logger.js";
-import util from "../util.js";
-import componentLoader from "./component-loader.js";
-import { default as dom, DOM } from "./dom.js";
-import { EventEmitter, ObjectEventType } from "./event.js";
 
 const log = Logger.create("Database", LOG_LEVEL.INFO);
 
@@ -16,7 +9,14 @@ function DBPromise(req) {
       resolve(true);
     };
     req.onsuccess = () => {
-      resolve(req ? (req.result ? req.result.value : req.result) : req);
+      if (req.result.value) {
+        resolve(req.result.value);
+      } else if (req.result) {
+        resolve(req.result);
+      } else {
+        resolve(req);
+      }
+      
     };
     req.onerror = () => {
       reject(req.result);
@@ -30,59 +30,58 @@ class Table {
     this.store = store;
   }
 
-  async set(key, value) {
+  async write(value) {
     const transaction = this.store.transaction([this.name], "readwrite");
-    const record = { key: key, value: value };
     const store = transaction.objectStore(this.name);
-    store.put(record);
+    store.put(value);
     return DBPromise(transaction);
   }
 
-  async get(key) {
-    try {
-      const transaction = this.store.transaction([this.name], "readwrite");
-      const store = transaction.objectStore(this.name);
-      const result = await store.get(key);
-      return DBPromise(result);
-    } catch (ex) {
-      log.error(ex, `failed to read ${key} in table ${this.name}`);
-      return null;
-    }
+  async getAll() {
+    const transaction = this.store.transaction([this.name], "readonly");
+    const store = transaction.objectStore(this.name);
+    return DBPromise(store.getAll());
   }
 
-  valueToJson(value) {
-    return util.toString(value);
-  }
-
-  parseJsonValue(val) {
-    return JSON.parse(val);
+  async read(key) {
+    const transaction = this.store.transaction([this.name], "readwrite");
+    const store = transaction.objectStore(this.name);
+    store.get(key);
+    return DBPromise(transaction);
   }
 }
 
 export class Database {
-  constructor(name = "simple store", version, tables) {
-    this.name = name;
-    this.version = version;
-    this.tables = tables;
+  constructor(schema) {
+    this.schema = schema;
     this.indexedDB = null;
+    this.openResult = this.getDB();
   }
 
   async getDB() {
     if (this.indexedDB == null) {
       var self = this;
+      var schema = this.schema;
+      log.info("opening indexedDB ", schema.name);
       return new Promise(function (resolve, reject) {
-        const req = window.indexedDB.open(self.name, self.version);
+        const req = window.indexedDB.open(schema.name, schema.version);
         req.onupgradeneeded = function (event) {
-          log.warn("database upgrade needed");
-          for (var table of self.tables) {
-            req.result.createObjectStore(table, { keyPath: "key" });
+          log.info("database upgrade needed");
+          for (var table of schema.tables) {
+            if (typeof table == "string") {
+              req.result.createObjectStore(table);
+            } else {
+              const name = table.name;
+              const keyPath = table.key;
+              req.result.createObjectStore(name, { keyPath: keyPath });
+            }
           }
           event.target.transaction.oncomplete = function () {
             resolve(req.result);
           };
         };
         req.onsuccess = function (event) {
-          log.warn("database opened");
+          log.info("database opened");
           resolve(req.result);
         };
         req.onerror = function (event) {
@@ -95,7 +94,7 @@ export class Database {
   }
 
   async getTable(name) {
-    const db = await this.getDB();
+    const db = await this.openResult;
     return new Table(name, db);
   }
 }

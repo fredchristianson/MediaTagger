@@ -28,7 +28,7 @@ namespace MediaTagger.Modules.MediaFile
                     name = f.Name,
                     fileCreatedOn = f.FileCreated,
                     fileModifiedOn = f.FileModified,
-                directory = f.Directory == null ? null : f.Directory.Value
+                    directory = f.Directory == null ? null : f.Directory.Value
                 }).ToListAsync();
                 var total = await db.MediaFiles.CountAsync();
                 return new
