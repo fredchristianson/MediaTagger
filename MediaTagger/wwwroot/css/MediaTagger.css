@@ -122,10 +122,15 @@ body {
 #media-view .media-details {
   grid-area: media-filter;
 }
-#media-view .popup {
+
+.popup {
   position: absolute;
   width: 200px;
   height: auto;
+  border: 1px solid black;
+  background-color: #aaaaff;
+  padding: 1rem;
+  z-index: 100;
 }
 
 .date-select {

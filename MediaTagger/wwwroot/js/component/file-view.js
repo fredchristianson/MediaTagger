@@ -30,9 +30,15 @@ export class FileViewComponent extends ComponentBase {
 
   async onFileHoverStart(data, target) {
     log.debug("file hover start ", data.getName());
+    var rect = target.getBoundingClientRect;
+    var offset = this.dom.getPageOffset(target);
+    this.popup.style.top = `${offset.bottom}px`;
+    this.popup.style.left = `${offset.left}px`;
+    this.dom.removeClass(this.popup, "hidden");
   }
   async onFileHoverEnd(data, target) {
     log.debug("file hover end ", data.getName());
+    this.dom.addClass(this.popup, "hidden");
   }
 
   async onHtmlInserted(elements) {
@@ -40,6 +46,7 @@ export class FileViewComponent extends ComponentBase {
     this.mediaDetails = new MediaDetailsComponent("#media-details");
     this.dateFilter = new DateFilterComponent("#date-filter");
     this.mediaFilter = new MediaFilterComponent("#media-filter");
+    this.popup = this.dom.first(".file.popup");
 
     var allItems = await Media.getVisibleItems();
     var template = new HtmlTemplate(this.dom.first("#media-item-template"));
@@ -57,7 +64,7 @@ export class FileViewComponent extends ComponentBase {
     });
     this.listeners.add(
       BuildClickHandler()
-        .listenTo(this.dom, ".media-item")
+        .listenTo(document.body) //this.dom, ".media-item")
         .onClick(this, this.clickItem)
         .onLeftClick(this, this.leftClick)
         .onRightClick(this, this.rightClick)

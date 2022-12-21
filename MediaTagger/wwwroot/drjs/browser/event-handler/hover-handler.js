@@ -2,8 +2,9 @@ import { LOG_LEVEL, Logger } from "../../logger.js";
 import { EventHandlerBuilder, EventHandler } from "./handler.js";
 import { HandlerResponse, MousePosition, HandlerMethod } from "./common.js";
 import dom from "../dom.js";
+import util from "../../util.js";
 import { CancelToken, Task } from "../task.js";
-const log = Logger.create("HoverHandler", LOG_LEVEL.WARN);
+const log = Logger.create("HoverHandler", LOG_LEVEL.debug);
 
 export function BuildHoverHandler() {
   return new HoverHandlerBuilder();
@@ -32,6 +33,20 @@ export class HoverHandlerBuilder extends EventHandlerBuilder {
   }
   include(selectors) {
     this.handlerInstance.includeSelectors = selectors;
+    super.selector(
+      util
+        .toArray(this.handlerInstance.hoverSelectors)
+        .concat(util.toArray(this.handlerInstance.includeSelectors))
+    );
+    return this;
+  }
+  selector(selectors) {
+    this.handlerInstance.hoverSelectors = selectors;
+    super.selector(
+      util
+        .toArray(this.handlerInstance.hoverSelectors)
+        .concat(util.toArray(this.handlerInstance.includeSelectors))
+    );
     return this;
   }
 }
@@ -101,6 +116,7 @@ export class HoverHandler extends EventHandler {
     this.mousePosition.update(event);
     try {
       var target = this.getEventTarget(event);
+      log.debug(`hover: ${target.className} - ${event.type}`);
       if (event.type == "mousemove") {
         if (this.selector == null || dom.matches(target, this.selector)) {
           this.endCancel.cancel();
@@ -119,12 +135,17 @@ export class HoverHandler extends EventHandler {
           this.includeSelectors != null &&
           dom.matches(target, this.includeSelectors)
         ) {
+          this.endCancel.cancel();
           log.debug("ignore move - includeSelectors match");
         } else {
           this.end(event);
         }
       } else if (event.type == "mouseout") {
-        this.end(event, this.currentTarget, this.currentData);
+        if (!dom.matches(event.toElement, this.selector)) {
+          this.end(event, this.currentTarget, this.currentData);
+        } else {
+          log.debug("mouse out to included element");
+        }
       }
     } catch (ex) {
       log.error(ex, "event handler for ", this.typeName, " failed");

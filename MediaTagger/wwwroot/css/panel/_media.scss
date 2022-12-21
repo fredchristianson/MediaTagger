@@ -125,10 +125,16 @@
         grid-area: media-filter;
     }
 
-    .popup {
-        position: absolute;
-        width: 200px;
-        height: auto;
-    }
+
 
 }
+
+        .popup {
+            position: absolute;
+            width: 200px;
+            height: auto;
+            border: 1px solid black;
+            background-color: #aaaaff;
+            padding: 1rem;
+            z-index: 100;
+        }
