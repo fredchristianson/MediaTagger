@@ -147,7 +147,6 @@ export class SettingsComponent extends ComponentBase {
       mediaDirectories: this.tree.getSelectedValues(),
     };
     await API.PostAppSettings(settings);
-    Media.refreshItemsFromAPI();
 
     this.dom.addClass(".buttons button", "invisible");
   }

@@ -12,6 +12,8 @@ export class MediaFile extends MediaEntity {
     this.fileModifiedOn = toDate(data.fileModifiedOn);
     this.fileCreatedOn = toDate(data.fileCreatedOn);
     this.fileSetPrimaryId = data.fileSetPrimaryId;
+    this.filename = data.filename;
+    this.name = data.name;
   }
 
   // update(data) {
@@ -26,6 +28,20 @@ export class MediaFile extends MediaEntity {
     return `/image/${this.getId()}?v=1.0`;
   }
 
+  getName() {
+    return this.name;
+  }
+  getFilename() {
+    return this.filename;
+  }
+
+  getFileSize() {
+    return this.fileSize;
+  }
+
+  getTakenMSecs() {
+    return this.dateTaken == null ? null : this.dateTaken.getTime();
+  }
   getDateTaken() {
     if (this.dateTaken && !isNaN(this.dateTaken)) {
       return this.dateTaken;

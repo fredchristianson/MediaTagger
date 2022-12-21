@@ -22,6 +22,11 @@ export class CancelToken {
 }
 
 export class Task {
+  static Delay(msecs, func) {
+    var task = new Task();
+    task.run(func, msecs);
+    return task;
+  }
   constructor() {
     this.promise = new Promise((resolve, reject) => {
       this.resolve = resolve;
@@ -40,10 +45,10 @@ export class Task {
   isComplete() {
     return this.cancelToken.isCanceled() || this.promise.isResolved();
   }
-  run(task) {
+  run(task, delay = 0) {
     var timeoutId = setTimeout(() => {
-      this.promise.resolve(task());
-    }, 0);
+      this.resolve(task());
+    }, delay);
     this.cancelToken.setTimeoutId(timeoutId);
   }
 }

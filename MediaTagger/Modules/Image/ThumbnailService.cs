@@ -45,6 +45,7 @@ namespace MediaTagger.Modules.Image
             var bucket2 = (id / 10000) % 100;
             var bucket1 = id / 100000;
             var thumbDir = Path.Combine(dir, "thumbnail", bucket1.ToString(), bucket2.ToString(), bucket3.ToString());
+            Directory.CreateDirectory(thumbDir);
             var thumbFile = Path.Combine(thumbDir, id.ToString() + ".webp");
             var fileInfo = new FileInfo(thumbFile);
             if (fileInfo.Exists)

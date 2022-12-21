@@ -28,11 +28,11 @@ export class FileViewComponent extends ComponentBase {
     this.listeners = new Listeners();
   }
 
-  async onFileHoverStart(pos, event, data, handler) {
-    log.debug("file hover start");
+  async onFileHoverStart(data, target) {
+    log.debug("file hover start ", data.getName());
   }
-  async onFileHoverEnd() {
-    log.debug("file hover end");
+  async onFileHoverEnd(data, target) {
+    log.debug("file hover end ", data.getName());
   }
 
   async onHtmlInserted(elements) {
@@ -72,17 +72,14 @@ export class FileViewComponent extends ComponentBase {
         .build(),
       BuildHoverHandler()
         .listenTo(".media-items")
-        .selector([".media-item", ".popup"])
+        .selector([".media-item"])
+        .include([".popup"])
         .onStart(this, this.onFileHoverStart)
-        .startDelayMSecs(300)
-        .endDelayMSecs(300)
         .onEnd(this, this.onFileHoverEnd)
         .setData((element) => {
-          return {
-            item: Media.getAllFiles().findById(
-              this.dom.getData(element, "file-id")
-            ),
-          };
+          return Media.getAllFiles().findById(
+            this.dom.getData(element, "file-id")
+          );
         })
         .build()
     );

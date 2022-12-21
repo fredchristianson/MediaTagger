@@ -18,15 +18,15 @@ export class InputHandlerBuilder extends EventHandlerBuilder {
   }
 
   onChange(...args) {
-    this.handlerInstance.setOnChange(new HandlerMethod(...args));
+    this.handlerInstance.setOnChange(new HandlerMethod(...args, "onChange"));
     return this;
   }
   onBlur(...args) {
-    this.handlerInstance.setOnBlur(new HandlerMethod(...args));
+    this.handlerInstance.setOnBlur(new HandlerMethod(...args, "onBlur"));
     return this;
   }
   onFocus(...args) {
-    this.handlerInstance.setOnFocus(new HandlerMethod(...args));
+    this.handlerInstance.setOnFocus(new HandlerMethod(...args, "onFocus"));
     return this;
   }
 }
@@ -36,9 +36,9 @@ export class InputHandler extends EventHandler {
     super(...args);
     this.setTypeName(["input", "focus", "blur"]);
     this.setDefaultResponse(HandlerResponse.Continue);
-    this.onChange = null;
-    this.onFocus = null;
-    this.onBlur = null;
+    this.onChange = HandlerMethod.None();
+    this.onFocus = HandlerMethod.None();
+    this.onBlur = HandlerMethod.None();
   }
 
   setOnChange(handler) {
@@ -65,26 +65,31 @@ export class InputHandler extends EventHandler {
     try {
       if (event.type == "input" || event.type == "change") {
         if (method != null) {
-          method(event.target, this.data, event, this);
+          method.call(event.target, this.data, event, this);
         }
-        if (this.onChange != null) {
-          var changeMethod = this.onChange.getMethod({
-            defaultName: "onChange",
-          });
-          if (changeMethod) {
-            this.invokeChange(changeMethod, event);
-          }
-        }
+        this.onChange.call(
+          this.getValue(event.target),
+          this.getEventTarget(event),
+          this.data,
+          event,
+          this
+        );
       } else if (event.type == "blur" && this.onBlur) {
-        var blurMethod = this.onBlur.getMethod("onBlur");
-        if (blurMethod) {
-          blurMethod(event.currentTarget, this.data, event, this);
-        }
+        this.onBlur.call(
+          this.getValue(event.target),
+          this.getEventTarget(event),
+          this.data,
+          event,
+          this
+        );
       } else if (event.type == "focus" && this.onFocus) {
-        var focusMethod = this.onFocus.getMethod({ default: "onFocus" });
-        if (focusMethod) {
-          focusMethod(event.currentTarget, this.data, event, this);
-        }
+        this.onFocus.call(
+          this.getValue(event.target),
+          this.getEventTarget(event),
+          this.data,
+          event,
+          this
+        );
       }
     } catch (ex) {
       log.error(ex, "event handler for ", this.typeName, " failed");

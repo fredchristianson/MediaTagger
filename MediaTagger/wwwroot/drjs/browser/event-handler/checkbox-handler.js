@@ -18,15 +18,8 @@ export class CheckboxHandler extends InputHandler {
   constructor(...args) {
     super(...args);
   }
-
-  invokeChange(method, event) {
-    method(
-      dom.isChecked(event.target),
-      event.currentTarget,
-      this.data,
-      event,
-      this
-    );
+  getValue(element) {
+    return dom.isChecked(element);
   }
 }
 

@@ -2,7 +2,7 @@ import { LOG_LEVEL, Logger } from "../../drjs/logger.js";
 import { default as dom } from "../../drjs/browser/dom.js";
 import checkboxHandler from "../../drjs/browser/event-handler/checkbox-handler.js";
 
-const log = Logger.create("ImageLoader", LOG_LEVEL.DEBUG);
+const log = Logger.create("ImageLoader", LOG_LEVEL.INFO);
 
 const targetNode = document.body;
 
@@ -14,12 +14,14 @@ function imageLoaded(event) {
 }
 
 function imageError(event) {
+  dom.removeClass(dom.getParent(event.target), "unloaded");
+  dom.addClass(dom.getParent(event.target), "error");
   log.debug("error");
 }
 
 function checkNode(node) {
   if (dom.hasClass(node, "unloaded")) {
-    var image = dom.first("img");
+    var image = dom.first(node, "img");
     if (image.complete) {
       dom.removeClass(node, "unloaded");
     } else {

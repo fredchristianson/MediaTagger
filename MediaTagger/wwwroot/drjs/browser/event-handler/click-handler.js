@@ -5,6 +5,7 @@ import {
   EventHandler,
   HandlerMethod,
   DoNothing,
+  HandlerResponse,
 } from "./handler.js";
 
 const log = Logger.create("ClickHandler", LOG_LEVEL.WARN);
@@ -46,6 +47,7 @@ export class ClickHandler extends EventHandler {
       "mouseover",
       "mouseout",
     ]);
+
     this.onClick = HandlerMethod.None();
     this.onLeftClick = HandlerMethod.None();
     this.onRightClick = HandlerMethod.None();
@@ -115,6 +117,7 @@ export class ClickHandler extends EventHandler {
           );
         }
       }
+      return HandlerResponse.StopAll;
     } catch (ex) {
       log.error(ex, "event handler for ", this.typeName, " failed");
     }

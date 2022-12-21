@@ -91,7 +91,7 @@ namespace MediaTagger.Modules.MediaFile
 
         private async Task<MediaFileModel> GetOrCreateFile(PathModel pathModel, FileInfo file)
         {
-            var fileModel = await db.MediaFiles.Where(f => f.Name == file.Name && f.Directory == pathModel).FirstOrDefaultAsync();
+            var fileModel = await db.MediaFiles.Where(f => f.Filename == file.Name && f.Directory == pathModel).FirstOrDefaultAsync();
             if (fileModel == null)
             {
                 fileModel = await CreateFile(pathModel, file);
@@ -102,7 +102,8 @@ namespace MediaTagger.Modules.MediaFile
         private async Task<MediaFileModel> CreateFile(PathModel pathModel, FileInfo file)
         {
             var fileModel = new MediaFileModel();
-            fileModel.Name = file.Name;
+            fileModel.Filename = file.Name;
+            fileModel.Name = Path.GetFileNameWithoutExtension(file.Name);
             fileModel.FileCreated = file.CreationTime;
             fileModel.FileModified = file.LastWriteTime;
             fileModel.DateTaken = null;
@@ -125,7 +126,7 @@ namespace MediaTagger.Modules.MediaFile
             {
                 db.Entry(file).Reference(f => f.Directory).Load();
             }
-            return Path.Combine(file.Directory.Value, file.Name);
+            return Path.Combine(file.Directory.Value, file.Filename);
         }
 
         public string GetFileMimeType(MediaFileModel file)
@@ -145,7 +146,7 @@ namespace MediaTagger.Modules.MediaFile
 
         public bool IsVideoType(MediaFileModel mediaFile)
         {
-            var name = mediaFile.Name.ToLower();
+            var name = mediaFile.Filename.ToLower();
             return name.Contains(".mov")
             || name.Contains(".mp4");
 
@@ -153,7 +154,7 @@ namespace MediaTagger.Modules.MediaFile
 
         public bool IsRawImage(MediaFileModel mediaFile)
         {
-            return mediaFile.Name.ToLower().EndsWith(".rw2");
+            return mediaFile.Filename.ToLower().EndsWith(".rw2");
         }
 
         public async Task UpdateMediaFileProperties(long id)

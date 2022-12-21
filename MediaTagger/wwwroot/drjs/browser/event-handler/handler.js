@@ -69,7 +69,7 @@ export class EventHandlerBuilder {
   }
   build() {
     this.handlerInstance.listen();
-    return this.handler;
+    return this.handlerInstance;
   }
 }
 

@@ -122,6 +122,11 @@ body {
 #media-view .media-details {
   grid-area: media-filter;
 }
+#media-view .popup {
+  position: absolute;
+  width: 200px;
+  height: auto;
+}
 
 .date-select {
   background-color: #000000;

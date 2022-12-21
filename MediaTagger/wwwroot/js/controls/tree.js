@@ -90,7 +90,7 @@ export class Tree {
     this.listeners.push(
       BuildClickHandler()
         .listenTo(element)
-        .setHandler(this, this.toggleOpen)
+        .handler(this, this.toggleOpen)
         .exclude("input")
         .setData(item)
         .build(),

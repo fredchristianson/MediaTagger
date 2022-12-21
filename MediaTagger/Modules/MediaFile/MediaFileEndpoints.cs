@@ -26,6 +26,7 @@ namespace MediaTagger.Modules.MediaFile
                     createdOn = f.CreatedOn,
                     modifiedOn = f.ModifiedOn,
                     name = f.Name,
+                    filename = f.Filename,
                     fileCreatedOn = f.FileCreated,
                     fileModifiedOn = f.FileModified,
                     directory = f.Directory == null ? null : f.Directory.Value,

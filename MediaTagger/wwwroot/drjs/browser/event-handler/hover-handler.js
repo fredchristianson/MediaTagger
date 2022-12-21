@@ -1,6 +1,8 @@
 import { LOG_LEVEL, Logger } from "../../logger.js";
 import { EventHandlerBuilder, EventHandler } from "./handler.js";
 import { HandlerResponse, MousePosition, HandlerMethod } from "./common.js";
+import dom from "../dom.js";
+import { CancelToken, Task } from "../task.js";
 const log = Logger.create("HoverHandler", LOG_LEVEL.WARN);
 
 export function BuildHoverHandler() {
@@ -13,11 +15,11 @@ export class HoverHandlerBuilder extends EventHandlerBuilder {
   }
 
   onStart(...args) {
-    this.handlerInstance.onStartHanler = HandlerMethod.Of(...args);
+    this.handlerInstance.onStart = HandlerMethod.Of(...args, "onHoverStart");
     return this;
   }
   onEnd(...args) {
-    this.handlerInstance.onEndHandler = HandlerMethod.Of(...args);
+    this.handlerInstance.onEnd = HandlerMethod.Of(...args, "onHoverEnd");
     return this;
   }
   startDelayMSecs(msecs) {
@@ -28,26 +30,101 @@ export class HoverHandlerBuilder extends EventHandlerBuilder {
     this.handlerInstance.endDelayMSecs = msecs;
     return this;
   }
+  include(selectors) {
+    this.handlerInstance.includeSelectors = selectors;
+    return this;
+  }
 }
 
 export class HoverHandler extends EventHandler {
   constructor(...args) {
     super(...args);
-    this.setTypeName(["mousemove"]);
+    this.setTypeName(["mousemove", "mouseout"]);
     this.setDefaultResponse = HandlerResponse.Continue;
     this.startDelayMSecs = 200;
     this.endDelayMSecs = 200;
-    this.onStart = null;
-    this.onEnd = null;
+    this.onStart = HandlerMethod.None();
+    this.onEnd = HandlerMethod.None();
+    this.includeSelectors = null;
     this.mousePosition = new MousePosition();
+    this.inHover = false;
+    this.startCancel = new CancelToken();
+    this.endCancel = new CancelToken();
+    this.currentTarget = null;
   }
 
+  callStart(target, data) {
+    if (this.dataSource) {
+      this.onStart.call(data, target);
+    } else {
+      this.onStart.call(target);
+    }
+  }
+  callEnd(target, data) {
+    if (this.dataSource) {
+      this.onEnd.call(data, target);
+    } else {
+      this.onEnd.call(target);
+    }
+  }
+  start(event, target, data) {
+    if (this.inHover) {
+      log.debug("no start - already hovering");
+      return;
+    }
+    this.inHover = true;
+    this.currentTarget = target;
+    this.currentData = data;
+    this.endCancel.cancel();
+    this.startCancel.cancel();
+
+    log.debug("start task delayed ", this.startDelayMSecs);
+    this.startCancel = Task.Delay(this.startDelayMSecs, () => {
+      log.debug("call onStart");
+      this.callStart(target, data);
+    });
+  }
+
+  end(event, target, data) {
+    if (!this.inHover) {
+      return;
+    }
+
+    this.endCancel.cancel();
+    this.endCancel = Task.Delay(this.endDelayMSecs, () => {
+      this.startCancel.cancel();
+      this.inHover = false;
+      this.callEnd(target, data);
+    });
+  }
   callHandler(method, event) {
     this.mousePosition.update(event);
     try {
-      if (event.type == "hover") {
+      var target = this.getEventTarget(event);
+      if (event.type == "mousemove") {
+        if (this.selector == null || dom.matches(target, this.selector)) {
+          this.endCancel.cancel();
+          if (this.inHover && this.currentTarget == target) {
+            return;
+          }
+          if (this.inHover && this.currentTarget != target) {
+            log.debug("force end of old hover");
+            this.callEnd(this.currentTarget, this.currentData);
+            this.currentTarget = null;
+            this.inHover = false;
+          }
+          log.debug("start hover delay");
+          this.start(event, target, this.data);
+        } else if (
+          this.includeSelectors != null &&
+          dom.matches(target, this.includeSelectors)
+        ) {
+          log.debug("ignore move - includeSelectors match");
+        } else {
+          this.end(event);
+        }
       } else if (event.type == "mouseout") {
-        this.resetEndTimeout(event);
+        this.end(event, this.currentTarget, this.currentData);
       }
     } catch (ex) {
       log.error(ex, "event handler for ", this.typeName, " failed");

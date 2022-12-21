@@ -118,6 +118,20 @@ export class DOM {
     return result;
   }
 
+  // return true if one of the elements in the first argument matches one of the selectors in the 2nd
+  matches(element, sel) {
+    var selectors = util.toArray(sel);
+    var match = false;
+    this.toElementArray(element).forEach((elem) => {
+      match =
+        match ||
+        selectors.find((s) => {
+          return typeof s == "string" ? element.matches(s) : element == s;
+        });
+    });
+    return match;
+  }
+
   hide(element) {
     this.toElementArray(element).forEach((elem) => {
       this.setStyle(elem, "display", "none");

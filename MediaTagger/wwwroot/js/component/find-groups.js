@@ -1,11 +1,17 @@
+import Util from "../../drjs/util.js";
+
 import { ComponentBase } from "../../drjs/browser/component.js";
-import { HtmlTemplate } from "../../drjs/browser/html-template.js";
+import {
+  HtmlTemplate,
+  AttributeValue,
+} from "../../drjs/browser/html-template.js";
 import { LOG_LEVEL, Logger } from "../../drjs/logger.js";
 import { Listeners } from "../../drjs/browser/event.js";
 import Media from "../modules/media.js";
 import { ObservableArray } from "../modules/collections.js";
 import { BackgroundTask } from "../../drjs/browser/task.js";
-const log = Logger.create("MediaComponent", LOG_LEVEL.DEBUG);
+import dom from "../../drjs/browser/dom.js";
+const log = Logger.create("FileGroup", LOG_LEVEL.DEBUG);
 
 class FileGroup {
   constructor() {}
@@ -24,22 +30,70 @@ export class FindGroupsComponent extends ComponentBase {
   }
 
   async onHtmlInserted(elements) {
-    var template = new HtmlTemplate(this.dom.first("#create-group-template"));
-
+    this.matchTemplate = new HtmlTemplate(this.dom.first("#group-match"));
+    this.matches = dom.first(".matches");
     this.listeners.add(
       this.groups.updatedEvent.createListener(this, this.onGroupsUpdated)
     );
     this.allFiles = await Media.getAllFiles();
+    this.unattached = [...this.allFiles].filter((f) => {
+      return f.fileSetPrimaryId == null;
+    });
 
     this.task = BackgroundTask.batch(
       1000,
-      this.allFiles,
+      this.unattached,
       this.analyzeFile.bind(this)
     );
   }
 
   analyzeFile(file) {
-    log.debug("analyze ", file.getId());
+    //log.debug("analyze ", file.getId());
+    const fid = file.getId();
+    const fname = file.getName();
+    const fsize = file.getFileSize();
+    const msecs = file.getTakenMSecs();
+    var match = null;
+    for (const test of this.allFiles) {
+      if (test.getId() <= fid) {
+        continue;
+      }
+      if (test.getName().startsWith(fname)) {
+        match = {
+          reason: `${test.getId()}-${fid} name match ${test.getName()}==${fname}`,
+          file,
+          test,
+        };
+      } else if (test.getFileSize() == fsize) {
+        var ignorematch = {
+          reason: `size match ${test.getFileSize()}==${fsize}`,
+          file,
+          test,
+        };
+      } else if (msecs != null) {
+        const tmsecs = test.getTakenMSecs();
+        if (tmsecs != null && Math.abs(tmsecs - msecs) < 1000) {
+          match = { reason: `time match ${tmsecs}==${msecs}`, file, test };
+        }
+      }
+      if (match != null) {
+        break;
+      }
+    }
+    if (match != null) {
+      var element = this.matchTemplate.fill({
+        ".reason": match.reason,
+        ".img1": new AttributeValue(
+          "src",
+          `/thumbnail/${match.file.getId()}?v=6`
+        ),
+        ".img2": new AttributeValue(
+          "src",
+          `/thumbnail/${match.test.getId()}?v=6`
+        ),
+      });
+      dom.append(this.matches, element);
+    }
   }
 
   async onDetach() {

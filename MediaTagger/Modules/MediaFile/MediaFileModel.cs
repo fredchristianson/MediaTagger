@@ -21,7 +21,7 @@ namespace MediaTagger.Modules.MediaFile
         public virtual PathModel Directory { get; set; } = null!;
 
         public int? PathId { get; set; }
-        public string FileName { get; set; } = string.Empty;
+        public string Filename { get; set; } = string.Empty;
 
         public long FileSize { get; set; }
 
