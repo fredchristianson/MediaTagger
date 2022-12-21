@@ -91,13 +91,28 @@ export class ClickHandler extends EventHandler {
       }
       if (event.type == "mouseup") {
         if (event.button == 0) {
-          this.onLeftClick.call(event, this.onLeftClick, "onLeftClick");
+          this.onLeftClick.call(
+            this.getEventTarget(event),
+            this.data,
+            this.onLeftClick,
+            "onLeftClick"
+          );
         }
         if (event.button == 1) {
-          this.onMiddleClick.call(event, this.onMiddleClick, "onMiddleClick");
+          this.onMiddleClick.call(
+            this.getEventTarget(event),
+            this.data,
+            this.onMiddleClick,
+            "onMiddleClick"
+          );
         }
         if (event.button == 2) {
-          this.onRightClick.call(event, this.onRightClick, "onRightClick");
+          this.onRightClick.call(
+            this.getEventTarget(event),
+            this.data,
+            this.onRightClick,
+            "onRightClick"
+          );
         }
       }
     } catch (ex) {

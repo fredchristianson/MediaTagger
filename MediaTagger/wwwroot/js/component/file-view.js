@@ -50,7 +50,7 @@ export class FileViewComponent extends ComponentBase {
         ".name": item.name,
         ".thumbnail": [
           new DataValue("file-id", item.getId()),
-          new AttributeValue("src", `/thumbnail/${item.getId()}?v=5`),
+          new AttributeValue("src", `/thumbnail/${item.getId()}?v=6`),
         ],
       });
       return htmlItem;

@@ -64,6 +64,7 @@ class AsyncEventDispatcher {
     while (todo.length > 0) {
       const def = todo.shift();
       const event = new CustomEvent(def.typeName, { detail: def.details });
+      log.info("dispatch ", def);
       dom.getBody().dispatchEvent(event);
     }
   }
@@ -88,16 +89,22 @@ export class EventEmitter {
       this.typeName = type;
     }
     this.object = object;
+    // todo: handle removing listeners and listener count
+    this.hasListener = false;
   }
 
   createListener(handlerObject, handlerMethod) {
     log.debug(`EventEmitter.createListener ${this.typeName}`);
     var listener = new ObjectListener(this.object, this.type);
     listener.setHandler(new HandlerMethod(handlerObject, handlerMethod));
+    this.hasListener = true;
     return listener;
   }
 
   emit(data) {
+    if (!this.hasListener) {
+      return;
+    }
     const detail = {
       object: this.object,
       data: data,
@@ -115,6 +122,9 @@ export class EventEmitter {
   }
 
   emitNow(data) {
+    if (!this.hasListener) {
+      return;
+    }
     const detail = {
       object: this.object,
       data: data,

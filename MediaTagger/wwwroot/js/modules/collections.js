@@ -189,20 +189,16 @@ export class ObservableView extends ObservableCollection {
 
   onBaseSorted() {
     this.sortedEvent.emitNow(this);
-    this.updatedEvent.emit(this);
   }
 
   onBaseFiltered() {
     this.filteredEvent.emitNow(this);
-    this.updatedEvent.emit(this);
   }
   onBaseItemsAdded(item) {
     this.itemsAddedEvent.emitNow(item);
-    this.updatedEvent.emit(this);
   }
   onBaseItemsRemoved(item) {
     this.itemsRemovedEvent.emitNow(item);
-    this.updatedEvent.emit(this);
   }
   onBaseUpdated() {
     this.updatedEvent.emit(this);
@@ -302,6 +298,9 @@ export class SortedObservableView extends ObservableView {
   onBaseUpdated() {
     this.sortedItems = new ObservableArray(this.collectionIn);
     this.sort();
+    // sort() emited events
+    //this.sortedEvent.emit(this.sortedItems);
+    //this.updatedEvent.emit(this.updatedEvent);
   }
 
   getItemAt(index) {
@@ -371,6 +370,8 @@ export class FilteredObservableView extends ObservableView {
   filter() {
     if (this.keepFunction == null) {
       this.filteredItems = this.collectionIn;
+      this.filteredEvent.emit(this);
+      this.updatedEvent.emit(this);
       return;
     }
     this.filteredItems = new ObservableArray(this.collectionIn);
