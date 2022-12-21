@@ -57,50 +57,40 @@ export class ObjectEventType {
 }
 
 export class HandlerMethod {
-  constructor(...args) {
-    this.handlerFunctionName = null;
-    this.handlerFunction = null;
-    this.handlerObject = null;
-    args.forEach((arg) => {
-      if (typeof arg == "object") {
-        this.handlerObject = arg;
-      } else if (typeof arg == "function") {
-        this.handlerFunction = arg;
-      } else if (typeof arg == "string") {
-        this.handlerFunctionName = arg;
-      }
-    });
+  static None() {
+    return NullHandlerMethod;
+  }
+  static Of(...args) {
+    if (args[0] instanceof HandlerMethod) {
+      return args[0];
+    }
+    return new HandlerMethod(...args);
+  }
+  constructor(object, method, defaultMethod) {
+    if (typeof object == "function") {
+      this.handlerObject = null;
+      this.handlerFunction = object;
+      return;
+    }
+    this.handlerObject = object;
+    var meth = method ?? defaultMethod;
+    if (typeof meth == "string" && object != null) {
+      meth = object[meth];
+    }
+    if (typeof meth == "function") {
+      this.handlerFunction = meth;
+    } else {
+      this.handlerFunction = null;
+    }
   }
 
-  getMethod(defaultMethod) {
-    var defName = this.handlerFunctionName;
-    var defFunc = null;
-    if (typeof defaultMethod == "object") {
-      defName = defName || defaultMethod.defaultName || defaultMethod.default;
-      defFunc = defaultMethod.defaultFunction || defaultMethod.default;
-    } else if (typeof defaultMethod == "function") {
-      defFunc = defaultMethod;
-    } else if (typeof defaultMethod == "string") {
-      defName = defName || defaultMethod;
+  call(...args) {
+    if (this.handlerFunction) {
+      this.handlerFunction.apply(this.handlerObject, args);
     }
-    var method = defFunc;
-
-    if (this.handlerObject) {
-      if (this.handlerFunction && typeof this.handlerFunction == "function") {
-        method = this.handlerFunction;
-      } else if (typeof this.handlerFunction == "string") {
-        method = this.handlerObject[this.handlerFunction];
-      } else if (defName != null && this.handlerObject[defName]) {
-        method = this.handlerObject[defName];
-      }
-      if (method) {
-        method = method.bind(this.handlerObject);
-      }
-    } else if (typeof this.handlerFunction == "function") {
-      method = this.handlerFunction;
-    }
-    return method;
   }
 }
+
+const NullHandlerMethod = new HandlerMethod(null, null, null);
 
 export default { MousePosition, HandlerMethod, ObjectEventType };

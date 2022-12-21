@@ -512,9 +512,13 @@ export class DOM {
     return element.childNodes.length == 0;
   }
 
-  addListener(selector, typeName, handler) {
+  addListener(selector, typeName, handler, passive) {
     this.toElementArray(selector).forEach((element) => {
-      element.addEventListener(typeName, handler);
+      element.addEventListener(
+        typeName,
+        handler,
+        passive ? { passive: true } : false
+      );
     });
   }
 

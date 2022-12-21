@@ -9,7 +9,6 @@ import {
   BuildScrollHandler,
 } from "../../drjs/browser/event.js";
 import Media from "./media.js";
-import asyncLoader from "./async-loader.js";
 import { OnNextLoop } from "./timer.js";
 
 const log = Logger.create("Layout", LOG_LEVEL.INFO);
@@ -72,6 +71,7 @@ export class Layout {
     OnNextLoop(() => {
       this.onListUpdated(this.list);
     });
+    this.imageLoadListener = this.imageComplete.bind(this);
   }
 
   detach() {
@@ -83,6 +83,11 @@ export class Layout {
     return item;
   }
 
+  imageComplete(event) {
+    log.info("load complete");
+    dom.removeClass(event.target.parentNode, "unloaded");
+    event.target.removeEventListener("load", this.imageLoadListener);
+  }
   getItemHtml(index) {
     var item = this.list.getItemAt(index);
     if (item == null) {
@@ -91,6 +96,14 @@ export class Layout {
     if (item.__layout_element == null) {
       var element = this.htmlCreator(item);
       item.__layout_element = element;
+      var img = dom.first("img");
+      if (img) {
+        if (!img.complete) {
+          img.addEventListener("load", this.imageLoadListener);
+        } else {
+          dom.removeClass(img.parentNode, "unloaded");
+        }
+      }
     }
     return item.__layout_element;
   }

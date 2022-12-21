@@ -31,15 +31,15 @@ export class ViewOptionsComponent extends ComponentBase {
       // new ClickHandler(".show-settings",this,this.showSettings),
       BuildClickHandler()
         .selector(".show-settings")
-        .setHandler(this, this.showSettings)
+        .handler(this, this.showSettings)
         .build(),
       BuildClickHandler()
         .selector(".show-media")
-        .setHandler(this, this.showMedia)
+        .handler(this, this.showMedia)
         .build(),
       BuildClickHandler()
         .selector(".find-groups")
-        .setHandler(this, this.findGroups)
+        .handler(this, this.findGroups)
         .build(),
       BuildInputHandler()
         .selector("[name='zoom']")

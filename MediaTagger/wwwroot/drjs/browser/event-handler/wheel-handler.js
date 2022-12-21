@@ -17,8 +17,9 @@ export class WheelHandlerBuilder extends EventHandlerBuilder {
   constructor() {
     super(WheelHandler);
   }
+
   onChange(...args) {
-    this.handler.setOnChange(new HandlerMethod(...args));
+    this.handlerInstance.setOnChange(new HandlerMethod(...args));
     return this;
   }
 }
@@ -31,6 +32,10 @@ export class WheelHandler extends EventHandler {
     this.setListenElement(dom.getBody());
 
     this.onChange = null;
+  }
+
+  isPassive() {
+    return true;
   }
 
   setOnChange(handler) {

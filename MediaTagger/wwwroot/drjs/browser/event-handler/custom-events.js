@@ -16,7 +16,7 @@ export class EventListener extends EventHandler {
 
   callHandler(method, event) {
     const detail = event.detail;
-    method(detail.data, detail.object, detail.type);
+    method.call(detail.data, detail.object, detail.type);
   }
 }
 
@@ -35,7 +35,7 @@ export class ObjectListener extends EventHandler {
         this.typeName == "*" ||
         this.typeName == detail.typeName)
     ) {
-      method(detail.object, detail.data, detail.type);
+      method.call(detail.object, detail.data, detail.type);
     }
   }
 }

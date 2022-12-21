@@ -3,12 +3,13 @@ import {
   HtmlTemplate,
   ReplaceTemplateValue,
   DataValue,
+  AttributeValue,
 } from "../../drjs/browser/html-template.js";
 import { LOG_LEVEL, Logger } from "../../drjs/logger.js";
 import {
   Listeners,
   BuildClickHandler,
-  BuildMouseOverHandler,
+  BuildHoverHandler,
 } from "../../drjs/browser/event.js";
 import MediaDetailsComponent from "./media-details.js";
 import DateFilterComponent from "./date-filter.js";
@@ -16,7 +17,8 @@ import MediaFilterComponent from "./media-filter.js";
 import Media from "../modules/media.js";
 import { GridLayout } from "../modules/layout.js";
 import UTIL from "../../drjs/util.js";
-import asyncLoader from "../modules/async-loader.js";
+
+import { ImageLoader } from "../modules/image-loader.js";
 
 const log = Logger.create("MediaComponent", LOG_LEVEL.DEBUG);
 
@@ -34,6 +36,7 @@ export class FileViewComponent extends ComponentBase {
   }
 
   async onHtmlInserted(elements) {
+    this.imageLoader = new ImageLoader(".media-items");
     this.mediaDetails = new MediaDetailsComponent("#media-details");
     this.dateFilter = new DateFilterComponent("#date-filter");
     this.mediaFilter = new MediaFilterComponent("#media-filter");
@@ -45,9 +48,11 @@ export class FileViewComponent extends ComponentBase {
       var htmlItem = template.fill({
         ".media-item": [new DataValue("file-id", item.getId())],
         ".name": item.name,
-        ".thumbnail": new DataValue("file-id", item.getId()),
+        ".thumbnail": [
+          new DataValue("file-id", item.getId()),
+          new AttributeValue("src", `/thumbnail/${item.getId()}?v=5`),
+        ],
       });
-      asyncLoader.setConcurrentLoadLimit(5);
       return htmlItem;
     });
     this.listeners.add(
@@ -65,12 +70,12 @@ export class FileViewComponent extends ComponentBase {
           };
         })
         .build(),
-      BuildMouseOverHandler()
+      BuildHoverHandler()
         .listenTo(".media-items")
-        .selector(".media-item")
+        .selector([".media-item", ".popup"])
         .onStart(this, this.onFileHoverStart)
-        .include([".popup"])
-        //   .startDelayMSecs(300)
+        .startDelayMSecs(300)
+        .endDelayMSecs(300)
         .onEnd(this, this.onFileHoverEnd)
         .setData((element) => {
           return {
@@ -84,6 +89,7 @@ export class FileViewComponent extends ComponentBase {
   }
 
   async onDetach() {
+    this.imageLoader.stop();
     this.layout.detach();
     this.listeners.removeAll();
   }

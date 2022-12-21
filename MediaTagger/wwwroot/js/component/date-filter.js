@@ -25,11 +25,9 @@ export class DateFilterComponent extends ComponentBase {
         .createListener(this, this.onItemsUpdated),
       BuildMouseOverHandler()
         .listenTo(this.dom.first(".svg-container"))
-        .onStart(this, this.startHover)
-        .onEnd(this, this.endHover)
-        .include([".date-popup", ".edge"])
-        .endDelayMSecs(300)
-        .disableContextMenu()
+        .onOver(this, this.startHover)
+        .onOut(this, this.endHover)
+        .disableContextMenu(true)
         .build(),
       BuildMouseHandler()
         .listenTo(this.dom.first(".svg-container"))
@@ -189,7 +187,7 @@ export class DateFilterComponent extends ComponentBase {
     this.dom.removeClass(this.popup, "show");
   }
 
-  onMouseMove(pos, event, data, handler) {
+  onMouseMove(pos, target, event, data, handler) {
     log.never(`move: `, event.clientX);
     var num = Math.floor(pos.pctX * 100);
     var bucket = this.buckets[num];

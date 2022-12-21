@@ -19,19 +19,19 @@ export class ClickHandlerBuilder extends EventHandlerBuilder {
   }
 
   onClick(...args) {
-    this.handler.setOnClick(new HandlerMethod(...args));
+    this.handlerInstance.setOnClick(new HandlerMethod(...args));
     return this;
   }
   onLeftClick(...args) {
-    this.handler.setOnLeftClick(new HandlerMethod(...args));
+    this.handlerInstance.setOnLeftClick(new HandlerMethod(...args));
     return this;
   }
   onRightClick(...args) {
-    this.handler.setOnRightClick(new HandlerMethod(...args));
+    this.handlerInstance.setOnRightClick(new HandlerMethod(...args));
     return this;
   }
   onMiddleClick(...args) {
-    this.handler.setOnMiddleClick(new HandlerMethod(...args));
+    this.handlerInstance.setOnMiddleClick(new HandlerMethod(...args));
     return this;
   }
 }
@@ -46,10 +46,10 @@ export class ClickHandler extends EventHandler {
       "mouseover",
       "mouseout",
     ]);
-    this.onClick = null;
-    this.onLeftClick = null;
-    this.onRightClick = null;
-    this.onMiddleClick = null;
+    this.onClick = HandlerMethod.None();
+    this.onLeftClick = HandlerMethod.None();
+    this.onRightClick = HandlerMethod.None();
+    this.onMiddleClick = HandlerMethod.None();
   }
 
   setOnClick(handler) {
@@ -65,27 +65,16 @@ export class ClickHandler extends EventHandler {
     this.onMiddleClick = handler;
   }
 
-  callIf(event, method, defaultName) {
-    if (method != null) {
-      var func = method.getMethod(defaultName);
-      if (func) {
-        func(this.getEventTarget(event), this.data, event, this);
-        return true;
-      }
-    }
-    return false;
-  }
   callHandler(method, event) {
     try {
       if (event.type == "mouseover") {
         if (this.onRightClick) {
-          this.oldOnContextMenu = document.oncontextmenu;
           document.oncontextmenu = DoNothing;
         }
         return;
       } else if (event.type == "mouseout") {
         if (this.onRightClick) {
-          document.oncontextmenu = this.oldOnContextMenu;
+          document.oncontextmenu = null;
         }
         return;
       }
@@ -95,28 +84,20 @@ export class ClickHandler extends EventHandler {
         }
       }
       if (method != null) {
-        method(event.currentTarget, this.data, event, this);
+        method.call(event.currentTarget, this.data, event, this);
       }
       if (event.type == "click" && this.onClick != null) {
-        var clickMethod = this.onClick.getMethod({ defaultName: "onClick" });
-        if (clickMethod) {
-          clickMethod(this.getEventTarget(event), this.data, event, this);
-        }
+        this.onClick.call(this.getEventTarget(event), this.data, event, this);
       }
       if (event.type == "mouseup") {
         if (event.button == 0) {
-          this.callIf(event, this.onLeftClick, "onLeftClick");
+          this.onLeftClick.call(event, this.onLeftClick, "onLeftClick");
         }
         if (event.button == 1) {
-          this.callIf(event, this.onMiddleClick, "onMiddleClick");
+          this.onMiddleClick.call(event, this.onMiddleClick, "onMiddleClick");
         }
         if (event.button == 2) {
-          if (this.callIf(event, this.onRightClick, "onRightClick")) {
-            document.oncontextmenu = DoNothing;
-            setTimeout(() => {
-              document.oncontextmenu = null;
-            }, 100);
-          }
+          this.onRightClick.call(event, this.onRightClick, "onRightClick");
         }
       }
     } catch (ex) {

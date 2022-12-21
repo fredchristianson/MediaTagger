@@ -9,65 +9,52 @@ const log = Logger.create("EventHandler", LOG_LEVEL.WARN);
 export class EventHandlerBuilder {
   constructor(eventHandlerClass) {
     this.handlerClass = eventHandlerClass;
-    this.handler = new this.handlerClass();
+    this.handlerInstance = new this.handlerClass();
   }
 
   listenTo(element, selector = null) {
     if (element instanceof DOM) {
-      this.handler.listenElement = element.getRoot();
+      this.handlerInstance.listenElement = element.getRoot();
     } else {
-      this.handler.listenElement = element;
+      this.handlerInstance.listenElement = element;
     }
     if (selector != null) {
-      this.handler.setSelector(selector);
+      this.handlerInstance.setSelector(selector);
     }
     return this;
   }
-  setHandler(...args) {
-    args.forEach((arg) => {
-      if (typeof arg == "object") {
-        this.handler.setHandlerObject(arg);
-      } else if (typeof arg == "function") {
-        this.handler.setHandlerFunction(arg);
-      }
-    });
+  handler(...args) {
+    this.handlerInstance.handlerMethod = HandlerMethod.Of(...args);
     return this;
   }
 
   withShift(require) {
-    this.handler.setWithShift(require);
+    this.handlerInstance.setWithShift(require);
     return this;
   }
   withAlt(require) {
-    this.handler.setWithAlt(require);
+    this.handlerInstance.setWithAlt(require);
     return this;
   }
   withCtrl(require) {
-    this.handler.setWithCtrl(require);
-    return this;
-  }
-  setHandlerObject(obj) {
-    this.handler.setHandlerObject(obj);
+    this.handlerInstance.setWithCtrl(require);
     return this;
   }
   setData(data) {
-    this.handler.setData(data);
+    this.handlerInstance.setData(data);
     return this;
   }
-  setHandlerFunction(func) {
-    this.handler.setHandlerFunctionfunc(func);
-    return this;
-  }
+
   setTypeName(typeName) {
-    this.handler.setTypeName(typeName);
+    this.handlerInstance.setTypeName(typeName);
     return this;
   }
   selector(sel) {
-    this.handler.setSelector(sel);
+    this.handlerInstance.setSelector(sel);
     return this;
   }
   exclude(sel) {
-    this.handler.exclude(sel);
+    this.handlerInstance.exclude(sel);
     return this;
   }
 
@@ -77,11 +64,11 @@ export class EventHandlerBuilder {
     return this;
   }
   setDebounceMSecs(msecs = 250) {
-    this.handler.setDebounceMSecs(msecs);
+    this.handlerInstance.setDebounceMSecs(msecs);
     return this;
   }
   build() {
-    this.handler.listen();
+    this.handlerInstance.listen();
     return this.handler;
   }
 }
@@ -91,8 +78,6 @@ export class EventHandler {
     this.defaultResponse = HandlerResponse.StopPropagation;
     this.eventProcessor = this.eventProcessorMethod.bind(this);
     this.listenElement = null;
-    this.handlerObject = null;
-    this.handlerFunc = null;
     this.typeName = null;
     this.selector = null;
     this.excludeSelector = null;
@@ -103,6 +88,7 @@ export class EventHandler {
     this.withShift = null;
     this.withCtrl = null;
     this.withAlt = null;
+    this.handlerMethod = HandlerMethod.None();
 
     if (args.length == 0) {
       return;
@@ -112,15 +98,17 @@ export class EventHandler {
       return;
     }
 
+    var handlerObj = null;
+    var handlerFunc = null;
     args.forEach((arg) => {
       if (arg instanceof HTMLElement) {
         this.setListenElement(arg);
       } else if (arg instanceof ObjectEventType) {
         this.setTypeName(arg.name);
       } else if (typeof arg === "object") {
-        this.handlerObject = arg;
+        handlerObj = arg;
       } else if (typeof arg === "function") {
-        this.handlerFunc = arg;
+        handlerFunc = arg;
       } else if (typeof arg === "string") {
         if (this.typeName == null) {
           this.setTypeName(arg);
@@ -129,6 +117,7 @@ export class EventHandler {
         }
       }
     });
+    this.handlerMethod = new HandlerMethod(handlerObj, handlerFunc);
   }
 
   setWithAlt(require) {
@@ -145,24 +134,16 @@ export class EventHandler {
     this.listenElement = element;
     return this;
   }
-  setHandler(...args) {
-    args.forEach((arg) => {
-      if (typeof arg == "object") {
-        this.setHandlerObject(arg);
-      } else if (typeof arg == "function") {
-        this.setHandlerFunction(arg);
-      }
-    });
+
+  setHandler(obj, method) {
+    if (obj instanceof HandlerMethod) {
+      this.handlerMethod = obj;
+    } else {
+      this.handlerMethod = new HandlerMethod(obj, method);
+    }
     return this;
   }
-  setHandlerObject(obj) {
-    this.handlerObject = obj;
-    return this;
-  }
-  setHandlerFunction(func) {
-    this.handlerFunc = func;
-    return this;
-  }
+
   setTypeName(typeName) {
     this.typeName = typeName;
     return this;
@@ -189,6 +170,9 @@ export class EventHandler {
     return this.typeName;
   }
 
+  isPassive() {
+    return false;
+  }
   listen() {
     if (this.typeName == null) {
       log.error("EventHandler requires an event type name (e.g. 'click'");
@@ -198,10 +182,20 @@ export class EventHandler {
 
     this.typeNames.forEach((typeName) => {
       if (this.listenElement != null) {
-        dom.addListener(this.listenElement, typeName, this.eventProcessor);
+        dom.addListener(
+          this.listenElement,
+          typeName,
+          this.eventProcessor,
+          this.isPassive() ? { passive: true } : false
+        );
       } else if (this.selector != null) {
         this.listenElement = dom.find(this.selector);
-        dom.addListener(this.listenElement, typeName, this.eventProcessor);
+        dom.addListener(
+          this.listenElement,
+          typeName,
+          this.eventProcessor,
+          this.isPassive() ? { passive: true } : false
+        );
       } else {
         log.error("EventHandler needs an element or selector");
       }
@@ -239,6 +233,15 @@ export class EventHandler {
   }
 
   eventProcessorMethod(event) {
+    if (this.selectorMismatch(event)) {
+      return;
+    }
+    if (
+      this.excludeSelector != null &&
+      event.target.matches(this.excludeSelector)
+    ) {
+      return;
+    }
     if (this.withAlt && !event.altKey) {
       return HandlerResponse.Continue;
     }
@@ -257,6 +260,7 @@ export class EventHandler {
       }
       this.debounceTimer = setTimeout(() => {
         this.invokeHandler(event);
+        this.debounceTimer = null;
       }, this.debounceMSecs);
     } else {
       this.invokeHandler(event);
@@ -266,15 +270,7 @@ export class EventHandler {
   invokeHandler(event) {
     var result = null;
     var method = null;
-    if (this.selectorMismatch(event)) {
-      return;
-    }
-    if (
-      this.excludeSelector != null &&
-      event.target.matches(this.excludeSelector)
-    ) {
-      return;
-    }
+
     if (this.dataSource) {
       if (typeof this.dataSource == "function") {
         this.data = this.dataSource(this.getEventTarget(event));
@@ -282,17 +278,8 @@ export class EventHandler {
         this.data = this.dataSource;
       }
     }
-    if (this.handlerFunc) {
-      var func = this.handlerFunc;
-      if (this.handlerObject) {
-        method = func.bind(this.handlerObject);
-      }
-      result = this.defaultResponse;
-    } else if (this.handlerObject) {
-      method = this.findHandlerMethod(this.handlerObject, this.typeName);
-    }
-
-    result = this.callHandler(method, event);
+    result = this.defaultResponse;
+    result = this.callHandler(this.handlerMethod, event);
 
     if (result == null) {
       result = this.defaultResponse || HandlerResponse.stopPropagation;
@@ -317,35 +304,13 @@ export class EventHandler {
   callHandler(method, event) {
     try {
       if (method != null) {
-        method(event, this.data);
+        method.call(event, this.data);
       }
     } catch (ex) {
       log.error(ex, "event handler for ", this.typeName, " failed");
     }
   }
-  findHandlerMethod(obj, name) {
-    if (typeof obj[name] == "function") {
-      return obj[name].bind(obj);
-    }
-    if (obj instanceof HandlerMethod) {
-      return obj.getMethod(name);
-    }
-    var lower = name.toLowerCase();
-    var onLower = "on" + lower;
-    var methodName = Object.getOwnPropertyNames(
-      Object.getPrototypeOf(obj)
-    ).find((propName) => {
-      var lowerProp = propName.toLowerCase();
-      if (lower == lowerProp || onLower == lowerProp) {
-        var func = obj[propName];
-        if (typeof func == "function") {
-          return true;
-        }
-      }
-      return false;
-    });
-    return methodName == null ? null : obj[methodName];
-  }
+
   exclude(selector) {
     this.excludeSelector = selector;
     return this;

@@ -11,8 +11,6 @@ import DateFilterComponent from "./date-filter.js";
 import MediaFilterComponent from "./media-filter.js";
 import Media from "../modules/media.js";
 import { GridLayout } from "../modules/layout.js";
-import UTIL from "../../drjs/util.js";
-import asyncLoader from "../modules/async-loader.js";
 
 const log = Logger.create("MediaComponent", LOG_LEVEL.DEBUG);
 
@@ -39,7 +37,6 @@ export class MediaComponent extends ComponentBase {
           item.getThumbnailUrl.bind(item)
         ),
       });
-      asyncLoader.setConcurrentLoadLimit(5);
       return htmlItem;
     });
     this.listeners.add(

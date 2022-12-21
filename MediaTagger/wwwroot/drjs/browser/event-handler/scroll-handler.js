@@ -14,7 +14,7 @@ export class ScrollHandlerBuilder extends EventHandlerBuilder {
   }
 
   onScroll(...args) {
-    this.handler.setOnScroll(new HandlerMethod(...args));
+    this.handlerInstance.setOnScroll(new HandlerMethod(...args, "onScroll"));
     return this;
   }
 }
@@ -22,7 +22,11 @@ export class ScrollHandlerBuilder extends EventHandlerBuilder {
 export class ScrollHandler extends EventHandler {
   constructor(...args) {
     super("scroll", ...args);
-    this.onScroll = null;
+    this.onScroll = HandlerMethod.None();
+  }
+
+  isPassive() {
+    return true;
   }
 
   setOnScroll(handler) {
@@ -32,19 +36,16 @@ export class ScrollHandler extends EventHandler {
   callHandler(method, event) {
     try {
       if (method != null) {
-        method(event.currentTarget, this.data, event, this);
+        method.call(event.currentTarget, this.data, event, this);
       }
       if (this.onScroll != null) {
-        var scrollMethod = this.onScroll.getMethod({ defaultName: "onScroll" });
-        if (scrollMethod) {
-          scrollMethod(
-            event.currentTarget.scrollTop,
-            event.currentTarget,
-            this.data,
-            event,
-            this
-          );
-        }
+        this.onScroll.call(
+          event.currentTarget.scrollTop,
+          event.currentTarget,
+          this.data,
+          event,
+          this
+        );
       }
     } catch (ex) {
       log.error(ex, "event handler for ", this.typeName, " failed");

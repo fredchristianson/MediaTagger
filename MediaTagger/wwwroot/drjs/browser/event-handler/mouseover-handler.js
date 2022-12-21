@@ -2,7 +2,12 @@ import { LOG_LEVEL, Logger } from "../../logger.js";
 import Util from "../../util.js";
 import { default as dom } from "../dom.js";
 import { EventHandlerBuilder, EventHandler } from "./handler.js";
-import { HandlerResponse, MousePosition, HandlerMethod } from "./common.js";
+import {
+  HandlerResponse,
+  MousePosition,
+  HandlerMethod,
+  DoNothing,
+} from "./common.js";
 const log = Logger.create("MouseOverHandler", LOG_LEVEL.WARN);
 
 export function BuildMouseOverHandler() {
@@ -14,28 +19,16 @@ export class MouseOverHandlerBuilder extends EventHandlerBuilder {
     super(MouseOverHandler);
   }
 
-  onStart(...args) {
-    this.handler.setOnStart(new HandlerMethod(...args));
+  onOver(...args) {
+    this.handlerInstance.setOnOver(new HandlerMethod(...args));
     return this;
   }
-  onEnd(...args) {
-    this.handler.setOnEnd(new HandlerMethod(...args));
+  onOut(...args) {
+    this.handlerInstance.setOnOut(new HandlerMethod(...args));
     return this;
   }
-  onMouseMove(...args) {
-    this.handler.setOnMouseMove(new HandlerMethod(...args));
-    return this;
-  }
-  include(selectors) {
-    this.handler.setInclude(selectors);
-    return this;
-  }
-  endDelayMSecs(msecs = 300) {
-    this.handler.setEndDelayMSecs(msecs);
-    return this;
-  }
-  disableContextMenu() {
-    this.handler.setDisableContextMenu(true);
+  disableContextMenu(disabled = true) {
+    this.handlerInstance.disableContextMenu = disabled;
     return this;
   }
 }
@@ -43,113 +36,47 @@ export class MouseOverHandlerBuilder extends EventHandlerBuilder {
 export class MouseOverHandler extends EventHandler {
   constructor(...args) {
     super(...args);
-    this.setTypeName(["mouseover", "mouseout", "mousemove"]);
+    this.setTypeName(["mouseover", "mouseout"]);
     this.setDefaultResponse = HandlerResponse.Continue;
     this.endDelayMSecs = 200;
-    this.includeSelectors = [];
-    this.onStartHandler = null;
-    this.onEndHandler = null;
-    this.onMoveHandler = null;
-    this.mouseMoveBodyHandler = this.onMouseMoveBody.bind(this);
-    this.endTimeout = null;
-    this.inMouseOver = false;
-    this.disableContextMenuOnMouseOver = false;
-    this.originalConextMenu = document.oncontextmenu;
+    this.onOver = HandlerMethod.None();
+    this.onOut = HandlerMethod.None();
     this.mousePosition = new MousePosition();
+    this.disableContextMenu = false;
   }
-  setOnStart(handler) {
-    this.onStartHandler = handler;
+  setOnOver(handler) {
+    this.onOver = handler;
   }
-  setOnEnd(handler) {
-    this.onEndHandler = handler;
-  }
-  setOnMouseMove(handler) {
-    this.onMoveHandler = handler;
-  }
-  setInclude(selectors) {
-    this.includeSelectors = Util.toArray(selectors);
-  }
-  setEndDelayMSecs(msecs) {
-    this.endDelayMSecs = msecs;
-  }
-
-  setDisableContextMenu(disabled = true) {
-    this.disableContextMenuOnMouseOver = disabled;
-  }
-
-  onMouseMoveBody(event) {
-    log.info("mousemove ");
-    if (dom.isElementIn(event.target, this.includeSelectors)) {
-      this.cancelEndTimeout();
-    } else if (this.endTimeout == null) {
-      this.resetEndTimeout();
-    }
-  }
-
-  cancelEndTimeout() {
-    if (this.endTimeout) {
-      clearTimeout(this.endTimeout);
-      this.endTimeout = null;
-    }
-  }
-
-  resetEndTimeout(event) {
-    this.cancelEndTimeout();
-    this.endTimeout = setTimeout(() => {
-      this.endMouseOver();
-    }, this.endDelayMSecs);
-  }
-
-  startMouseOver(event) {
-    if (this.disableContextMenuOnMouseOver) {
-      document.oncontextmenu = function () {
-        return false;
-      };
-    }
-
-    this.inMouseOver = true;
-    dom.getBody().addEventListener("mousemove", this.mouseMoveBodyHandler);
-    if (this.onStartHandler) {
-      var method = this.onStartHandler.getMethod("onMouseOverStart");
-      if (method) {
-        method(this.mousePosition, event, this.data, this);
-      }
-    }
-  }
-
-  endMouseOver(event) {
-    this.inMouseOver = false;
-    dom.getBody().removeEventListener("mousemove", this.mouseMoveBodyHandler);
-    if (this.onEndHandler) {
-      var method = this.onEndHandler.getMethod("onMouseOverEnd");
-
-      if (method) {
-        method(this.mousePosition, event, this.data, this);
-      }
-    }
-    if (this.disableContextMenuOnMouseOver) {
-      document.oncontextmenu = this.originalConextMenu;
-    }
+  setOnOut(handler) {
+    this.onOut = handler;
   }
 
   callHandler(method, event) {
     this.mousePosition.update(event);
     try {
       if (event.type == "mouseover") {
-        this.cancelEndTimeout();
-        // delay may result in a 2nd start before end.  ignore it.
-        if (this.inMouseOver) {
-          return;
+        if (this.disableContextMenu) {
+          document.body.oncontextmenu = () => {
+            return false;
+          };
         }
-        this.startMouseOver();
+        this.onOver.call(
+          this.mousePosition,
+          this.getEventTarget(event),
+          event,
+          this.data,
+          this
+        );
       } else if (event.type == "mouseout") {
-        this.resetEndTimeout(event);
-      } else if (event.type == "mousemove") {
-        if (this.onMoveHandler) {
-          var method = this.onMoveHandler.getMethod("onMouseMove");
-          if (method) {
-            method(this.mousePosition, event, this.data, this);
-          }
+        this.onOut.call(
+          this.mousePosition,
+          this.getEventTarget(event),
+          event,
+          this.data,
+          this
+        );
+        if (this.disableContextMenu) {
+          document.body.oncontextmenu = null;
         }
       }
     } catch (ex) {

@@ -18,15 +18,15 @@ export class InputHandlerBuilder extends EventHandlerBuilder {
   }
 
   onChange(...args) {
-    this.handler.setOnChange(new HandlerMethod(...args));
+    this.handlerInstance.setOnChange(new HandlerMethod(...args));
     return this;
   }
   onBlur(...args) {
-    this.handler.setOnBlur(new HandlerMethod(...args));
+    this.handlerInstance.setOnBlur(new HandlerMethod(...args));
     return this;
   }
   onFocus(...args) {
-    this.handler.setOnFocus(new HandlerMethod(...args));
+    this.handlerInstance.setOnFocus(new HandlerMethod(...args));
     return this;
   }
 }

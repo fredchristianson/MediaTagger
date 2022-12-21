@@ -18,25 +18,36 @@ export class MouseHandlerBuilder extends EventHandlerBuilder {
     super(MouseHandler);
   }
   onLeftDown(...args) {
-    this.handler.setOnLeftDown(new HandlerMethod(...args));
+    this.handlerInstance.setOnLeftDown(new HandlerMethod(...args));
     return this;
   }
 
   onLeftUp(...args) {
-    this.handler.setOnLeftUp(new HandlerMethod(...args));
+    this.handlerInstance.setOnLeftUp(new HandlerMethod(...args));
     return this;
   }
   onRightDown(...args) {
-    this.handler.setOnRightDown(new HandlerMethod(...args));
+    this.handlerInstance.setOnRightDown(new HandlerMethod(...args));
     return this;
   }
 
   onRightUp(...args) {
-    this.handler.setOnRightUp(new HandlerMethod(...args));
+    this.handlerInstance.setOnRightUp(new HandlerMethod(...args));
+    return this;
+  }
+  onMiddleDown(...args) {
+    this.handlerInstance.setOnMiddleDown(new HandlerMethod(...args));
+    return this;
+  }
+
+  onMiddleUp(...args) {
+    this.handlerInstance.setOnMiddleUp(new HandlerMethod(...args));
     return this;
   }
   onMouseMove(...args) {
-    this.handler.setOnMouseMove(new HandlerMethod(...args));
+    this.handlerInstance.setOnMouseMove(
+      new HandlerMethod(...args, "onMouseMove")
+    );
     return this;
   }
 }
@@ -46,11 +57,13 @@ export class MouseHandler extends EventHandler {
     super(...args);
     this.setTypeName(["mousedown", "mouseup", "mousemove"]);
     this.endDelayMSecs = 200;
-    this.onLeftDown = null;
-    this.onLeftUp = null;
-    this.onRightDown = null;
-    this.onRightUp = null;
-    this.onMouseMove = null;
+    this.onLeftDown = HandlerMethod.None();
+    this.onLeftUp = HandlerMethod.None();
+    this.onRightDown = HandlerMethod.None();
+    this.onRightUp = HandlerMethod.None();
+    this.onMiddleDown = HandlerMethod.None();
+    this.onMiddleUp = HandlerMethod.None();
+    this.onMouseMove = HandlerMethod.None();
     this.mousePosition = new MousePosition();
   }
 
@@ -72,39 +85,51 @@ export class MouseHandler extends EventHandler {
   setOnRightUp(handler) {
     this.onRightUp = handler;
   }
-  setOnMouseMove(handler) {
-    this.onMouseMove = handler;
+  setOnMiddleDown(handler) {
+    this.onMiddleDown = handler;
   }
 
-  callIfSet(event, handler, name) {
-    if (handler) {
-      var method = handler.getMethod(name);
-      method(this.mousePosition, event, this.data, this);
-    }
+  setOnMiddleUp(handler) {
+    this.onMiddleUp = handler;
+  }
+  setOnMouseMove(handler) {
+    this.onMouseMove = handler;
   }
 
   callHandler(method, event) {
     this.mousePosition.update(event);
     try {
       if (event.type == "mousemove") {
-        var moveMethod = this.onMouseMove.getMethod("onMouseMove");
-
-        if (moveMethod) {
-          moveMethod(this.mousePosition, event, this.data, this);
-        }
+        this.onMouseMove.call(
+          this.mousePosition,
+          this.getEventTarget(event),
+          event,
+          this.data,
+          this
+        );
       } else if (event.type == "mousedown") {
-        if (event.button == 0) {
-          this.callIfSet(event, this.onLeftDown, "onLeftDown");
-        } else if (event.button == 2) {
-          this.callIfSet(event, this.onRightDown, "onRightDown");
+        if (event.button >= 0 && event.button <= 2) {
+          [this.onLeftDown, this.onMiddleDown, this.onRightDown][
+            event.button
+          ].call(
+            this.mousePosition,
+            this.getEventTarget(event),
+            event,
+            this.data,
+            this
+          );
         } else {
           log.error("unknown button ", event.button);
         }
       } else if (event.type == "mouseup") {
-        if (event.button == 0) {
-          this.callIfSet(event, this.onLeftUp, "onLeftUp");
-        } else if (event.button == 2) {
-          this.callIfSet(event, this.onRightUp, "onRightUp");
+        if (event.button >= 0 && event.button <= 2) {
+          [this.onLeftUp, this.onMiddleUp, this.onRightUp][event.button].call(
+            this.mousePosition,
+            this.getEventTarget(event),
+            event,
+            this.data,
+            this
+          );
         } else {
           log.error("unknown button ", event.button);
         }
