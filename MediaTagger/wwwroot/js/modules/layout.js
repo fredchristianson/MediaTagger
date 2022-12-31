@@ -1,6 +1,6 @@
 import { LOG_LEVEL, Logger } from "../../drjs/logger.js";
 import dom from "../../drjs/browser/dom.js";
-import { ZoomChangeEvent } from "../component/view-options.js";
+import { ZoomEvent } from "../component/view-options.js";
 import {
   Listeners,
   EventListener,
@@ -60,7 +60,7 @@ export class Layout {
     });
     this.resizeObserver.observe(this.container);
     this.listeners = new Listeners(
-      new EventListener(ZoomChangeEvent, this, this.onZoomChange),
+      ZoomEvent.createListener(this, this.onZoomChange),
       BuildScrollHandler().listenTo(this.container).onScroll(this).build(),
       this.list.getUpdatedEvent().createListener(this, this.onListUpdated),
       Media.getSelectedItems()
@@ -131,7 +131,7 @@ export class Layout {
     /* base layout does nothing;*/
   }
 
-  onZoomChange(newValue) {
+  onZoomChange(sender, newValue) {
     this.zoomPercent = newValue / 100.0;
     this.scrollToItem(
       this.scrollItemIndex,

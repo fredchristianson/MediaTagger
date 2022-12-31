@@ -37,9 +37,10 @@ class Media {
     this.groups = new ObservableArray();
     this.properties = new ObservableArray();
     this.propertyValues = new ObservableArray();
+    this.showAllGroupFiles = false;
     this.groupFilterItems = new FilteredObservableView(
       this.files,
-      this.primaryFileFilter
+      this.primaryFileFilter.bind(this)
     );
     this.searchFilterItems = new FilteredObservableView(
       this.groupFilterItems,
@@ -62,8 +63,16 @@ class Media {
     );
   }
 
+  showSecondaryGroupFiles(visible) {
+    this.showAllGroupFiles = visible;
+    this.groupFilterItems.filter();
+  }
+  hideSecondaryGroupFiles() {
+    this.showAllGroupFiles = false;
+    this.groupFilterItems.filter();
+  }
   primaryFileFilter(item) {
-    return item.isPrimary();
+    return this.showAllGroupFiles || item.isPrimary();
   }
 
   async loadItems() {

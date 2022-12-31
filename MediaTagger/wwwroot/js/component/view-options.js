@@ -11,12 +11,16 @@ import {
   BuildClickHandler,
   BuildInputHandler,
   BuildWheelHandler,
+  BuildCheckboxHandler,
   EventEmitter,
   ObjectEventType,
 } from "../../drjs/browser/event.js";
+import { MediaTaggerApi } from "../modules/mt-api.js";
 
-export var ZoomChangeEvent = new ObjectEventType("zoomChange");
-export var ZoomEvent = new EventEmitter(ZoomChangeEvent, this);
+export var ZoomChangeEventType = new ObjectEventType("zoomChange");
+export var ZoomEvent = new EventEmitter(ZoomChangeEventType, this);
+export var ExpandGroupsEventType = new ObjectEventType("ExpandGroups");
+export var ExpandGroupsEvent = new EventEmitter(ExpandGroupsEventType, this);
 var MAX_ZOOM = 800;
 
 export class ViewOptionsComponent extends ComponentBase {
@@ -54,6 +58,11 @@ export class ViewOptionsComponent extends ComponentBase {
         .onChange(this, this.search)
         .debounce(500)
         .build(),
+      BuildCheckboxHandler()
+        .selector("[name='expand-groups']")
+        .onChange(this, this.expandGroupsChange)
+        .build(),
+
       BuildInputHandler()
         .selector("[name='sort']")
         .onChange(this, this.sort)
@@ -73,6 +82,11 @@ export class ViewOptionsComponent extends ComponentBase {
     this.dom.setAttribute(this.zoomSlider, "max", MAX_ZOOM);
   }
 
+  expandGroupsChange(checked) {
+    log.debug("expand groups", checked);
+    ExpandGroupsEvent.emit(checked);
+    Media.showSecondaryGroupFiles(checked);
+  }
   selectionChange(selected) {
     log.debug("selection change ", selected.getLength());
     dom.toggleClass("#content-view", "multi-select", selected.getLength() > 1);
