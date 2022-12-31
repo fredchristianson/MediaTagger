@@ -220,6 +220,8 @@ export class GridLayout extends Layout {
       }
       var item = visibleItems.getItemAt(itemIndex);
       dom.toggleClass(html, "selected", selection.contains(item));
+      dom.toggleClass(html, "group", item.isInGroup());
+      dom.toggleClass(html, "primary", item.isPrimary());
 
       itemIndex += 1;
       html = this.getItemHtml(itemIndex);

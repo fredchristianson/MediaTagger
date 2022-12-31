@@ -4,7 +4,7 @@ import { HandlerResponse, MousePosition, HandlerMethod } from "./common.js";
 import dom from "../dom.js";
 import util from "../../util.js";
 import { CancelToken, Task } from "../task.js";
-const log = Logger.create("HoverHandler", LOG_LEVEL.debug);
+const log = Logger.create("HoverHandler", LOG_LEVEL.WARN);
 
 export function BuildHoverHandler() {
   return new HoverHandlerBuilder();

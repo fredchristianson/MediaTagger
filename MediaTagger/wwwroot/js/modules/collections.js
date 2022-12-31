@@ -146,8 +146,20 @@ export class ObservableArray extends ObservableCollection {
       var removed = this.items.splice(idx, 1);
       this.itemsRemovedEvent.emitNow(removed);
       this.updatedEvent.emit(this.removed);
+      return item;
     }
     return null;
+  }
+
+  removeMatch(matchFunc) {
+    for (var idx = 0; idx < this.getLength(); ) {
+      var item = this.getItemAt(idx);
+      if (matchFunc(item)) {
+        this.remove(item);
+      } else {
+        idx++;
+      }
+    }
   }
 
   contains(item) {
@@ -161,6 +173,10 @@ export class ObservableArray extends ObservableCollection {
     return this.items.find((item) => {
       return id == item.getId();
     });
+  }
+
+  search(matchFunction) {
+    return this.items.filter(matchFunction);
   }
   // these are intended for other ObservableCollection instances, not public
   __getItems() {

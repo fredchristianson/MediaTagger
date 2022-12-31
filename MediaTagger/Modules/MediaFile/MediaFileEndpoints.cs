@@ -22,7 +22,7 @@ namespace MediaTagger.Modules.MediaFile
                 .Select(f => new
                 {
                     id = f.Id,
-                    fileSetPrimaryId = f.fileSetPrimaryId,
+                    fileSetPrimaryId = f.FileSetPrimaryId,
                     createdOn = f.CreatedOn,
                     modifiedOn = f.ModifiedOn,
                     name = f.Name,
@@ -36,6 +36,8 @@ namespace MediaTagger.Modules.MediaFile
                 var total = await db.MediaFiles.CountAsync();
                 return new
                 {
+                    success = true,
+                    message = "success",
                     start = start,
                     requestCount = count,
                     totalCount = total,
@@ -43,6 +45,40 @@ namespace MediaTagger.Modules.MediaFile
                     data = files
                 };
             });
+
+            routes.MapPost(V1_URL_PREFIX + "/MediaFile", async (MediaTaggerContext db,
+            AppSettingsService settingsService,
+            MediaFileModel data) =>
+                       {
+                           var file = await db.MediaFiles
+                          .Where(f => f.Id == data.Id).FirstAsync();
+                           dynamic response = new { success = false };
+                           if (file == null)
+                           {
+                               response = new
+                               {
+                                   success = false,
+                                   message = "not found",
+                                   id = data.Id
+                               };
+                           }
+                           else
+                           {
+                               file.FileSetPrimaryId = data.FileSetPrimaryId;
+                               file.DateTaken = data.DateTaken;
+                               file.Filename = data.Filename;
+                               file.Hidden = data.Hidden;
+                               await db.SaveChangesAsync();
+                               response = new
+                               {
+                                   success = true,
+                                   message = "updated",
+                                   id = file.Id
+                               };
+                           }
+
+                           return response;
+                       });
 
 
 

@@ -21,9 +21,11 @@ import {
   getPropertyValues,
   getTags,
   getAlbums,
+  saveMediaFiles,
 } from "./mt-api.js";
 import { dbGetMediaFiles, dbSaveMediaFiles } from "../data/database.js";
 import { Listeners } from "../../drjs/browser/event.js";
+import FileGroup from "../data/file-group.js";
 
 const log = Logger.create("Media", LOG_LEVEL.DEBUG);
 
@@ -32,9 +34,17 @@ class Media {
     this.files = new ObservableArray();
     this.tags = new ObservableArray();
     this.albums = new ObservableArray();
+    this.groups = new ObservableArray();
     this.properties = new ObservableArray();
     this.propertyValues = new ObservableArray();
-    this.searchFilterItems = new FilteredObservableView(this.files, null);
+    this.groupFilterItems = new FilteredObservableView(
+      this.files,
+      this.primaryFileFilter
+    );
+    this.searchFilterItems = new FilteredObservableView(
+      this.groupFilterItems,
+      null
+    );
     this.dateFilterItems = new FilteredObservableView(
       this.searchFilterItems,
       null
@@ -52,11 +62,36 @@ class Media {
     );
   }
 
+  primaryFileFilter(item) {
+    return item.isPrimary();
+  }
+
   async loadItems() {
     runSerial(
       this.loadItemsFromDatabase.bind(this),
-      this.loadItemsFromAPI.bind(this)
+      this.createGroups.bind(this),
+      this.loadItemsFromAPI.bind(this),
+      this.createGroups.bind(this)
     );
+  }
+
+  createGroups() {
+    this.groups.clear();
+    var primary = this.files.search((f) => {
+      return f.isInGroup() && f.isPrimary();
+    });
+    var groupMap = {};
+    for (var f of primary) {
+      var group = new FileGroup(f);
+      this.groups.insert(group);
+      groupMap[f.getId()] = group;
+    }
+    for (var s of this.files) {
+      if (s.isGroupSecondary()) {
+        var g = groupMap[s.fileSetPrimaryId];
+        g.addFile(s);
+      }
+    }
   }
 
   async updateDatabaseItems() {
@@ -64,6 +99,7 @@ class Media {
       return f.isChanged();
     });
     await dbSaveMediaFiles(updates);
+    await saveMediaFiles(updates);
     for (var update of updates) {
       update.unsetChanged();
     }
@@ -196,6 +232,34 @@ class Media {
       this.selectedItems.insertOnce(visible.getItemAt(i));
     }
     this.lastSelect = item;
+  }
+
+  ungroup(file, saveChange = true) {
+    if (file.getGroup()) {
+      file.getGroup().removeFile(file);
+    }
+    if (saveChange) {
+      this.updateDatabaseItems();
+      this.groupFilterItems.filter();
+    }
+  }
+
+  groupSelectedItems(primary) {
+    for (var old of this.selectedItems) {
+      this.ungroup(old, false);
+    }
+    var group = new FileGroup();
+    group.setPrimaryFile(primary);
+    for (var item of this.selectedItems) {
+      group.addFile(item);
+    }
+    this.groups.insert(group);
+    this.groups.removeMatch((group) => {
+      return group.getFiles().getLength() == 0;
+    });
+    this.updateDatabaseItems();
+    // todo: send to server with API
+    this.groupFilterItems.filter();
   }
 }
 

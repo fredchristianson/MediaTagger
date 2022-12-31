@@ -50,9 +50,6 @@ export async function dbSaveMediaFiles(files) {
   });
   try {
     await table.writeItems(data);
-    for (var file of files) {
-      file.unsetChanged();
-    }
   } catch (ex) {
     log.error(ex, "failed to write MediaFile to indexedDB", data);
   }

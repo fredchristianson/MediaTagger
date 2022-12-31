@@ -102,9 +102,9 @@ export class EventEmitter {
   }
 
   emit(data) {
-    if (!this.hasListener) {
-      return;
-    }
+    // if (!this.hasListener) {
+    //   return;
+    // }
     const detail = {
       object: this.object,
       data: data,
@@ -122,9 +122,9 @@ export class EventEmitter {
   }
 
   emitNow(data) {
-    if (!this.hasListener) {
-      return;
-    }
+    // if (!this.hasListener) {
+    //   return;
+    // }
     const detail = {
       object: this.object,
       data: data,

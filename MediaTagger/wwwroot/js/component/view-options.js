@@ -16,14 +16,14 @@ import {
 } from "../../drjs/browser/event.js";
 
 export var ZoomChangeEvent = new ObjectEventType("zoomChange");
-
+export var ZoomEvent = new EventEmitter(ZoomChangeEvent, this);
 var MAX_ZOOM = 800;
 
 export class ViewOptionsComponent extends ComponentBase {
   constructor(selector, htmlName = "view-options") {
     super(selector, htmlName);
     this.listeners = [];
-    this.zoomEmitter = new EventEmitter(ZoomChangeEvent, this);
+    this.zoomEmitter = ZoomEvent;
   }
 
   onHtmlInserted(parent) {
@@ -62,7 +62,10 @@ export class ViewOptionsComponent extends ComponentBase {
         .listenTo("#content-view")
         .withAlt(true)
         .onChange(this, this.zoomWheel)
-        .build()
+        .build(),
+      Media.getSelectedItems()
+        .getUpdatedEvent()
+        .createListener(this, this.selectionChange)
     );
     this.zoomInput = this.dom.first('[name="zoom"]');
     this.zoomSlider = this.dom.first('[name="zoom-slider"]');
@@ -70,6 +73,10 @@ export class ViewOptionsComponent extends ComponentBase {
     this.dom.setAttribute(this.zoomSlider, "max", MAX_ZOOM);
   }
 
+  selectionChange(selected) {
+    log.debug("selection change ", selected.getLength());
+    dom.toggleClass("#content-view", "multi-select", selected.getLength() > 1);
+  }
   search(text) {
     log.debug("search change ", text);
     Media.setSearchText(text);

@@ -2,7 +2,7 @@
 import { LOG_LEVEL, Logger } from "../../drjs/logger.js";
 import { HttpRequest } from "../../drjs/browser/http-request.js";
 import util from "../../drjs/util.js";
-import SignalR from "../../drjs/browser/signalr.js";
+import MediaFile from "../data/media-file.js";
 
 const log = Logger.create("MTApi", LOG_LEVEL.DEBUG);
 const httpAPI = new HttpRequest("/api/v1");
@@ -39,6 +39,23 @@ export async function getAlbums(startPos, count) {
   return await httpAPI.get("Albums", { start: startPos, count: count }, "json");
 }
 
+export async function saveMediaFiles(updates) {
+  for (var update of updates) {
+    var data = MediaFile.toJson(update);
+    try {
+      delete data.fileModifiedOn;
+      delete data.fileCreatedOn;
+      delete data.fileSize;
+      delete data.filename;
+      delete data.directory;
+      var response = await httpAPI.post("MediaFile", data, "json");
+      log.info("updated ", update.getId());
+    } catch (ex) {
+      log.error(ex, "failed to save file ", update.getId());
+    }
+  }
+}
+
 export class MediaTaggerApi {
   constructor() {
     this.http = new HttpRequest("/api/v1");
@@ -55,7 +72,7 @@ export class MediaTaggerApi {
 */
   }
 
-  async GetAllMediaItems() {
+  async GetAllMediaItemsold() {
     var items = [];
     var response = await this.http.get("MediaItems", null, "json");
     return response;
@@ -95,6 +112,14 @@ export class MediaTaggerApi {
   async PostAppSettings(settings) {
     var response = await this.http.post("settings/app", settings, "json");
     return response;
+  }
+
+  async saveMediaFiles(updates) {
+    for (var update of updates) {
+      var data = MediaFile.toJson(update);
+      var response = await this.http.post("MediaFiles", data, "json");
+      log.info("updated ", update.getId());
+    }
   }
 }
 

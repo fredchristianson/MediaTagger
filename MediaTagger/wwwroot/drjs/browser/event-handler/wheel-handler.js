@@ -28,10 +28,11 @@ export class WheelHandler extends EventHandler {
   constructor(...args) {
     super(...args);
     this.setTypeName("wheel");
-    this.setDefaultResponse(HandlerResponse.StopDefault);
+    // passive handlers can't stop default
+    this.setDefaultResponse(HandlerResponse.Continue);
     this.setListenElement(dom.getBody());
 
-    this.onChange = null;
+    this.onChange = HandlerMethod.None;
   }
 
   isPassive() {
@@ -46,16 +47,9 @@ export class WheelHandler extends EventHandler {
     try {
       log.debug("wheel event ", event.wheelDelta);
       if (method) {
-        method(event.currentTarget, this.data, event, this);
+        method.call(event.currentTarget, this.data, event, this);
       }
-      if (this.onChange) {
-        var changeMethod = this.onChange.getMethod({
-          defaultName: "onChange",
-        });
-        if (changeMethod) {
-          changeMethod(event.wheelDelta, event.target, event, this);
-        }
-      }
+      this.onChange.call(event.wheelDelta, event.target, event, this);
     } catch (ex) {
       log.error(ex, "event handler for ", this.typeName, " failed");
     }

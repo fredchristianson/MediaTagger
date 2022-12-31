@@ -60,7 +60,7 @@ body {
 #media-view .media-items .media-item {
   left: 0;
   top: 0;
-  overflow: hidden;
+  overflow: visible;
   border: 1px solid green;
   display: block;
   position: absolute;
@@ -100,6 +100,18 @@ body {
   top: 48px;
   background-color: red;
 }
+#media-view .media-items .media-item.group.primary::after {
+  content: "";
+  position: absolute;
+  display: block;
+  right: 0;
+  bottom: 0;
+  width: 32px;
+  height: 32px;
+  background-image: url(../image/group.png?v=1);
+  z-index: 100;
+  background-size: cover;
+}
 #media-view .media-items .media-item.selected {
   outline: 6px solid #ffa;
 }
@@ -131,6 +143,25 @@ body {
   background-color: #aaaaff;
   padding: 1rem;
   z-index: 100;
+}
+.popup button {
+  padding: 4px;
+}
+.popup button.ungroup {
+  display: none;
+}
+.popup button.group {
+  display: none;
+}
+.popup.grouped button.ungroup {
+  display: inline-block;
+}
+.popup.grouped button.group {
+  display: none !important;
+}
+
+.multi-select .popup button.group {
+  display: unset;
 }
 
 .date-select {

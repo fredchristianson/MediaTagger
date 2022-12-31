@@ -10,6 +10,7 @@ import {
   Listeners,
   BuildClickHandler,
   BuildHoverHandler,
+  BuildScrollHandler,
 } from "../../drjs/browser/event.js";
 import MediaDetailsComponent from "./media-details.js";
 import DateFilterComponent from "./date-filter.js";
@@ -18,26 +19,45 @@ import Media from "../modules/media.js";
 import { GridLayout } from "../modules/layout.js";
 import UTIL from "../../drjs/util.js";
 
+import { ZoomEvent } from "../component/view-options.js";
+
 import { ImageLoader } from "../modules/image-loader.js";
 
-const log = Logger.create("MediaComponent", LOG_LEVEL.DEBUG);
+const log = Logger.create("FileView", LOG_LEVEL.DEBUG);
 
 export class FileViewComponent extends ComponentBase {
   constructor(selector, htmlName = "media") {
     super(selector, htmlName);
     this.listeners = new Listeners();
+    this.activeItem = null;
   }
 
   async onFileHoverStart(data, target) {
-    log.debug("file hover start ", data.getName());
-    var rect = target.getBoundingClientRect;
+    log.never("file hover start ", data.getName());
+    this.activeItem = data;
+
     var offset = this.dom.getPageOffset(target);
     this.popup.style.top = `${offset.bottom}px`;
     this.popup.style.left = `${offset.left}px`;
     this.dom.removeClass(this.popup, "hidden");
+    this.dom.toggleClass(this.popup, "grouped", data.isInGroup());
   }
   async onFileHoverEnd(data, target) {
-    log.debug("file hover end ", data.getName());
+    this.activeItem = null;
+    log.never("file hover end ", data.getName());
+    this.dom.addClass(this.popup, "hidden");
+  }
+
+  async fillPopup() {
+    this.dom.removeClass(this.popup, "hidden");
+    this.dom.toggleClass(
+      this.popup,
+      "grouped",
+      this.activeItem && this.activeItem.isInGroup()
+    );
+  }
+  async hidePopup() {
+    this.activeItem = null;
     this.dom.addClass(this.popup, "hidden");
   }
 
@@ -64,7 +84,7 @@ export class FileViewComponent extends ComponentBase {
     });
     this.listeners.add(
       BuildClickHandler()
-        .listenTo(document.body) //this.dom, ".media-item")
+        .listenTo(this.dom, ".media-item")
         .onClick(this, this.clickItem)
         .onLeftClick(this, this.leftClick)
         .onRightClick(this, this.rightClick)
@@ -77,6 +97,16 @@ export class FileViewComponent extends ComponentBase {
           };
         })
         .build(),
+      BuildClickHandler()
+        .listenTo(".popup")
+        .selector("button.group")
+        .onClick(this, this.groupSelectedItems)
+        .build(),
+      BuildClickHandler()
+        .listenTo(".popup")
+        .selector("button.ungroup")
+        .onClick(this, this.ungroupItem)
+        .build(),
       BuildHoverHandler()
         .listenTo(".media-items")
         .selector([".media-item"])
@@ -88,8 +118,25 @@ export class FileViewComponent extends ComponentBase {
             this.dom.getData(element, "file-id")
           );
         })
+        .build(),
+      ZoomEvent.createListener(this, this.hidePopup),
+      BuildScrollHandler()
+        .listenTo(".items")
+        .onScroll(this, this.hidePopup)
         .build()
     );
+  }
+
+  async groupSelectedItems() {
+    log.debug("group selected items");
+    Media.groupSelectedItems(this.activeItem);
+    this.hidePopup();
+  }
+
+  async ungroupItem() {
+    log.debug("ungroup item");
+    Media.ungroup(this.activeItem);
+    this.hidePopup();
   }
 
   async onDetach() {

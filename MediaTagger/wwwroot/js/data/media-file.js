@@ -14,8 +14,41 @@ export class MediaFile extends MediaEntity {
     this.fileSetPrimaryId = data.fileSetPrimaryId;
     this.filename = data.filename;
     this.name = data.name;
+    this._group = null;
   }
 
+  getGroup() {
+    return this._group;
+  }
+  setGroup(group) {
+    if (this._group == group) {
+      return;
+    }
+    if (group == null) {
+      this._group = null;
+      this.fileSetPrimaryId = null;
+      this.setChanged();
+      return;
+    }
+    this._changed = group.getPrimaryFile().getId() != this.fileSetPrimaryId;
+    this._group = group;
+    if (group == null) {
+      this.fileSetPrimaryId = null;
+    } else if (group.getPrimaryFile == this) {
+      this.fileSetPrimaryId = this.getId();
+    } else {
+      this.fileSetPrimaryId = group.getPrimaryFile().getId();
+    }
+  }
+  isInGroup() {
+    return this.fileSetPrimaryId != null;
+  }
+  isPrimary() {
+    return this.id == this.fileSetPrimaryId || this.fileSetPrimaryId == null;
+  }
+  isGroupSecondary() {
+    return this.fileSetPrimaryId != null && this.fileSetPrimaryId != this.id;
+  }
   // update(data) {
   //   super.update(data);
   //   this.dateTaken = data.dateTaken;

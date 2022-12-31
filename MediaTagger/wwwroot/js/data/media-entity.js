@@ -7,7 +7,7 @@ export class MediaEntity {
     this.createdOn = toDate(data.createdOn);
     this.modifiedOn = toDate(data.modifiedOn);
     this.hidden = !!data.hidden;
-    this._changed = typeof data._changed == "boolean" ? data._changed : true;
+    this._changed = typeof data._changed == "boolean" ? data._changed : false;
   }
 
   isChanged() {
