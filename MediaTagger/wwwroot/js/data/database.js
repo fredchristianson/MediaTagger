@@ -2,15 +2,21 @@ import { LOG_LEVEL, Logger } from "../../drjs/logger.js";
 import { ObservableCollection } from "../modules/collections.js";
 import { MediaFile } from "./media-file.js";
 import { Database } from "../../drjs/browser/database.js";
+import { Settings } from "../modules/settings.js";
 const log = Logger.create("MediaTaggerDatabase", LOG_LEVEL.DEBUG);
 
 const MEDIAFILE_TABLE = "media-files";
 const ALBUM_TABLE = "albums";
+const SETTINGS_TABLE = "settings";
 
 const MEDIATAGGER_SCHEMA = {
   name: "media-tagger",
-  version: 1,
-  tables: [{ name: MEDIAFILE_TABLE, key: "id" }, ALBUM_TABLE],
+  version: 2,
+  tables: [
+    { name: MEDIAFILE_TABLE, key: "id" },
+    ALBUM_TABLE,
+    { name: SETTINGS_TABLE, key: "scope" },
+  ],
 };
 const mediaTaggerDB = new Database(MEDIATAGGER_SCHEMA);
 
@@ -71,4 +77,20 @@ export async function dbGetMediaFiles(startPos, count) {
     resultCount: batch.length,
     data: batch,
   };
+}
+
+export async function dbLoadSettings(scope) {
+  const table = await mediaTaggerDB.getTable(SETTINGS_TABLE);
+  const json = await table.read(scope);
+  return json;
+}
+
+export async function dbSaveSettings(settings) {
+  const table = await mediaTaggerDB.getTable(SETTINGS_TABLE);
+  const data = settings.toJson();
+  try {
+    await table.write(data);
+  } catch (ex) {
+    log.error(ex, "failed to write settings to indexedDB", data);
+  }
 }

@@ -15,13 +15,18 @@ import {
   EventEmitter,
   ObjectEventType,
 } from "../../drjs/browser/event.js";
-import { MediaTaggerApi } from "../modules/mt-api.js";
+import { Settings } from "../modules/settings.js";
 
 export var ZoomChangeEventType = new ObjectEventType("zoomChange");
 export var ZoomEvent = new EventEmitter(ZoomChangeEventType, this);
 export var ExpandGroupsEventType = new ObjectEventType("ExpandGroups");
 export var ExpandGroupsEvent = new EventEmitter(ExpandGroupsEventType, this);
 var MAX_ZOOM = 800;
+const DEFAULT_SETTINGS = {
+  zoom: 100,
+  showSecondary: false,
+  sort: "Name",
+};
 
 export class ViewOptionsComponent extends ComponentBase {
   constructor(selector, htmlName = "view-options") {
@@ -30,7 +35,8 @@ export class ViewOptionsComponent extends ComponentBase {
     this.zoomEmitter = ZoomEvent;
   }
 
-  onHtmlInserted(parent) {
+  async onHtmlInserted(parent) {
+    this.settings = await Settings.load("view", DEFAULT_SETTINGS);
     this.listeners = new Listeners(
       // new ClickHandler(".show-settings",this,this.showSettings),
       BuildClickHandler()
@@ -80,12 +86,22 @@ export class ViewOptionsComponent extends ComponentBase {
     this.zoomSlider = this.dom.first('[name="zoom-slider"]');
     this.dom.setAttribute(this.zoomInput, "max", MAX_ZOOM);
     this.dom.setAttribute(this.zoomSlider, "max", MAX_ZOOM);
+    await this.setZoom(this.settings.get("zoom"));
+
+    await this.setSort(this.settings.get("sort"));
+    await this.setExpandGroups(this.settings.get("showSecondary"));
   }
 
-  expandGroupsChange(checked) {
+  async expandGroupsChange(checked) {
     log.debug("expand groups", checked);
-    ExpandGroupsEvent.emit(checked);
-    Media.showSecondaryGroupFiles(checked);
+    await this.setExpandGroups(checked);
+  }
+
+  async setExpandGroups(expand) {
+    this.dom.check("[name='expand-groups']", expand);
+    ExpandGroupsEvent.emit(expand);
+    Media.showSecondaryGroupFiles(expand);
+    await this.settings.set("showSecondary", expand);
   }
   selectionChange(selected) {
     log.debug("selection change ", selected.getLength());
@@ -96,15 +112,21 @@ export class ViewOptionsComponent extends ComponentBase {
     Media.setSearchText(text);
   }
 
-  sort(sortType) {
+  async sort(sortType) {
     log.debug("sort change ", sortType);
+    await this.setSort(sortType);
+  }
+
+  async setSort(sortType) {
+    this.dom.setValue("[name='sort']", sortType);
     Media.setSortType(sortType.toLowerCase());
+    await this.settings.set("sort", sortType);
   }
   onDetach() {
     this.listeners.remove();
   }
 
-  zoomWheel(delta) {
+  async zoomWheel(delta) {
     log.debug("zoom wheel change ", delta);
     var value = dom.getValue('[name="zoom-slider"]');
     if (delta > 0) {
@@ -122,18 +144,24 @@ export class ViewOptionsComponent extends ComponentBase {
     value = Math.floor(value);
     dom.setValue('[name="zoom-slider"]', value);
     dom.setValue('[name="zoom"]', value);
+    await this.setZoom(value);
+  }
+
+  async setZoom(value) {
+    this.dom.setValue(this.zoomSlider, value);
+    this.dom.setValue(this.zoomInput, value);
+    await this.settings.set("zoom", value);
+
     this.zoomEmitter.emit(value);
   }
 
-  zoom(value) {
+  async zoom(value) {
     log.debug("zoom input change ", value);
-    dom.setValue('[name="zoom-slider"]', value);
-    this.zoomEmitter.emit(value);
+    await this.setZoom(value);
   }
-  zoomSlider(value) {
+  async zoomSlider(value) {
     log.debug("zoom slider change ", value);
-    dom.setValue('[name="zoom"]', value);
-    this.zoomEmitter.emit(value);
+    await this.setZoom(value);
   }
   showSettings(target, event) {
     main.instance.showSettings();

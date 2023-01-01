@@ -168,9 +168,6 @@ body {
 .popup.grouped button.ungroup {
   display: inline-block;
 }
-.popup.grouped button.group {
-  display: none !important;
-}
 
 .multi-select .popup button.group {
   display: unset;

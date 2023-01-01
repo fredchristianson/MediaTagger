@@ -9,12 +9,12 @@ function DBPromise(req) {
       resolve(true);
     };
     req.onsuccess = () => {
-      if (req.result.value) {
+      if (req.result && req.result.value) {
         resolve(req.result.value);
       } else if (req.result) {
         resolve(req.result);
       } else {
-        resolve(req);
+        resolve(null);
       }
     };
     req.onerror = () => {
@@ -53,8 +53,7 @@ class Table {
   async read(key) {
     const transaction = this.store.transaction([this.name], "readwrite");
     const store = transaction.objectStore(this.name);
-    store.get(key);
-    return DBPromise(transaction);
+    return DBPromise(store.get(key));
   }
 }
 
@@ -76,11 +75,15 @@ export class Database {
           log.info("database upgrade needed");
           for (var table of schema.tables) {
             if (typeof table == "string") {
-              req.result.createObjectStore(table);
+              if (!this.result.objectStoreNames.contains(table)) {
+                req.result.createObjectStore(table);
+              }
             } else {
               const name = table.name;
               const keyPath = table.key;
-              req.result.createObjectStore(name, { keyPath: keyPath });
+              if (!this.result.objectStoreNames.contains(name)) {
+                req.result.createObjectStore(name, { keyPath: keyPath });
+              }
             }
           }
           event.target.transaction.oncomplete = function () {
