@@ -254,12 +254,18 @@ class Media {
   }
 
   groupSelectedItems(primary) {
+    var groupFiles = new ObservableArray([...this.selectedItems]);
     for (var old of this.selectedItems) {
+      if (old.isInGroup()) {
+        for (var newSel of old.getGroup().getFiles()) {
+          groupFiles.insertOnce(newSel);
+        }
+      }
       this.ungroup(old, false);
     }
     var group = new FileGroup();
     group.setPrimaryFile(primary);
-    for (var item of this.selectedItems) {
+    for (var item of groupFiles) {
       group.addFile(item);
     }
     this.groups.insert(group);

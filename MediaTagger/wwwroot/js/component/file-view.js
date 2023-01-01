@@ -99,6 +99,11 @@ export class FileViewComponent extends ComponentBase {
         .build(),
       BuildClickHandler()
         .listenTo(".popup")
+        .selector("a.view")
+        .onClick(this, this.viewFile)
+        .build(),
+      BuildClickHandler()
+        .listenTo(".popup")
         .selector("button.group")
         .onClick(this, this.groupSelectedItems)
         .build(),
@@ -125,6 +130,10 @@ export class FileViewComponent extends ComponentBase {
         .onScroll(this, this.hidePopup)
         .build()
     );
+  }
+
+  async viewFile() {
+    window.open(`/image/${this.activeItem.getId()}`, "mt-view");
   }
 
   async groupSelectedItems() {

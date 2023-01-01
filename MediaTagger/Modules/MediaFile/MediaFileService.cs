@@ -131,7 +131,20 @@ namespace MediaTagger.Modules.MediaFile
 
         public string GetFileMimeType(MediaFileModel file)
         {
+            var ext = getExtension(file.Filename);
+            if (ext == ".jpeg" || ext == ".jpg") { return "image/jpeg"; }
+            if (ext == ".png") { return "image/png"; }
+            if (ext == ".gif") { return "image/gif"; }
+            if (ext == ".rw2") { return "image/rw2"; }
+            if (ext == ".mp4") { return "video/mp4"; }
             return "image/jpeg";
+        }
+
+        private string getExtension(string filename)
+        {
+            if (filename == null || filename.Length == 0) { return ""; };
+            var info = new FileInfo(filename);
+            return info.Extension.ToLower();
         }
 
         public bool IsWebImageType(MediaFileModel file)

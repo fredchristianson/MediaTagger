@@ -66,7 +66,7 @@ namespace MediaTagger.Modules.MediaFile
                            {
                                file.FileSetPrimaryId = data.FileSetPrimaryId;
                                file.DateTaken = data.DateTaken;
-                               file.Filename = data.Filename;
+                               file.Name = data.Name;
                                file.Hidden = data.Hidden;
                                await db.SaveChangesAsync();
                                response = new
