@@ -2,9 +2,9 @@
     grid-area: content;
     display: grid;
     grid-template-areas:
-        "date-filter date-filter date-filter"
-        "media-filter media-items media-details";
-    grid-template-columns: 200px 1fr 200px;
+        "date-filter date-filter date-filter date-filter date-filter"
+        "media-filter grid-sizer-filter   media-items grid-sizer-details  media-details";
+    grid-template-columns: auto auto 1fr auto auto;
     grid-template-rows: auto 1fr;
     height: 100%;
     max-height: 100%;
@@ -21,7 +21,7 @@
             position: relative;
         }
 
-        .layout-view {
+      .layout-view {
             position: absolute;
             left: 0;
             top: 0;
@@ -127,6 +127,12 @@
 
     }
 
+    .filter-sizer {
+        grid-area: grid-sizer-filter;
+    }
+        .details-sizer {
+            grid-area: grid-sizer-details;
+        }
     .detailed {
         .media-item {
             .details {
@@ -149,12 +155,13 @@
     }
 
     .media-filter {
-        grid-area: media-details;
+        grid-area: media-filter;
+        width: 250px;
     }
 
     .media-details {
-        grid-area: media-filter;
-    }
+        grid-area: media-details;
+        width: 250px;    }
 
 
 

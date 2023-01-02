@@ -17,6 +17,8 @@ import DateFilterComponent from "./date-filter.js";
 import MediaFilterComponent from "./media-filter.js";
 import Media from "../modules/media.js";
 import { GridLayout } from "../modules/layout.js";
+import { RightGridSizer, LeftGridSizer } from "../modules/drag-drop.js";
+
 import UTIL from "../../drjs/util.js";
 
 import { ZoomEvent } from "../component/view-options.js";
@@ -74,7 +76,9 @@ export class FileViewComponent extends ComponentBase {
     this.dateFilter = new DateFilterComponent("#date-filter");
     this.mediaFilter = new MediaFilterComponent("#media-filter");
     this.popup = this.dom.first(".file.popup");
-
+    this.mediaFilter = new MediaFilterComponent("#media-filter");
+    this.filterSizer = new RightGridSizer(".grid-sizer.right", ".media-filter");
+    this.detailsSizer = new LeftGridSizer(".grid-sizer.left", ".media-details");
     var allItems = await Media.getVisibleItems();
     var template = new HtmlTemplate(this.dom.first("#media-item-template"));
 

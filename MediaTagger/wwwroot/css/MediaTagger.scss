@@ -172,3 +172,14 @@ button:hover {
   }
 }
 
+.grid-sizer {
+
+  &.left {
+    border-left: 4px solid red;
+    cursor: col-resize;
+  }
+
+  &.right {
+    border-right: 4px solid green;
+    cursor: col-resize;  }
+}

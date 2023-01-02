@@ -11,19 +11,23 @@ import DateFilterComponent from "./date-filter.js";
 import MediaFilterComponent from "./media-filter.js";
 import Media from "../modules/media.js";
 import { GridLayout } from "../modules/layout.js";
-
+import { RightGridSizer, LeftGridSizer } from "../modules/drag-drop.js";
 const log = Logger.create("MediaComponent", LOG_LEVEL.DEBUG);
 
 export class MediaComponent extends ComponentBase {
   constructor(selector, htmlName = "media") {
     super(selector, htmlName);
     this.listeners = new Listeners();
+    this.filterSizer = null;
+    this.detailsSizer = null;
   }
 
   async onHtmlInserted(elements) {
     this.mediaDetails = new MediaDetailsComponent("#media-details");
     this.dateFilter = new DateFilterComponent("#date-filter");
     this.mediaFilter = new MediaFilterComponent("#media-filter");
+    this.filterSizer = new RightGridSizer();
+    this.detailsSizer = new LeftGridSizer();
 
     var allItems = await Media.getVisibleItems();
     var template = new HtmlTemplate(this.dom.first("#media-item-template"));
@@ -63,6 +67,12 @@ export class MediaComponent extends ComponentBase {
   async onDetach() {
     this.layout.detach();
     this.listeners.removeAll();
+    if (this.filterSizer) {
+      this.filterSizer.detach();
+    }
+    if (this.detailsSizer) {
+      this.detailsSizer.detach();
+    }
   }
 
   clickItem(element, data, event, handler) {
