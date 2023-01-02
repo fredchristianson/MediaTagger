@@ -175,11 +175,22 @@ button:hover {
 .grid-sizer {
 
   &.left {
-    border-left: 4px solid red;
+    border-left: 1px solid #777;
+    border-right: 1px solid #777;
+    width: 4px;
+    background-color: #ddd;
     cursor: col-resize;
   }
 
   &.right {
-    border-right: 4px solid green;
-    cursor: col-resize;  }
+    border-left: 1px solid #777;
+      border-right: 1px solid #777;
+      width: 4px;
+      background-color: #ddd;
+    cursor: col-resize;
+  }
+}
+
+.grid-sizer.dragging {
+  opacity: 0;
 }

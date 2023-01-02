@@ -4,7 +4,7 @@ import { HandlerResponse, MousePosition, HandlerMethod } from "./common.js";
 import dom from "../dom.js";
 import util from "../../util.js";
 import { CancelToken, Task } from "../task.js";
-const log = Logger.create("DragHandler", LOG_LEVEL.DEBUG);
+const log = Logger.create("DragHandler", LOG_LEVEL.INFO);
 
 export class DragHandlerBuilder extends EventHandlerBuilder {
   constructor() {
@@ -48,60 +48,6 @@ export class DropHandlerBuilder extends EventHandlerBuilder {
   }
 }
 
-export class DragDropHandlerBuilder {
-  constructor() {
-    this.dragHandlerBuilder = new DragHandlerBuilder();
-    this.dropHandlerBuilder = new DropHandlerBuilder();
-  }
-
-  dragSelector(...sel) {
-    this.dragHandlerBuilder.listenTo(...sel);
-    return this;
-  }
-  dropSelector(...sel) {
-    this.dropHandlerBuilder.listenTo(...sel);
-    return this;
-  }
-
-  onStart(...args) {
-    this.dragHandlerBuilder.onStart(...args);
-    return this;
-  }
-  onEnd(...args) {
-    this.dragHandlerBuilder.onEnd(...args);
-    return this;
-  }
-  onDrag(...args) {
-    this.dragHandlerBuilder.onDrag(...args);
-    return this;
-  }
-  onEnter(...args) {
-    this.dropHandlerBuilder.onEnter(...args);
-    return this;
-  }
-  onOver(...args) {
-    this.dropHandlerBuilder.onOver(...args);
-    return this;
-  }
-  onLeave(...args) {
-    this.dropHandlerBuilder.onLeave(...args);
-    return this;
-  }
-  onDrop(...args) {
-    this.dropHandlerBuilder.onDrop(...args);
-    return this;
-  }
-  build() {
-    this.dragHandlerBuilder.build();
-    this.dropHandlerBuilder.build();
-  }
-
-  remove() {
-    this.dragHandlerBuilder.remove();
-    this.dropHandlerBuilder.remove();
-  }
-}
-
 export class DragHandler extends EventHandler {
   constructor(...args) {
     super(...args);
@@ -119,10 +65,13 @@ export class DragHandler extends EventHandler {
       log.debug(`Drag: ${target.className} - ${event.type}`);
       if (event.type == "dragstart") {
         log.debug("drag: ", event.type);
+        this.onStart.call(target, event);
       } else if (event.type == "drag") {
         log.debug("drag: ", event.type);
+        this.onDrag.call(target, event);
       } else if (event.type == "dragend") {
         log.debug("drag: ", event.type);
+        this.onEnd.call(target, event);
       }
     } catch (ex) {
       log.error(ex, "event handler for ", this.typeName, " failed");
@@ -149,11 +98,17 @@ export class DropHandler extends EventHandler {
       log.debug(`Drag: ${target.className} - ${event.type}`);
       if (event.type == "dragenter") {
         log.debug("drag: ", event.type);
+        this.onEnter.call(target, event);
+        event.preventDefault();
       } else if (event.type == "dragover") {
+        this.onOver.call(target, event);
         log.debug("drag: ", event.type);
+        event.preventDefault();
       } else if (event.type == "dragleave") {
+        this.onLeave.call(target, event);
         log.debug("drag: ", event.type);
       } else if (event.type == "drop") {
+        this.onDrop.call(target, event);
         log.debug("drag: ", event.type);
       }
     } catch (ex) {
@@ -164,6 +119,7 @@ export class DropHandler extends EventHandler {
 
 export default {
   DragHandlerBuilder,
+  DropHandlerBuilder,
   DragHandler,
   DropHandler,
 };

@@ -7,7 +7,10 @@ import { ScrollHandlerBuilder } from "./event-handler/scroll-handler.js";
 import { CheckboxHandlerBuilder } from "./event-handler/checkbox-handler.js";
 import { MouseHandlerBuilder } from "./event-handler/mouse-handler.js";
 import { HoverHandlerBuilder } from "./event-handler/hover-handler.js";
-import { DragDropHandlerBuilder } from "./event-handler/drag-handler.js";
+import {
+  DragHandlerBuilder,
+  DropHandlerBuilder,
+} from "./event-handler/drag-handler.js";
 export * from "./event-handler/listeners.js";
 export * from "./event-handler/common.js";
 export * from "./event-handler/custom-events.js";
@@ -16,8 +19,11 @@ export function BuildHandler(handlerClass) {
   return new EventHandlerBuilder(handlerClass);
 }
 
-export function BuildDragDropHandler() {
-  return new DragDropHandlerBuilder();
+export function BuildDragHandler() {
+  return new DragHandlerBuilder();
+}
+export function BuildDropHandler() {
+  return new DropHandlerBuilder();
 }
 
 export function BuildMouseOverHandler() {
@@ -62,5 +68,6 @@ export default {
   BuildScrollHandler,
   BuildWheelHandler,
   BuildHoverHandler,
-  BuildDragDropHandler,
+  BuildDragHandler,
+  BuildDropHandler,
 };

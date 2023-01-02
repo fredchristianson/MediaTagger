@@ -25,6 +25,9 @@ export class DOM {
   }
 
   getParent(element) {
+    if (typeof element == "string") {
+      element = this.first(element);
+    }
     return element.parentNode;
   }
 
@@ -410,6 +413,12 @@ export class DOM {
   }
 
   parent(element, selector = null) {
+    if (typeof element == "string") {
+      element = this.first(element);
+    }
+    if (element == null) {
+      return null;
+    }
     var parent = element.parentElement;
     if (selector == null) {
       return element.parentNode;
@@ -596,6 +605,23 @@ export class DOM {
       right: x + width,
       bottom: y + height,
     };
+  }
+
+  getWidth(element) {
+    var first = this.first(element);
+    return first ? first.offsetWidth : 0;
+  }
+
+  setWidth(sel, width) {
+    var val = width;
+    if (width == null) {
+      val = "unset";
+    } else if (typeof width == "number") {
+      val = `${width}px`;
+    }
+    this.toElementArray(sel).forEach((element) => {
+      element.style.width = val;
+    });
   }
 }
 
