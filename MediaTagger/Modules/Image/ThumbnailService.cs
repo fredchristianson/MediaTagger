@@ -58,6 +58,7 @@ namespace MediaTagger.Modules.Image
             var mediaFile = await fileService.GetMediaFileById(id);
             if (mediaFile == null)
             {
+                logger.LogError($"MediaFileModel does not exist for {id}");
                 return null;
             }
 
@@ -72,6 +73,8 @@ namespace MediaTagger.Modules.Image
                 IMagickImage? img = null;
                 if (fileService.IsVideoType(mediaFile))
                 {
+                    logger.LogError($"MediaFileModel  for {id} is a video");
+
                     return null;
                     // using (var videoFrames = new MagickImageCollection(path))
                     // {
@@ -109,8 +112,16 @@ namespace MediaTagger.Modules.Image
                                 var profile = img.GetProfile(":dng:thumbnail");
                                 if (profile != null)
                                 {
-                                    File.WriteAllBytes(thumbFile, profile.GetData());
-                                    return new FileInfo(thumbFile);
+                                    var data = profile.GetData();
+                                    if (data != null)
+                                    {
+                                        File.WriteAllBytes(thumbFile, data);
+                                        return new FileInfo(thumbFile);
+                                    }
+                                    else
+                                    {
+                                        return null;
+                                    }
                                 }
                             }
                             img.Thumbnail(new MagickGeometry(255, 255));

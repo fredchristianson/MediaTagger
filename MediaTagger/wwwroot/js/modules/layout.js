@@ -128,7 +128,11 @@ export class Layout {
   }
 
   onContainerResize(containerWidth, containerHeight, entries) {
-    /* base layout does nothing;*/
+    this.scrollToItem(
+      this.scrollItemIndex,
+      this.scrollItemPercent,
+      this.layoutView
+    );
   }
 
   onZoomChange(sender, newValue) {

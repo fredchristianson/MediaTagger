@@ -1,4 +1,4 @@
-﻿body {
+body {
   padding: 0px;
   margin: 0px;
 }
@@ -13,6 +13,7 @@
   max-height: 100vh;
   display: grid;
   grid-template-areas: "view-options" "content" "status";
+  grid-template-rows: -webkit-max-content 1fr -webkit-max-content;
   grid-template-rows: max-content 1fr max-content;
 }
 #main-content #view-options {
@@ -59,8 +60,8 @@
 #media-view .media-items .media-item {
   left: 0;
   top: 0;
-  overflow: visible;
-  border: 1px solid green;
+  overflow: hidden;
+  border: 2px solid #ffffff;
   display: block;
   position: absolute;
   aspect-ratio: 1/1;
@@ -71,7 +72,8 @@
 #media-view .media-items .media-item .name {
   position: relative;
   z-index: 2;
-  background-color: #00444477;
+  background-color: rgba(0, 68, 68, 0.4666666667);
+  max-width: 100%;
 }
 #media-view .media-items .media-item .details {
   position: relative;
@@ -208,7 +210,7 @@
   height: 100%;
 }
 .date-select svg rect {
-  fill: #002bff;
+  fill: hsl(230deg, 100%, 50%);
   height: 100%;
   width: 20px;
   top: 0;
@@ -309,7 +311,9 @@ button:hover {
   display: grid;
   width: 100%;
   grid-template-areas: "open check name" "children children children";
+  grid-template-columns: -webkit-max-content -webkit-max-content 1fr;
   grid-template-columns: max-content max-content 1fr;
+  grid-template-rows: -webkit-max-content;
   grid-template-rows: max-content;
 }
 .tree .tree-item .open-close {
@@ -372,4 +376,4 @@ button:hover {
 }
 .folders.selected ul {
   padding-left: 2rem;
-}
+}/*# sourceMappingURL=MediaTagger.css.map */

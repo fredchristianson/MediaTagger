@@ -37,8 +37,8 @@
         .media-item {
             left: 0;
             top: 0;
-            overflow: visible;
-            border: 1px solid green;
+            overflow: hidden;
+            border: 2px solid #ffffff;
             display: block;
             position: absolute;
             aspect-ratio: 1/1;
@@ -50,6 +50,7 @@
                 position: relative;
                 z-index: 2;
                 background-color: #00444477;
+                max-width: 100%;
             }
 
             .details {

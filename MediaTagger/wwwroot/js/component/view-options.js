@@ -86,10 +86,10 @@ export class ViewOptionsComponent extends ComponentBase {
     this.zoomSlider = this.dom.first('[name="zoom-slider"]');
     this.dom.setAttribute(this.zoomInput, "max", MAX_ZOOM);
     this.dom.setAttribute(this.zoomSlider, "max", MAX_ZOOM);
-    await this.setZoom(this.settings.get("zoom"));
+    await this.setZoom(this.settings.get("zoom", 100));
 
-    await this.setSort(this.settings.get("sort"));
-    await this.setExpandGroups(this.settings.get("showSecondary"));
+    await this.setSort(this.settings.get("sort", "Date"));
+    await this.setExpandGroups(this.settings.get("showSecondary", false));
   }
 
   async expandGroupsChange(checked) {

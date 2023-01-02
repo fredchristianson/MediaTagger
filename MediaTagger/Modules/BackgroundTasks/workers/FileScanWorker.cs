@@ -198,6 +198,7 @@ namespace MediaTagger.Modules.BackgroundTasks.Workers
             }
             catch (Exception ex)
             {
+                logger.LogError(ex, "exception scanning directory");
             }
 
             return result;

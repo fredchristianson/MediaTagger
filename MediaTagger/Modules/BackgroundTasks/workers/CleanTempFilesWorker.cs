@@ -21,12 +21,12 @@ namespace MediaTagger.Modules.BackgroundTasks.Workers
         public override async Task DoWork()
         {
             logger.LogDebug($"CleanTempFilesWorker: {this.appSettings?.getTempDirectory()} ");
-            var dirInfo = new DirectoryInfo(appSettings.getTempDirectory());
-            CleanDirectory(dirInfo);
+            var dirInfo = new DirectoryInfo(appSettings?.getTempDirectory() ?? System.IO.Path.GetTempPath());
+            await CleanDirectory(dirInfo);
 
         }
 
-        private void CleanDirectory(DirectoryInfo dirInfo)
+        private async Task CleanDirectory(DirectoryInfo dirInfo)
         {
             try
             {
@@ -47,7 +47,7 @@ namespace MediaTagger.Modules.BackgroundTasks.Workers
                 foreach (var dir in subDirectories)
                 {
                     var subdirInfo = new DirectoryInfo(dir);
-                    CleanDirectory(subdirInfo);
+                    await CleanDirectory(subdirInfo);
                     try
                     {
                         subdirInfo.Delete();

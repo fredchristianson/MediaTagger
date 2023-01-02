@@ -36,7 +36,7 @@ namespace MediaTagger.Modules.Image
 
 
 
-            routes.MapGet("/thumbnail/{id}", async (ThumbnailService service, ILogger<ImageService> logger, int id) =>
+            routes.MapGet("/thumbnail/{id}", async (ThumbnailService service, IMediaFileService mediaService, ILogger<ImageService> logger, int id) =>
             {
                 try
                 {
@@ -46,7 +46,17 @@ namespace MediaTagger.Modules.Image
                 catch (Exception ex)
                 {
                     logger.LogError(ex, "unable to get thumbnail image");
-                    return Results.NoContent();
+                    //return Results.NoContent();
+                    var file = await mediaService.GetMediaFileById(id);
+                    if (file != null)
+                    {
+                        var video = mediaService.IsVideoType(file);
+                        if (video)
+                        {
+                            return Results.LocalRedirect("~/image/video.png");
+                        }
+                    }
+                    return Results.LocalRedirect("~/image/error.png");
 
                 }
             });

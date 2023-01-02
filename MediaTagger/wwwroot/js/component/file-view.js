@@ -36,9 +36,16 @@ export class FileViewComponent extends ComponentBase {
     log.never("file hover start ", data.getName());
     this.activeItem = data;
 
+    var bodyHeight = window.innerHeight; // document.body.offsetHeight;
     var offset = this.dom.getPageOffset(target);
-    this.popup.style.top = `${offset.bottom}px`;
     this.popup.style.left = `${offset.left}px`;
+    if (offset.bottom > (bodyHeight * 3) / 4) {
+      this.popup.style.bottom = `${bodyHeight - offset.top}px`;
+      this.popup.style.top = null;
+    } else {
+      this.popup.style.top = `${offset.bottom}px`;
+      this.popup.style.bottom = null;
+    }
     this.dom.removeClass(this.popup, "hidden");
     this.dom.toggleClass(this.popup, "grouped", data.isInGroup());
   }

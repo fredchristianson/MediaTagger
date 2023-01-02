@@ -13,17 +13,19 @@ namespace MediaTagger.Data
 
         public MediaTaggerContext(DbContextOptions<MediaTaggerContext> options) : base(options)
         {
-
+            //MigrateDatabaseToLatestVersion();
+            //Database.SetInitializer(new MigrateDatabaseToLatestVersion<MediaTaggerContext, EF6Console.Migrations.Configuration>());
         }
 
         public MediaTaggerContext() : base()
         {
-
+            // Database.SetInitializer(new MigrateDatabaseToLatestVersion<MediaTaggerContext, EF6Console.Migrations.Configuration>());
         }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             //optionsBuilder.EnableSensitiveDataLogging();
+
             base.OnConfiguring(optionsBuilder);
         }
 

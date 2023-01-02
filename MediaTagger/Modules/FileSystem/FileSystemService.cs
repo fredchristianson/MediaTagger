@@ -12,12 +12,12 @@ namespace MediaTagger.Modules.FileSystem
     };
     public class FileSystemItem
     {
-        public string Name { get; set; }
+        public string Name { get; set; } = null!;
         public string? Path { get; set; }
         public FileSystemType Type { get; set; }
-        public bool HasFolders {get;set;} = true;
-        public bool HasMedia {get;set;} = false;
-        
+        public bool HasFolders { get; set; } = true;
+        public bool HasMedia { get; set; } = false;
+
     }
     public interface IFileSystemService
     {
@@ -53,19 +53,22 @@ namespace MediaTagger.Modules.FileSystem
             return items;
         }
 
-        public List<FileSystemItem> ChildFolders(string parent){
+        public List<FileSystemItem> ChildFolders(string parent)
+        {
             List<FileSystemItem> items = new List<FileSystemItem>();
             var dir = new DirectoryInfo(parent);
-          var dirInfo = dir.GetDirectories();
-          foreach(var child in dirInfo) {
-            var item = new FileSystemItem {
-              Name= child.Name,
-              Path= child.FullName,
-              Type= FileSystemType.FOLDER
-            };
-            items.Add(item);
-          }
-          return items;
+            var dirInfo = dir.GetDirectories();
+            foreach (var child in dirInfo)
+            {
+                var item = new FileSystemItem
+                {
+                    Name = child.Name,
+                    Path = child.FullName,
+                    Type = FileSystemType.FOLDER
+                };
+                items.Add(item);
+            }
+            return items;
         }
 
     }

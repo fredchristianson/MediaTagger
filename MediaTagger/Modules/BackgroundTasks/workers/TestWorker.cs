@@ -18,10 +18,10 @@ namespace MediaTagger.Modules.BackgroundTasks.workers
             this.appSettings = appSettings.get();
         }
 
-        public override async Task DoWork()
+        public override Task DoWork()
         {
             logger.LogDebug($"TestWorker: {this.appSettings?.getTempDirectory()} ");
-
+            return Task.CompletedTask;
         }
 
 

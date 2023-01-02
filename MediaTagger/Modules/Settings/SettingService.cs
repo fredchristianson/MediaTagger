@@ -67,10 +67,19 @@ namespace MediaTagger.Modules.Setting
         public async Task<AppSettings> GetAppSettings()
         {
             string? text = await Get(APP_SETTINGS_SCOPE, APP_SETTINGS_NAME);
-            AppSettings? result = new AppSettings();
+            AppSettings result = new AppSettings();
             if (!String.IsNullOrEmpty(text))
             {
-                result = AppSettings.ParseJson(text);
+                var parsed = AppSettings.ParseJson(text);
+                if (parsed != null)
+                {
+                    result = parsed;
+                }
+                else
+                {
+                    logger.LogError($"unable to parse AppSettings {text}");
+                }
+
             }
             appSettingsService.set(result);
             return result;
@@ -110,7 +119,7 @@ namespace MediaTagger.Modules.Setting
 
         public async Task SetTime(string scope, string name, DateTime time)
         {
-            await Set(scope, name, (time == null) ? String.Empty : time.ToString());
+            await Set(scope, name, time.ToString());
             dbContext.SaveChanges();
         }
     }

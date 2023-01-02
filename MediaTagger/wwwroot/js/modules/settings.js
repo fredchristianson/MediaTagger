@@ -4,7 +4,7 @@ export class Settings {
   static async load(scope, defaultValues) {
     var json = await dbLoadSettings(scope);
     if (json == null) {
-      return new Settings({ scope: scope, values: values ?? {} });
+      return new Settings({ scope: scope, values: defaultValues ?? {} });
     } else {
       return new Settings({ scope: scope, values: json.values });
     }
@@ -15,8 +15,8 @@ export class Settings {
     this.values = json.values;
   }
 
-  get(name) {
-    return this.values[name];
+  get(name, defaultValue = null) {
+    return this.values[name] ?? defaultValue;
   }
 
   set(name, value) {

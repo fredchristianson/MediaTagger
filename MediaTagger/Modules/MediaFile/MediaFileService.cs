@@ -34,7 +34,7 @@ namespace MediaTagger.Modules.MediaFile
             this.pathService = path;
         }
 
-        public async Task<MediaFileModel> GetMediaFileById(long id)
+        public async Task<MediaFileModel?> GetMediaFileById(long id)
         {
             var mediaFile = await db.MediaFiles
             .Include(e => e.Directory)
@@ -125,6 +125,10 @@ namespace MediaTagger.Modules.MediaFile
             if (file.Directory == null)
             {
                 db.Entry(file).Reference(f => f.Directory).Load();
+            }
+            if (file.Directory == null)
+            {
+                throw new ArgumentException("media file does not have a directory");
             }
             return Path.Combine(file.Directory.Value, file.Filename);
         }
