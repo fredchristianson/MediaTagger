@@ -3,6 +3,7 @@ import { LOG_LEVEL, Logger } from "../../drjs/logger.js";
 import { HttpRequest } from "../../drjs/browser/http-request.js";
 import util from "../../drjs/util.js";
 import MediaFile from "../data/media-file.js";
+import Tag from "../data/tag.js";
 
 const log = Logger.create("MTApi", LOG_LEVEL.DEBUG);
 const httpAPI = new HttpRequest("/api/v1");
@@ -17,6 +18,18 @@ export async function getMediaFiles(startPos, count) {
 
 export async function getTags(startPos, count) {
   return await httpAPI.get("Tags", { start: startPos, count: count }, "json");
+}
+
+export async function createTag(parentId, name) {
+  var result = await httpAPI.post(
+    `Tag/${name}?parentId=${parentId}`,
+    null,
+    "json"
+  );
+  if (result != null) {
+    return new Tag(result);
+  }
+  return null;
 }
 
 export async function getProperties(startPos, count) {

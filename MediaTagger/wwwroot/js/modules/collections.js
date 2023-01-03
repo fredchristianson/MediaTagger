@@ -13,6 +13,9 @@ var itemsAddedEvent = new ObjectEventType("__collection-itemsAdded");
 var itemsRemovedEvent = new ObjectEventType("__collection-itemsRemoved");
 var updatedEvent = new ObjectEventType("__collection-updated");
 
+/*
+ * all items in a collection should have a getId() method
+ */
 export class ObservableCollection {
   constructor() {
     this.sortedEvent = new EventEmitter(sortedEvent, this);
@@ -394,5 +397,41 @@ export class FilteredObservableView extends ObservableView {
     this.filteredItems.__filter(this.keepFunction);
     this.filteredEvent.emit(this);
     this.updatedEvent.emit(this);
+  }
+}
+
+/*
+ *  expects items to have getId() and getParentId() methods.
+ * getParentId() returns null for top-level node.
+ */
+export class ObservableTree extends ObservableArray {
+  constructor() {
+    super();
+  }
+
+  getTopNodes() {
+    return [...this].filter((item) => {
+      return item.getParentId() == null;
+    });
+  }
+
+  getChildren(parent) {
+    var parentId = parent;
+    if (parent && typeof parent == "object") {
+      parentId = parent.getId();
+    }
+    return [...this].filter((item) => {
+      return item.getParentId() == parentId;
+    });
+  }
+
+  getChildByName(parent, name) {
+    var parentId = parent;
+    if (parent && typeof parent == "object") {
+      parentId = parent.getId();
+    }
+    return [...this].find((item) => {
+      return item.getParentId() == parentId && item.getName() == name;
+    });
   }
 }

@@ -11,8 +11,7 @@ namespace MediaTagger.Modules.Tag
         }
         public TagModel? Parent { get; set; } = null;
 
-        //public long? ParentId { get; set; } = null;
-
+        public long? ParentId { get; set; } = null;
 
         virtual public ICollection<TagModel> Children { get; set; } = null!;
         virtual public ICollection<MediaFileModel> MediaFiles { get; set; } = null!;

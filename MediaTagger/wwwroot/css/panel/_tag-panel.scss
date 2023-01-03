@@ -1,0 +1,106 @@
+#tags {
+  .new-tag {
+    margin-left: 4px;
+    display: grid;
+    grid-template-areas:
+      "parent parent"
+      "tag button";
+      grid-template-columns:  1fr min-content;
+
+    .parent {
+      grid-area: parent;
+    }
+
+    input {
+      grid-area: tag;
+      min-width: 10px;
+    }
+
+    button {
+      grid-area: button;
+    }
+  }
+
+  .tree {
+    .tag.root {
+      height: 20px;
+      padding-left: 4px;
+      span {
+        padding-left: 0px;
+      }
+    }
+    div.tag {
+      position: relative;
+
+      .toggle {
+        display: inline-block;
+        position: relative;
+        width: 15px;
+        height: 10px;
+background-color: transparent;
+z-index: 10;
+      }
+
+      input {
+        position: relative;
+        z-index: 10;
+      }
+      
+      > div.tag {
+        margin-left: 15px;
+      }
+    }
+      .has-children::after {
+          content: '';
+          position: absolute;
+          left: -0px;
+          width: 4px;
+          height: 4px;
+          top: 2px;
+          border: 0px solid #aaa;
+          border-width: 0 2px 2px 0;
+          transform: rotate(45deg);
+          padding: 3px;
+        }
+      
+        .has-children.closed::after {
+  
+          position: absolute;
+            left: -0px;
+            width: 4px;
+            height: 4px;
+            top: 2px;
+            border: 0px solid #aaa;
+            border-width: 0 2px 2px 0;
+            transform: rotate(-45deg);
+            padding: 3px;
+          }
+        
+
+    
+
+    &>div {margin-left: 8px;}
+
+
+  }
+
+  .tag span {
+    position: absolute;
+    left: 0;
+    width: 100%;
+    top: 0;
+    height: auto;
+    display: block;
+    padding-left: 30px;
+  }
+  
+  .tag.hover > span {
+    background-color: yellow;
+  }
+
+  .tag {
+      background-color: #f0f0f0;
+    }
+
+    .tag.closed div {display:none;}
+}

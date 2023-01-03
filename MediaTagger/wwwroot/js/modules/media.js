@@ -14,6 +14,7 @@ import {
   SortedObservableView,
   FilteredObservableView,
   ObservableArray,
+  ObservableTree,
 } from "./collections.js";
 import {
   getMediaFiles,
@@ -22,6 +23,7 @@ import {
   getTags,
   getAlbums,
   saveMediaFiles,
+  createTag,
 } from "./mt-api.js";
 import { dbGetMediaFiles, dbSaveMediaFiles } from "../data/database.js";
 import { Listeners } from "../../drjs/browser/event.js";
@@ -32,7 +34,7 @@ const log = Logger.create("Media", LOG_LEVEL.DEBUG);
 class Media {
   constructor() {
     this.files = new ObservableArray();
-    this.tags = new ObservableArray();
+    this.tags = new ObservableTree();
     this.albums = new ObservableArray();
     this.groups = new ObservableArray();
     this.properties = new ObservableArray();
@@ -275,6 +277,47 @@ class Media {
     this.updateDatabaseItems();
     // todo: send to server with API
     this.groupFilterItems.filter();
+  }
+
+  getTags() {
+    return this.tags;
+  }
+
+  async createTag(parent, newTag) {
+    var parentId = parent;
+    if (parent != null && typeof parent == "object") {
+      parentId = parent.getId();
+    }
+    var parts = newTag.split("/").map((n) => {
+      return n.trim();
+    });
+    var leaf = parts.splice(-1); // remove last element (leaf tag name)
+    var walk = null;
+    for (var next of parts) {
+      var child = this.tags.getChildByName(parentId, next);
+      if (child == null) {
+        child = await this.createTag(walk, next);
+      }
+      walk = child;
+      parentId = child.getId();
+    }
+
+    var created = await createTag(parentId, leaf);
+    this.tags.insert(created);
+    return created;
+  }
+
+  getTagPath(tag) {
+    if (tag == null) {
+      return "";
+    }
+    var tags = this.getTags();
+    var path = "/" + tag.getName();
+    var parent = tags.findById(tag.getParentId());
+    if (parent != null) {
+      path = this.getTagPath(parent) + path;
+    }
+    return path;
   }
 }
 

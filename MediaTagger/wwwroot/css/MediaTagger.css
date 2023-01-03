@@ -61,7 +61,7 @@ body {
   left: 0;
   top: 0;
   overflow: hidden;
-  border: 2px solid #ffffff;
+  border: 2px solid #444444;
   display: block;
   position: absolute;
   aspect-ratio: 1/1;
@@ -239,6 +239,93 @@ body {
 }
 .date-select .popup-details.show img {
   width: 128px;
+}
+
+#tags .new-tag {
+  margin-left: 4px;
+  display: grid;
+  grid-template-areas: "parent parent" "tag button";
+  grid-template-columns: 1fr -webkit-min-content;
+  grid-template-columns: 1fr min-content;
+}
+#tags .new-tag .parent {
+  grid-area: parent;
+}
+#tags .new-tag input {
+  grid-area: tag;
+  min-width: 10px;
+}
+#tags .new-tag button {
+  grid-area: button;
+}
+#tags .tree .tag.root {
+  height: 20px;
+  padding-left: 4px;
+}
+#tags .tree .tag.root span {
+  padding-left: 0px;
+}
+#tags .tree div.tag {
+  position: relative;
+}
+#tags .tree div.tag .toggle {
+  display: inline-block;
+  position: relative;
+  width: 15px;
+  height: 10px;
+  background-color: transparent;
+  z-index: 10;
+}
+#tags .tree div.tag input {
+  position: relative;
+  z-index: 10;
+}
+#tags .tree div.tag > div.tag {
+  margin-left: 15px;
+}
+#tags .tree .has-children::after {
+  content: "";
+  position: absolute;
+  left: 0px;
+  width: 4px;
+  height: 4px;
+  top: 2px;
+  border: 0px solid #aaa;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+  padding: 3px;
+}
+#tags .tree .has-children.closed::after {
+  position: absolute;
+  left: 0px;
+  width: 4px;
+  height: 4px;
+  top: 2px;
+  border: 0px solid #aaa;
+  border-width: 0 2px 2px 0;
+  transform: rotate(-45deg);
+  padding: 3px;
+}
+#tags .tree > div {
+  margin-left: 8px;
+}
+#tags .tag span {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  top: 0;
+  height: auto;
+  display: block;
+  padding-left: 30px;
+}
+#tags .tag.hover > span {
+  background-color: yellow;
+}
+#tags .tag {
+  background-color: #f0f0f0;
+}
+#tags .tag.closed div {
+  display: none;
 }
 
 .hidden {

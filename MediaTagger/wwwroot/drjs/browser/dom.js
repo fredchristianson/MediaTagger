@@ -623,6 +623,13 @@ export class DOM {
       element.style.width = val;
     });
   }
+
+  setFocus(element) {
+    var e = this.first(element);
+    if (e) {
+      e.focus();
+    }
+  }
 }
 
 const dom = new DOM();

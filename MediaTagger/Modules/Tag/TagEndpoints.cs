@@ -25,6 +25,7 @@ namespace MediaTagger.Modules.Tag
                           createdOn = f.CreatedOn,
                           modifiedOn = f.ModifiedOn,
                           name = f.Name,
+                          parentId = f.ParentId
 
                       }).ToListAsync();
                       var total = await db.Tags.CountAsync();
@@ -39,6 +40,25 @@ namespace MediaTagger.Modules.Tag
                   });
 
 
+
+            routes.MapPost(V1_URL_PREFIX + "/Tag/{name}", async (MediaTaggerContext db, string name, int? parentId) =>
+          {
+              var tag = new TagModel
+              {
+                  Name = name,
+                  ParentId = parentId
+              };
+              await db.Tags.AddAsync(tag);
+              await db.SaveChangesAsync();
+              return new
+              {
+                  id = tag.Id,
+                  name = tag.Name,
+                  parentId = tag.ParentId,
+                  createdOn = tag.CreatedOn,
+                  modifiedOn = tag.ModifiedOn,
+              };
+          });
         }
     }
 }
