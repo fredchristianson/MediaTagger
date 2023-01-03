@@ -3,6 +3,7 @@
 @use 'panel/media' as *;
 @use 'panel/date-filter' as *;
 @use 'panel/tag-panel' as *;
+@use 'panel/details-panel' as *;
 
 
 
@@ -189,6 +190,14 @@ button:hover {
       background-color: #ddd;
     cursor: col-resize;
   }
+
+        &.bottom {
+          border-top: 1px solid #777;
+          border-bottom: 1px solid #777;
+          height: 4px;
+          background-color: #ddd;
+          cursor: row-resize;
+        }
 }
 
 .grid-sizer.dragging {

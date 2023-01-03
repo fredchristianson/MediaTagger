@@ -114,7 +114,6 @@ export class ReplaceTemplateValue extends TemplateValue {
   }
 }
 
-
 export class HtmlTemplate {
   constructor(templateElement, initValues = null) {
     this.templateElement = templateElement;
@@ -164,7 +163,7 @@ export class HtmlTemplate {
   }
 
   // values is a map of selectors and values
-  fill(values) {
+  fill(values = {}) {
     const filled = [];
     this.nodes.forEach((node) => {
       const clone = node.cloneNode(true);

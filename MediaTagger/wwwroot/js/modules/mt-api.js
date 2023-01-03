@@ -21,11 +21,11 @@ export async function getTags(startPos, count) {
 }
 
 export async function createTag(parentId, name) {
-  var result = await httpAPI.post(
-    `Tag/${name}?parentId=${parentId}`,
-    null,
-    "json"
-  );
+  var url = "Tag/" + name;
+  if (parentId != null) {
+    url += "?parentId=" + parentId;
+  }
+  var result = await httpAPI.post(url, null, "json");
   if (result != null) {
     return new Tag(result);
   }

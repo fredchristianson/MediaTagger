@@ -1,0 +1,21 @@
+#media-details > div {
+  height: 100%;
+  display: grid;
+  grid-template-areas: 
+  "tags"
+  "sizer"
+  "properties";
+  grid-template-rows: auto auto 1fr;
+
+  #tags {
+    grid-area: tags;
+    overflow: scroll;
+  }
+  .grid-sizer {
+    grid-area: sizer;
+  }
+
+  #properties {
+    grid-area: properties;
+    overflow: scroll;  }
+}

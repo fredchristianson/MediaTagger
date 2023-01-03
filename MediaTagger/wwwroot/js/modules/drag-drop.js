@@ -85,9 +85,11 @@ export class LeftGridSizer extends GridSizer {
   }
   onOver(target, event) {
     log.debug("dragOver");
+    var offset = dom.getPageOffset(dom.getParent(this.target));
+
     var pwidth = dom.getWidth(target);
     var dragX = event.clientX;
-    var width = pwidth - dragX;
+    var width = pwidth - (dragX - offset.left);
     dom.setWidth(this.target, width);
   }
 }
@@ -97,9 +99,24 @@ export class RightGridSizer extends GridSizer {
   }
   onOver(target, event) {
     log.debug("dragOver");
+    var offset = dom.getPageOffset(dom.getParent(this.target));
     var pwidth = dom.getWidth(target);
     var dragX = event.clientX;
-    var width = pwidth - dragX;
-    dom.setWidth(this.target, dragX);
+    dom.setWidth(this.target, dragX - offset.left);
+  }
+}
+export class BottomGridSizer extends GridSizer {
+  constructor(sizer, target) {
+    super(sizer, target);
+  }
+  onOver(target, event) {
+    event.preventDefault();
+    log.debug("dragOver");
+    var offset = dom.getPageOffset(dom.getParent(this.target));
+
+    var pwidth = dom.getHeight(target);
+    var dragY = event.clientY;
+    var height = dragY;
+    dom.setHeight(this.target, dragY - offset.top);
   }
 }

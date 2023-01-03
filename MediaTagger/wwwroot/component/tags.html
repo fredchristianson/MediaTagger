@@ -1,4 +1,20 @@
 <div>
-  <div class="new-tag"><span class="parent">/</span><input type='text' name="tag"/><button class='add'>add</button></div>
   <div class="tree"></div>
 </div>
+
+<script type="text/template" id="tags-tag-template">
+  <div class='tag'>
+    <span class='toggle'></span>
+    <input class='check' type='checkbox'/>
+    <span class='name'></span>
+    <a  class='add-child'>add</a>
+    <div class='children'></div>
+  </div>
+</script>
+
+<script type="text/template" id="tags-new-tag-template">
+  <div class='new'>
+    <input class='tag-name' type='text' name="name" placeholder='tag name'/>
+    <div><button class='ok'>Ok</button><button class='cancel'>Cancel</button></div>
+  </div>
+</script>

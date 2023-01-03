@@ -99,6 +99,14 @@ export class DOM {
     }
   }
 
+  firstSibling(element, selector) {
+    var parent = this.parent(element);
+    if (parent != null) {
+      return this.first(parent, selector);
+    }
+    return null;
+  }
+
   find(...opts) {
     var result = [];
     const sel = this.getParentAndSelector(opts);
@@ -336,7 +344,14 @@ export class DOM {
     assert.type(element, HTMLElement, "dom.remove() only works on HTMLElement");
     const parent = element.parentNode;
     if (parent != null) {
-      parent.removeChild(element);
+      try {
+        parent.removeChild(element);
+      } catch (ex) {
+        log.warn(
+          ex,
+          "failed to remove child.  ok if remove called twice without refresh"
+        );
+      }
     } else {
       log.warn("dome.remove called on element that is not in dom");
     }
@@ -347,6 +362,19 @@ export class DOM {
     parent = this.first(parent);
     this.toElementArray(elements).forEach((element) => {
       children.push(parent.appendChild(element));
+    });
+    if (Array.isArray(elements)) {
+      return children;
+    } else {
+      return children[0];
+    }
+  }
+
+  prepend(parent, elements) {
+    var children = [];
+    parent = this.first(parent);
+    this.toElementArray(elements).forEach((element) => {
+      children.push(parent.prepend(element));
     });
     if (Array.isArray(elements)) {
       return children;
@@ -580,7 +608,7 @@ export class DOM {
   }
 
   getPageOffset(...args) {
-    var el = this.first(args);
+    var el = this.first(...args);
     var x = 0;
     var y = 0;
     var width = 0;
@@ -611,6 +639,10 @@ export class DOM {
     var first = this.first(element);
     return first ? first.offsetWidth : 0;
   }
+  getHeight(element) {
+    var first = this.first(element);
+    return first ? first.offsetHeight : 0;
+  }
 
   setWidth(sel, width) {
     var val = width;
@@ -623,9 +655,20 @@ export class DOM {
       element.style.width = val;
     });
   }
+  setHeight(sel, height) {
+    var val = height;
+    if (height == null) {
+      val = "unset";
+    } else if (typeof height == "number") {
+      val = `${height}px`;
+    }
+    this.toElementArray(sel).forEach((element) => {
+      element.style.height = val;
+    });
+  }
 
-  setFocus(element) {
-    var e = this.first(element);
+  setFocus(...args) {
+    var e = this.first(...args);
     if (e) {
       e.focus();
     }

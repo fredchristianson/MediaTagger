@@ -1,106 +1,136 @@
 #tags {
-  .new-tag {
-    margin-left: 4px;
-    display: grid;
-    grid-template-areas:
-      "parent parent"
-      "tag button";
-      grid-template-columns:  1fr min-content;
-
-    .parent {
-      grid-area: parent;
-    }
-
-    input {
-      grid-area: tag;
-      min-width: 10px;
-    }
-
-    button {
-      grid-area: button;
-    }
-  }
 
   .tree {
+    background-color: transparent;
+
     .tag.root {
-      height: 20px;
-      padding-left: 4px;
-      span {
-        padding-left: 0px;
+      grid-template-areas:
+        "name name"
+        ". children";
+      grid-template-columns: 4px 1fr;
+
+      >.toggle {
+        display: none;
+      }
+
+      >input {
+        display: none
       }
     }
-    div.tag {
+
+
+    .tag {
       position: relative;
+      display: grid;
+      grid-template-areas:
+        "toggle check name"
+        ". children children";
+      grid-template-columns: 12px 12px 1fr;
+      grid-template-rows: 20px auto;
 
       .toggle {
-        display: inline-block;
-        position: relative;
-        width: 15px;
+        grid-area: toggle;
         height: 10px;
-background-color: transparent;
-z-index: 10;
-      }
-
-      input {
-        position: relative;
+        background-color: transparent;
         z-index: 10;
       }
-      
-      > div.tag {
-        margin-left: 15px;
+
+      input.check {
+        grid-area: check;
+      }
+
+      .name {
+        grid-area: name;
+        padding-left: 2px;
+      }
+
+      a.add-child {
+        position: absolute;
+        right: 0;
+        display: none;
+        text-decoration: none;
+
+        &:hover {
+          font-weight: bolder;
+        }
+
+        ;
+      }
+
+      &.hover>.add-child,
+      .add-child:hover {
+        display: inline-block !important;
+      }
+
+      .children {
+        grid-area: children;
+
+        .new {
+          background-color: #aaaa00;
+          padding: 2px;
+          position: relative;
+
+          .tag-name {
+            width: 100%;
+          }
+
+          .tag-name:placeholder-shown~div .ok {
+            visibility: hidden;
+          }
+
+          .cancel {
+            position: absolute;
+            right: 0;
+          }
+        }
       }
     }
-      .has-children::after {
-          content: '';
-          position: absolute;
-          left: -0px;
-          width: 4px;
-          height: 4px;
-          top: 2px;
-          border: 0px solid #aaa;
-          border-width: 0 2px 2px 0;
-          transform: rotate(45deg);
-          padding: 3px;
-        }
-      
-        .has-children.closed::after {
-  
-          position: absolute;
-            left: -0px;
-            width: 4px;
-            height: 4px;
-            top: 2px;
-            border: 0px solid #aaa;
-            border-width: 0 2px 2px 0;
-            transform: rotate(-45deg);
-            padding: 3px;
-          }
-        
 
-    
-
-    &>div {margin-left: 8px;}
-
-
-  }
-
-  .tag span {
-    position: absolute;
-    left: 0;
-    width: 100%;
-    top: 0;
-    height: auto;
-    display: block;
-    padding-left: 30px;
-  }
-  
-  .tag.hover > span {
-    background-color: yellow;
-  }
-
-  .tag {
-      background-color: #f0f0f0;
+    .has-children::after {
+      content: '';
+      position: absolute;
+      left: -0px;
+      width: 4px;
+      height: 4px;
+      top: 2px;
+      border: 0px solid #aaa;
+      border-width: 0 2px 2px 0;
+      transform: rotate(45deg);
+      padding: 3px;
     }
 
-    .tag.closed div {display:none;}
+    .has-children.closed::after {
+
+      position: absolute;
+      left: -0px;
+      width: 4px;
+      height: 4px;
+      top: 2px;
+      border: 0px solid #aaa;
+      border-width: 0 2px 2px 0;
+      transform: rotate(-45deg);
+      padding: 3px;
+    }
+
+
+
+
+    &>div {
+      margin-left: 8px;
+    }
+
+
+  }
+
+
+
+
+
+  .tag {
+    background-color: transparent;
+  }
+
+  .tag.closed div {
+    display: none;
+  }
 }

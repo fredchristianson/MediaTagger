@@ -241,47 +241,75 @@ body {
   width: 128px;
 }
 
-#tags .new-tag {
-  margin-left: 4px;
-  display: grid;
-  grid-template-areas: "parent parent" "tag button";
-  grid-template-columns: 1fr -webkit-min-content;
-  grid-template-columns: 1fr min-content;
-}
-#tags .new-tag .parent {
-  grid-area: parent;
-}
-#tags .new-tag input {
-  grid-area: tag;
-  min-width: 10px;
-}
-#tags .new-tag button {
-  grid-area: button;
+#tags .tree {
+  background-color: transparent;
 }
 #tags .tree .tag.root {
-  height: 20px;
-  padding-left: 4px;
+  grid-template-areas: "name name" ". children";
+  grid-template-columns: 4px 1fr;
 }
-#tags .tree .tag.root span {
-  padding-left: 0px;
+#tags .tree .tag.root > .toggle {
+  display: none;
 }
-#tags .tree div.tag {
+#tags .tree .tag.root > input {
+  display: none;
+}
+#tags .tree .tag {
   position: relative;
+  display: grid;
+  grid-template-areas: "toggle check name" ". children children";
+  grid-template-columns: 12px 12px 1fr;
+  grid-template-rows: 20px auto;
 }
-#tags .tree div.tag .toggle {
-  display: inline-block;
-  position: relative;
-  width: 15px;
+#tags .tree .tag .toggle {
+  grid-area: toggle;
   height: 10px;
   background-color: transparent;
   z-index: 10;
 }
-#tags .tree div.tag input {
-  position: relative;
-  z-index: 10;
+#tags .tree .tag input.check {
+  grid-area: check;
 }
-#tags .tree div.tag > div.tag {
-  margin-left: 15px;
+#tags .tree .tag .name {
+  grid-area: name;
+  padding-left: 2px;
+}
+#tags .tree .tag a.add-child {
+  position: absolute;
+  right: 0;
+  display: none;
+  text-decoration: none;
+}
+#tags .tree .tag a.add-child:hover {
+  font-weight: bolder;
+}
+#tags .tree .tag.hover > .add-child,
+#tags .tree .tag .add-child:hover {
+  display: inline-block !important;
+}
+#tags .tree .tag .children {
+  grid-area: children;
+}
+#tags .tree .tag .children .new {
+  background-color: #aaaa00;
+  padding: 2px;
+  position: relative;
+}
+#tags .tree .tag .children .new .tag-name {
+  width: 100%;
+}
+#tags .tree .tag .children .new .tag-name:-moz-placeholder-shown ~ div .ok {
+  visibility: hidden;
+}
+#tags .tree .tag .children .new .tag-name:-ms-input-placeholder ~ div .ok {
+  visibility: hidden;
+}
+#tags .tree .tag .children .new .tag-name:placeholder-shown ~ div .ok {
+  visibility: hidden;
+}
+#tags .tree .tag .children .new .cancel {
+  position: absolute;
+  right: 0;
 }
 #tags .tree .has-children::after {
   content: "";
@@ -309,23 +337,29 @@ body {
 #tags .tree > div {
   margin-left: 8px;
 }
-#tags .tag span {
-  position: absolute;
-  left: 0;
-  width: 100%;
-  top: 0;
-  height: auto;
-  display: block;
-  padding-left: 30px;
-}
-#tags .tag.hover > span {
-  background-color: yellow;
-}
 #tags .tag {
-  background-color: #f0f0f0;
+  background-color: transparent;
 }
 #tags .tag.closed div {
   display: none;
+}
+
+#media-details > div {
+  height: 100%;
+  display: grid;
+  grid-template-areas: "tags" "sizer" "properties";
+  grid-template-rows: auto auto 1fr;
+}
+#media-details > div #tags {
+  grid-area: tags;
+  overflow: scroll;
+}
+#media-details > div .grid-sizer {
+  grid-area: sizer;
+}
+#media-details > div #properties {
+  grid-area: properties;
+  overflow: scroll;
 }
 
 .hidden {
@@ -486,6 +520,13 @@ button:hover {
   width: 4px;
   background-color: #ddd;
   cursor: col-resize;
+}
+.grid-sizer.bottom {
+  border-top: 1px solid #777;
+  border-bottom: 1px solid #777;
+  height: 4px;
+  background-color: #ddd;
+  cursor: row-resize;
 }
 
 .grid-sizer.dragging {

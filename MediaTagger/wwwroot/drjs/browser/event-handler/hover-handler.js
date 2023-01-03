@@ -4,7 +4,7 @@ import { HandlerResponse, MousePosition, HandlerMethod } from "./common.js";
 import dom from "../dom.js";
 import util from "../../util.js";
 import { CancelToken, Task } from "../task.js";
-const log = Logger.create("HoverHandler", LOG_LEVEL.WARN);
+const log = Logger.create("HoverHandler", LOG_LEVEL.DEBUG);
 
 export function BuildHoverHandler() {
   return new HoverHandlerBuilder();
@@ -116,7 +116,7 @@ export class HoverHandler extends EventHandler {
     this.mousePosition.update(event);
     try {
       var target = this.getEventTarget(event);
-      log.debug(`hover: ${target.className} - ${event.type}`);
+      log.debug(`hover: ${target.tagName} ${target.className} - ${event.type}`);
       if (event.type == "mousemove") {
         if (this.selector == null || dom.matches(target, this.selector)) {
           this.endCancel.cancel();
