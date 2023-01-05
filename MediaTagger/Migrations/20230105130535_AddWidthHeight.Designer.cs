@@ -4,6 +4,7 @@ using MediaTagger.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace MediaTagger.Migrations
 {
     [DbContext(typeof(MediaTaggerContext))]
-    partial class MediaTaggerContextModelSnapshot : ModelSnapshot
+    [Migration("20230105130535_AddWidthHeight")]
+    partial class AddWidthHeight
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

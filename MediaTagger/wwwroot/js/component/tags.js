@@ -1,5 +1,6 @@
 import { ComponentBase } from "../../drjs/browser/component.js";
 import {
+  BuildCheckboxHandler,
   BuildHoverHandler,
   BuildInputHandler,
   Listeners,
@@ -11,7 +12,8 @@ import {
   DataValue,
   AttributeValue,
 } from "../../drjs/browser/html-template.js";
-import media from "../modules/media.js";
+import { media, FilterChangeEvent } from "../modules/media.js";
+import { Settings } from "../modules/settings.js";
 import { LOG_LEVEL, Logger } from "../../drjs/logger.js";
 
 const log = Logger.create("TagComponent", LOG_LEVEL.DEBUG);
@@ -21,6 +23,7 @@ export class TagsComponent extends ComponentBase {
     super(selector, htmlName);
     this.listeners = new Listeners();
     this.media = media;
+    this.selectedTagIds = [];
   }
 
   async onHtmlInserted(elements) {
@@ -35,27 +38,62 @@ export class TagsComponent extends ComponentBase {
         .onClick(this, this.tagNameDialog)
         .build(),
       BuildClickHandler()
-        .listenTo(".tree", ".toggle")
+        .listenTo(".tag-tree", ".toggle")
         .onClick(this, this.toggleClosed)
         .build(),
       media.getTags().getUpdatedEvent().createListener(this, this.tagChange),
       BuildHoverHandler()
-        .listenTo(".tree", ".tag")
+        .listenTo(".tag-tree", ".tag")
         .onStart(this, this.hoverTag)
         .onEnd(this, this.unhoverTag)
         .build(),
       BuildInputHandler()
-        .listenTo(".tree", "input[name='name']")
+        .listenTo(".tag-tree", "input[name='name']")
         .onBlur(this, this.hideNameDialog)
         .onEnter(this, this.createTag)
         .onEscape(this, this.hideNameDialog)
         .build(),
       BuildClickHandler()
-        .listenTo(".tree", "button.ok")
+        .listenTo(".tag-tree", "button.ok")
         .onClick(this, this.createTag)
+        .build(),
+      BuildCheckboxHandler()
+        .listenTo(".tag-tree", "input[type='checkbox']")
+        .onChecked(this, this.onChecked)
+        .onUnchecked(this, this.onUnchecked)
+        .setData((element) => {
+          return this.dom.getDataWithParent(element, "id");
+        })
         .build()
     );
     this.tagChange();
+  }
+
+  selectionChanged() {}
+  onChecked(id) {
+    this.tagChecked(id);
+    this.selectionChanged();
+  }
+  onUnchecked(id) {
+    this.tagUnchecked(id);
+    this.selectionChanged();
+  }
+  tagChecked(id) {
+    log.debug("checked ", id);
+    if (!this.selectedTagIds.includes(id)) {
+      this.selectedTagIds.push(id);
+      FilterChangeEvent.emit();
+      var checkElement = this.dom.first(`.tag[data-id='${id}'] input.check`);
+      this.dom.check(checkElement);
+    }
+  }
+
+  tagUnchecked(id) {
+    log.debug("unchecked ", id);
+    if (this.selectedTagIds.includes(id)) {
+      this.selectedTagIds.splice(this.selectedTagIds.indexOf(id), 1);
+      FilterChangeEvent.emit();
+    }
   }
 
   toggleClosed(element) {
@@ -63,16 +101,6 @@ export class TagsComponent extends ComponentBase {
   }
   hoverTag(element) {
     this.dom.addClass(element, "hover");
-    var id = this.dom.getData(element, "id");
-    this.dom.setFocus("input[name='tag']");
-    if (id == "root") {
-      this.dom.setInnerHTML(".new-tag .parent", "/");
-      return;
-    }
-    var tag = media.getTags().findById(id);
-    if (tag) {
-      this.dom.setInnerHTML(".new-tag .parent", media.getTagPath(tag));
-    }
   }
 
   unhoverTag(element) {
@@ -81,12 +109,16 @@ export class TagsComponent extends ComponentBase {
 
   tagChange() {
     var top = media.getTags().getTopNodes();
-    var tree = this.dom.first(".tree");
+    var tree = this.dom.first(".tag-tree");
     this.dom.removeChildren(tree);
-    var root = this.createTagElement("/", null);
+
+    var root = this.createTagElement("/", "root");
     this.dom.addClass(root, "root");
     this.dom.append(tree, root);
     this.insertTags(this.dom.first(root, ".children"), top);
+    var untagged = this.createTagElement("Untagged", "untagged");
+    this.dom.addClass(untagged, "untagged");
+    this.dom.append(tree, untagged);
   }
 
   insertTags(parentElement, nodes) {
@@ -97,8 +129,10 @@ export class TagsComponent extends ComponentBase {
   }
 
   createTagElement(name, tag) {
-    var id = tag == null ? "root" : tag.getId();
-
+    var id = tag;
+    if (typeof tag == "object" && tag.getId()) {
+      id = tag.getId();
+    }
     var children = tag ? media.getTags().getChildren(tag) : [];
     var classList = "tag";
     if (children.length > 0) {
@@ -130,7 +164,8 @@ export class TagsComponent extends ComponentBase {
 
   addTag(parentId, val) {
     if (val != null && val.trim() != "") {
-      media.createTag(parentId, val);
+      var tag = media.createTag(parentId, val);
+
       return true;
     } else {
       return false;
@@ -152,7 +187,9 @@ export class TagsComponent extends ComponentBase {
   }
 
   hideNameDialog() {
-    if (this.newTagElement == null) { return; }
+    if (this.newTagElement == null) {
+      return;
+    }
     this.dom.remove(this.newTagElement);
     this.newTagElement = null;
   }
@@ -171,6 +208,32 @@ export class TagsComponent extends ComponentBase {
     this.dom.setValue(this.dom.first(this.newTagElement, "input"), null);
     this.dom.setFocus(this.newTagElement, "input");
     log.debug("create tag");
+  }
+}
+
+export class TagFilterComponent extends TagsComponent {
+  constructor(selector, htmlName = "tags") {
+    super(selector, htmlName);
+    media.addFilter(this.filterItem.bind(this));
+  }
+
+  filterItem(item) {
+    return this.selectedTagIds.includes("untagged");
+  }
+
+  selectionChanged() {
+    this.settings.set("selectedTagIds", this.selectedTagIds);
+  }
+
+  async onHtmlInserted(elements) {
+    super.onHtmlInserted(elements);
+    this.settings = await Settings.load("tag-filter");
+    if (this.settings.get("selectedTagIds") == null) {
+      this.settings.set("selectedTagIds", []);
+    }
+    this.settings.get("selectedTagIds").forEach((id) => {
+      this.tagChecked(id);
+    });
   }
 }
 

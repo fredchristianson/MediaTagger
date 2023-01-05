@@ -31,6 +31,8 @@ namespace MediaTagger.Modules.MediaFile
                     fileModifiedOn = f.FileModified,
                     directory = f.Directory == null ? null : f.Directory.Value,
                     fileSize = f.FileSize,
+                    width = f.Width,
+                    height = f.Height,
                     hidden = f.Hidden
                 }).ToListAsync();
                 var total = await db.MediaFiles.CountAsync();

@@ -179,7 +179,7 @@ namespace MediaTagger.Modules.MediaFile
             var fileModel = await this.db.MediaFiles.FindAsync(id);
             if (fileModel != null)
             {
-                if (fileModel.ExifJson != null)
+                if (fileModel.ExifJson != null && fileModel.Width > 0)
                 {
                     return;
                 }
@@ -187,7 +187,7 @@ namespace MediaTagger.Modules.MediaFile
                 var path = this.GetFilePath(fileModel);
                 // don't do anything for videos yet;  
                 // todo: get video properties
-                if (IsVideoType(fileModel)) { return; }
+                // if (IsVideoType(fileModel)) { return; }
                 try
                 {
 
@@ -195,6 +195,8 @@ namespace MediaTagger.Modules.MediaFile
                     {
                         image.Ping(path);
                         IExifProfile? exifProfile = image.GetExifProfile();
+                        fileModel.Width = image.Width;
+                        fileModel.Height = image.Height;
                         List<Tuple<string, object>> exifValues = new List<Tuple<string, object>>();
                         if (exifProfile != null)
                         {

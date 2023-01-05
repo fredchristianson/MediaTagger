@@ -150,6 +150,12 @@ body {
 #media-view .media-filter {
   grid-area: media-filter;
   width: 250px;
+  overflow: auto;
+}
+#media-view .media-filter .allnone a {
+  display: inline-block;
+  margin-right: 4px;
+  margin-bottom: 8px;
 }
 #media-view .media-details {
   grid-area: media-details;
@@ -241,77 +247,82 @@ body {
   width: 128px;
 }
 
-#tags .tree {
+#tags .tag-tree, .tag-filter .tag-tree {
   background-color: transparent;
 }
-#tags .tree .tag.root {
-  grid-template-areas: "name name" ". children";
+#tags .tag-tree .tag.root.off, .tag-filter .tag-tree .tag.root.off {
+  grid-template-areas: "checkname" ". children";
   grid-template-columns: 4px 1fr;
 }
-#tags .tree .tag.root > .toggle {
+#tags .tag-tree .tag.root.off > .toggle, .tag-filter .tag-tree .tag.root.off > .toggle {
   display: none;
 }
-#tags .tree .tag.root > input {
+#tags .tag-tree .tag.root.off > label > input, .tag-filter .tag-tree .tag.root.off > label > input {
   display: none;
 }
-#tags .tree .tag {
+#tags .tag-tree .tag, .tag-filter .tag-tree .tag {
   position: relative;
   display: grid;
-  grid-template-areas: "toggle check name" ". children children";
-  grid-template-columns: 12px 12px 1fr;
+  grid-template-areas: "toggle checkname" ". children";
+  grid-template-columns: 12px 1fr;
   grid-template-rows: 20px auto;
 }
-#tags .tree .tag .toggle {
+#tags .tag-tree .tag .toggle, .tag-filter .tag-tree .tag .toggle {
   grid-area: toggle;
   height: 10px;
   background-color: transparent;
   z-index: 10;
 }
-#tags .tree .tag input.check {
-  grid-area: check;
+#tags .tag-tree .tag label, .tag-filter .tag-tree .tag label {
+  grid-area: checkname;
+  white-space: nowrap;
 }
-#tags .tree .tag .name {
-  grid-area: name;
+#tags .tag-tree .tag .name, .tag-filter .tag-tree .tag .name {
   padding-left: 2px;
 }
-#tags .tree .tag a.add-child {
+#tags .tag-tree .tag a.add-child, .tag-filter .tag-tree .tag a.add-child {
   position: absolute;
   right: 0;
   display: none;
   text-decoration: none;
 }
-#tags .tree .tag a.add-child:hover {
+#tags .tag-tree .tag a.add-child:hover, .tag-filter .tag-tree .tag a.add-child:hover {
   font-weight: bolder;
 }
-#tags .tree .tag.hover > .add-child,
-#tags .tree .tag .add-child:hover {
-  display: inline-block !important;
+#tags .tag-tree .tag.untagged .add-child, .tag-filter .tag-tree .tag.untagged .add-child {
+  display: none !important;
+  height: 0;
 }
-#tags .tree .tag .children {
+#tags .tag-tree .tag.hover > .add-child,
+#tags .tag-tree .tag .add-child:hover, .tag-filter .tag-tree .tag.hover > .add-child,
+.tag-filter .tag-tree .tag .add-child:hover {
+  display: inline-block;
+}
+#tags .tag-tree .tag .children, .tag-filter .tag-tree .tag .children {
   grid-area: children;
 }
-#tags .tree .tag .children .new {
+#tags .tag-tree .tag .children .new, .tag-filter .tag-tree .tag .children .new {
   background-color: #aaaa00;
   padding: 2px;
   position: relative;
 }
-#tags .tree .tag .children .new .tag-name {
+#tags .tag-tree .tag .children .new .tag-name, .tag-filter .tag-tree .tag .children .new .tag-name {
   width: 100%;
 }
-#tags .tree .tag .children .new .tag-name:-moz-placeholder-shown ~ div .ok {
+#tags .tag-tree .tag .children .new .tag-name:-moz-placeholder-shown ~ div .ok, .tag-filter .tag-tree .tag .children .new .tag-name:-moz-placeholder-shown ~ div .ok {
   visibility: hidden;
 }
-#tags .tree .tag .children .new .tag-name:-ms-input-placeholder ~ div .ok {
+#tags .tag-tree .tag .children .new .tag-name:-ms-input-placeholder ~ div .ok, .tag-filter .tag-tree .tag .children .new .tag-name:-ms-input-placeholder ~ div .ok {
   visibility: hidden;
 }
-#tags .tree .tag .children .new .tag-name:placeholder-shown ~ div .ok {
+#tags .tag-tree .tag .children .new .tag-name:placeholder-shown ~ div .ok, .tag-filter .tag-tree .tag .children .new .tag-name:placeholder-shown ~ div .ok {
   visibility: hidden;
 }
-#tags .tree .tag .children .new .cancel {
+#tags .tag-tree .tag .children .new .cancel, .tag-filter .tag-tree .tag .children .new .cancel {
   position: absolute;
   right: 0;
 }
-#tags .tree .has-children::after {
+#tags .tag-tree .has-children::after, .tag-filter .tag-tree .has-children::after {
   content: "";
   position: absolute;
   left: 0px;
@@ -323,7 +334,7 @@ body {
   transform: rotate(45deg);
   padding: 3px;
 }
-#tags .tree .has-children.closed::after {
+#tags .tag-tree .has-children.closed::after, .tag-filter .tag-tree .has-children.closed::after {
   position: absolute;
   left: 0px;
   width: 4px;
@@ -334,14 +345,19 @@ body {
   transform: rotate(-45deg);
   padding: 3px;
 }
-#tags .tree > div {
+#tags .tag-tree > div, .tag-filter .tag-tree > div {
   margin-left: 8px;
 }
-#tags .tag {
+#tags .tag, .tag-filter .tag {
   background-color: transparent;
 }
-#tags .tag.closed div {
+#tags .tag.closed div, .tag-filter .tag.closed div {
   display: none;
+}
+
+.tag-filter .add-child {
+  display: none !important;
+  height: 0;
 }
 
 #media-details > div {
@@ -360,6 +376,10 @@ body {
 #media-details > div #properties {
   grid-area: properties;
   overflow: scroll;
+}
+
+#media-filter .property-filter ul {
+  padding: 2px;
 }
 
 .hidden {
@@ -531,4 +551,51 @@ button:hover {
 
 .grid-sizer.dragging {
   opacity: 0;
+}
+
+.toggle-next-sibling {
+  background-color: #dddddd;
+  padding: 8px 2em;
+  position: relative;
+  border-top: 1px solid black;
+}
+.toggle-next-sibling ~ * {
+  transform: scaleY(1);
+  transform-origin: top;
+  height: unset;
+  transition: transform 500ms;
+}
+.toggle-next-sibling.hide-next-sibling + * {
+  transform: scaleY(0);
+  transform-origin: top;
+  height: 0;
+  transition: transform 500ms, margin 200ms;
+  overflow: hidden;
+  margin: 0;
+}
+.toggle-next-sibling::after {
+  content: "";
+  position: absolute;
+  left: 4px;
+  width: 4px;
+  height: 4px;
+  top: 8px;
+  border: 0px solid #aaa;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+  padding: 3px;
+}
+.toggle-next-sibling.hide-next-sibling::after {
+  position: absolute;
+  left: 4px;
+  width: 4px;
+  height: 4px;
+  top: 8px;
+  border: 0px solid #aaa;
+  border-width: 0 2px 2px 0;
+  transform: rotate(-45deg);
+  padding: 3px;
+}
+.toggle-next-sibling + div {
+  padding: 4px;
 }/*# sourceMappingURL=MediaTagger.css.map */

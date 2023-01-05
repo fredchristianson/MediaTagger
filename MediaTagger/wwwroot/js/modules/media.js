@@ -27,9 +27,13 @@ import {
 } from "./mt-api.js";
 import { dbGetMediaFiles, dbSaveMediaFiles } from "../data/database.js";
 import { Listeners } from "../../drjs/browser/event.js";
+import { ObjectEventType, EventEmitter } from "../../drjs/browser/event.js";
 import FileGroup from "../data/file-group.js";
 
 const log = Logger.create("Media", LOG_LEVEL.DEBUG);
+
+export var FilterChangeEventType = new ObjectEventType("FilterChange");
+export var FilterChangeEvent = new EventEmitter(FilterChangeEventType, this);
 
 class Media {
   constructor() {
@@ -40,8 +44,12 @@ class Media {
     this.properties = new ObservableArray();
     this.propertyValues = new ObservableArray();
     this.showAllGroupFiles = false;
-    this.groupFilterItems = new FilteredObservableView(
+    this.mediaFilterItems = new FilteredObservableView(
       this.files,
+      this.mediaFilter.bind(this)
+    );
+    this.groupFilterItems = new FilteredObservableView(
+      this.mediaFilterItems,
       this.primaryFileFilter.bind(this)
     );
     this.searchFilterItems = new FilteredObservableView(
@@ -61,8 +69,24 @@ class Media {
     this.lastSelect = null;
 
     this.listeners = new Listeners(
-      this.files.updatedEvent.createListener(this, this.updateDatabaseItems)
+      this.files.updatedEvent.createListener(this, this.updateDatabaseItems),
+      FilterChangeEvent.createListener(this, this.onFilterChanged)
     );
+    this.filterIncludeFunctions = [];
+  }
+
+  addFilter(func) {
+    this.filterIncludeFunctions.push(func);
+  }
+
+  onFilterChanged() {
+    log.info("media filter changed");
+    this.mediaFilterItems.filter();
+  }
+  mediaFilter(item) {
+    return this.filterIncludeFunctions.every((func) => {
+      return func(item);
+    });
   }
 
   showSecondaryGroupFiles(visible) {
@@ -321,6 +345,6 @@ class Media {
   }
 }
 
-const media = new Media();
+export const media = new Media();
 
 export default media;

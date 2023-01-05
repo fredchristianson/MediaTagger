@@ -13,6 +13,8 @@ export class MediaFile extends MediaEntity {
     this.fileCreatedOn = toDate(data.fileCreatedOn);
     this.fileSetPrimaryId = data.fileSetPrimaryId;
     this.filename = data.filename;
+    this.width = data.width;
+    this.height = data.height;
     this.name = data.name;
     this._group = null;
   }
@@ -70,6 +72,37 @@ export class MediaFile extends MediaEntity {
 
   getFileSize() {
     return this.fileSize;
+  }
+
+  getExtension() {
+    if (this._extension == null) {
+      var dotPos = this.filename.lastIndexOf(".");
+      if (dotPos < 0) {
+        this._extension = ".";
+      } else {
+        this._extension = this.filename.substring(dotPos).toLowerCase();
+      }
+    }
+    return this._extension;
+  }
+
+  getResolution() {
+    if (
+      isNaN(this.width) ||
+      isNaN(this.height) ||
+      this.width == 0 ||
+      this.height == 0
+    ) {
+      return "unknown";
+    }
+    return `${this.width}x${this.height}`;
+  }
+
+  getWidth() {
+    return this.width;
+  }
+  getHeight() {
+    return this.height;
   }
 
   getTakenMSecs() {

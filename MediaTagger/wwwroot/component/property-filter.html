@@ -1,0 +1,30 @@
+<div>
+  
+  <h2 class="toggle-next-sibling">File Extensions</h2>
+  <ul class="extension list"></ul>
+  <h2  class="toggle-next-sibling">Resolutions</h2>
+  <ul class="resolution list"></ul>
+  <h2  class="toggle-next-sibling">File Sizes</h2>
+  <ul class="file-size list"></ul>
+</div>
+
+<script type="text/template" id="properties--extension-template">
+  <li><label class='extension'>
+    <input  type='checkbox' name="enabled" />
+    <span class='ext label'></span>
+  </label></li>
+</script>
+
+<script type="text/template" id="properties--resolution-template">
+  <li><label class='resolution'>
+    <input  type='checkbox' name="enabled" />
+    <span class='width-x-height label'></span>
+  </label></li>
+</script>
+
+<script type="text/template" id="properties--size-template">
+  <li><label class='file-size'>
+    <input  type='checkbox' name="enabled" />
+    <span class='file-size label'></span>
+  </label></li>
+</script>

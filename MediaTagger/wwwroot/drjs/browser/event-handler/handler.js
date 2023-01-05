@@ -28,6 +28,10 @@ export class EventHandlerBuilder {
     return this;
   }
 
+  setDefaultResponse(response) {
+    this.handlerInstance.setDefaultResponse(response);
+    return this;
+  }
   withShift(require) {
     this.handlerInstance.setWithShift(require);
     return this;

@@ -6,11 +6,16 @@ import FileViewComponent from "./file-view.js";
 import FindGroupsComponent from "./find-groups.js";
 import SettingsComponent from "./settings.js";
 import api from "../modules/mt-api.js";
-
+import { DOMWatcher, toggleClass } from "../modules/dom-watcher.js";
 export class MainComponent extends ComponentBase {
   constructor(selector, htmlName = "main") {
     super(selector, htmlName);
     MainComponent.instance = this;
+    this.domWatcher = new DOMWatcher();
+    this.domWatcher.addClickAction(
+      ".toggle-next-sibling",
+      toggleClass("hide-next-sibling")
+    );
   }
 
   async onHtmlInserted(parent) {

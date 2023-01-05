@@ -24,6 +24,8 @@ namespace MediaTagger.Modules.MediaFile
         public string Filename { get; set; } = string.Empty;
 
         public long FileSize { get; set; }
+        public long Width { get; set; }
+        public long Height { get; set; }
 
         public string? ExifJson { get; set; }
 

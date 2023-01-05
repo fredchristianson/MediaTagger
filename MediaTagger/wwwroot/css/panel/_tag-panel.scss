@@ -1,11 +1,11 @@
-#tags {
+#tags, .tag-filter {
 
-  .tree {
+  .tag-tree {
     background-color: transparent;
 
-    .tag.root {
+    .tag.root.off {
       grid-template-areas:
-        "name name"
+        "checkname"
         ". children";
       grid-template-columns: 4px 1fr;
 
@@ -13,7 +13,7 @@
         display: none;
       }
 
-      >input {
+      >label>input {
         display: none
       }
     }
@@ -23,9 +23,9 @@
       position: relative;
       display: grid;
       grid-template-areas:
-        "toggle check name"
-        ". children children";
-      grid-template-columns: 12px 12px 1fr;
+        "toggle checkname"
+        ". children";
+      grid-template-columns: 12px  1fr;
       grid-template-rows: 20px auto;
 
       .toggle {
@@ -35,12 +35,15 @@
         z-index: 10;
       }
 
+      label {
+        grid-area: checkname;
+        white-space: nowrap;
+      }
+
       input.check {
-        grid-area: check;
       }
 
       .name {
-        grid-area: name;
         padding-left: 2px;
       }
 
@@ -57,9 +60,14 @@
         ;
       }
 
+      &.untagged .add-child{
+        display: none !important;
+        height: 0;
+      }
+
       &.hover>.add-child,
       .add-child:hover {
-        display: inline-block !important;
+        display: inline-block;
       }
 
       .children {
@@ -124,8 +132,6 @@
 
 
 
-
-
   .tag {
     background-color: transparent;
   }
@@ -134,3 +140,8 @@
     display: none;
   }
 }
+
+        .tag-filter .add-child {
+          display: none !important;
+          height: 0;
+        }

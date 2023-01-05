@@ -157,6 +157,11 @@
     .media-filter {
         grid-area: media-filter;
         width: 250px;
+        overflow: auto;
+
+        .allnone a { 
+            display: inline-block; 
+            margin-right: 4px; margin-bottom: 8px;}
     }
 
     .media-details {

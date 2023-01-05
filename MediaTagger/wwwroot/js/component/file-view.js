@@ -76,7 +76,6 @@ export class FileViewComponent extends ComponentBase {
     this.dateFilter = new DateFilterComponent("#date-filter");
     this.mediaFilter = new MediaFilterComponent("#media-filter");
     this.popup = this.dom.first(".file.popup");
-    this.mediaFilter = new MediaFilterComponent("#media-filter");
     this.filterSizer = new RightGridSizer(".grid-sizer.right", ".media-filter");
     this.detailsSizer = new LeftGridSizer(".grid-sizer.left", ".media-details");
     var allItems = await Media.getVisibleItems();

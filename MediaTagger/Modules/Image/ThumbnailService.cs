@@ -70,68 +70,40 @@ namespace MediaTagger.Modules.Image
 
 
                 var responseStream = new MemoryStream();
-                IMagickImage? img = null;
-                if (fileService.IsVideoType(mediaFile))
-                {
-                    logger.LogError($"MediaFileModel  for {id} is a video");
 
-                    return null;
-                    // using (var videoFrames = new MagickImageCollection(path))
-                    // {
-                    //     img = videoFrames.First(); //save last full frame, as initial it will be first in collection
-                    //     if (img != null)
-                    //     {
-                    //         img.Thumbnail(new MagickGeometry(255, 255));
-                    //         if (fileService.IsRawImage(mediaFile))
-                    //         {
-                    //             img.GammaCorrect(2.2);
-                    //         }
-
-                    //         img.Write(thumbFile, MagickFormat.WebP);
-                    //         img.Dispose();
-                    //         return new FileInfo(thumbFile);
-                    //     }
-                    // }
-                }
-                else
+                using (var img = new MagickImage()) //path))
                 {
-                    var readSettings = new MagickReadSettings
-                    {
-                        //  Format=MagickFormat.Dcraw
-                    };
-                    using (img = new MagickImage(path, readSettings))
+                    img.Read(path);
+                    if (img != null)
                     {
 
-                        if (img != null)
+                        if (fileService.IsRawImage(mediaFile))
                         {
-
-                            if (fileService.IsRawImage(mediaFile))
+                            // todo: see if raw thumbnail color problems can be fixed
+                            img.GammaCorrect(1.8);
+                            var profile = img.GetProfile(":dng:thumbnail");
+                            if (profile != null)
                             {
-                                // todo: see if raw thumbnail color problems can be fixed
-                                img.GammaCorrect(1.8);
-                                var profile = img.GetProfile(":dng:thumbnail");
-                                if (profile != null)
+                                var data = profile.GetData();
+                                if (data != null)
                                 {
-                                    var data = profile.GetData();
-                                    if (data != null)
-                                    {
-                                        File.WriteAllBytes(thumbFile, data);
-                                        return new FileInfo(thumbFile);
-                                    }
-                                    else
-                                    {
-                                        return null;
-                                    }
+                                    File.WriteAllBytes(thumbFile, data);
+                                    return new FileInfo(thumbFile);
+                                }
+                                else
+                                {
+                                    return null;
                                 }
                             }
-                            img.Thumbnail(new MagickGeometry(255, 255));
-
-                            img.Write(thumbFile, MagickFormat.WebP);
-                            img.Dispose();
-                            return new FileInfo(thumbFile);
                         }
+                        img.Thumbnail(new MagickGeometry(255, 255));
+
+                        img.Write(thumbFile, MagickFormat.WebP);
+                        img.Dispose();
+                        return new FileInfo(thumbFile);
                     }
                 }
+
                 return null;
 
             }

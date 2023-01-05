@@ -4,12 +4,13 @@
 @use 'panel/date-filter' as *;
 @use 'panel/tag-panel' as *;
 @use 'panel/details-panel' as *;
-
+@use 'panel/property-filter-panel' as *;
 
 
 .hidden {
   display: none !important;
 }
+
 
 .invisible {
   visibility: hidden;
@@ -203,3 +204,55 @@ button:hover {
 .grid-sizer.dragging {
   opacity: 0;
 }
+
+.toggle-next-sibling {
+  background-color: #dddddd;
+  padding: 8px 2em;
+  position: relative;
+
+  &~* {
+    transform: scaleY(1);
+    transform-origin: top;
+    height: unset;
+    transition: transform 500ms;
+  }
+  &.hide-next-sibling+* {
+      transform: scaleY(0);
+      transform-origin: top;
+      height: 0;
+      transition: transform 500ms,margin 200ms;
+      overflow: hidden;
+      margin:0;
+    }
+
+  border-top: 1px solid black;
+    &::after {
+        content: '';
+        position: absolute;
+        left: 4px;
+        width: 4px;
+        height: 4px;
+        top: 8px;
+        border: 0px solid #aaa;
+        border-width: 0 2px 2px 0;
+        transform: rotate(45deg);
+        padding: 3px;
+      }
+    
+    &.hide-next-sibling::after {
+    
+        position: absolute;
+        left: 4px;
+        width: 4px;
+        height: 4px;
+        top: 8px;
+        border: 0px solid #aaa;
+        border-width: 0 2px 2px 0;
+        transform: rotate(-45deg);
+        padding: 3px;
+      }
+
+      &+div {
+        padding: 4px;
+      }
+  }

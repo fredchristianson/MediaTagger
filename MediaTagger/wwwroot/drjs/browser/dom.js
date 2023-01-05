@@ -185,6 +185,22 @@ export class DOM {
     return val;
   }
 
+  getDataWithParent(element, name) {
+    if (element == null) {
+      return null;
+    }
+    assert.notNull(element, "setData requires an element");
+    assert.notEmpty(name, "setData requires a name");
+    if (!name.startsWith("data-")) {
+      name = `data-${name}`;
+    }
+    const val = element.getAttribute(name);
+    if (val == null) {
+      return this.getDataWithParent(element.parentElement, name);
+    }
+    return val;
+  }
+
   setAttribute(element, name, value) {
     this.toElementArray(element).forEach((elem) => {
       elem.setAttribute(name, value);
@@ -385,7 +401,9 @@ export class DOM {
 
   check(elements, checked = true) {
     this.find(elements).forEach((element) => {
-      element.checked = checked;
+      if (element.checked != checked) {
+        this.setProperty(element, "checked", checked);
+      }
     });
   }
 
