@@ -11,6 +11,7 @@ import {
   PropertyValue,
 } from "../../drjs/browser/html-template.js";
 import { FilterChangeEvent, media } from "../modules/media.js";
+import Settings from "../modules/settings.js";
 
 const log = Logger.create("PropertyFilter", LOG_LEVEL.DEBUG);
 
@@ -100,6 +101,8 @@ export class PropertyFilterComponent extends ComponentBase {
   }
 
   async onHtmlInserted(elements) {
+    this.settings = await Settings.load("property-filter");
+
     this.extTemplate = new HtmlTemplate(
       this.dom.first("#properties--extension-template")
     );
@@ -141,9 +144,9 @@ export class PropertyFilterComponent extends ComponentBase {
     checkboxes.forEach((cb) => {
       this.dom.check(cb);
     });
-    this.updateOptions(this.sizes);
-    this.updateOptions(this.resolutions);
-    this.updateOptions(this.extensions);
+    this.updateOptions(this.sizes, ".file-size.count");
+    this.updateOptions(this.resolutions, ".resolution.count");
+    this.updateOptions(this.extensions, ".extension.count");
     FilterChangeEvent.emit(this);
   }
 
@@ -155,24 +158,37 @@ export class PropertyFilterComponent extends ComponentBase {
     checkboxes.forEach((cb) => {
       this.dom.uncheck(cb);
     });
-    this.updateOptions(this.sizes);
-    this.updateOptions(this.resolutions);
-    this.updateOptions(this.extensions);
+    this.updateOptions(this.sizes, ".file-size.count");
+    this.updateOptions(this.resolutions, ".resolution.count");
+    this.updateOptions(this.extensions, ".extension.count");
     FilterChangeEvent.emit(this);
   }
 
-  updateOptions(list) {
+  updateOptions(list, countElement) {
+    var selectCount = 0;
     for (var option of list) {
       if (option.checkbox) {
         option.setSelected(option.checkbox.checked);
+        this.settings.set(option.getLabel(), option.checkbox.checked);
+        if (option.checkbox.checked) {
+          selectCount += 1;
+        }
+      }
+    }
+    if (countElement) {
+      countElement = this.dom.first(countElement);
+      if (selectCount == list.length) {
+        countElement.innerHTML = "(all)";
+      } else {
+        countElement.innerHTML = `(${selectCount} of ${list.length})`;
       }
     }
   }
 
   checkChange(checked, element) {
-    this.updateOptions(this.sizes);
-    this.updateOptions(this.resolutions);
-    this.updateOptions(this.extensions);
+    this.updateOptions(this.sizes, ".file-size.count");
+    this.updateOptions(this.resolutions, ".resolution.count");
+    this.updateOptions(this.extensions, ".extension.count");
     FilterChangeEvent.emit(this);
   }
 
@@ -188,7 +204,7 @@ export class PropertyFilterComponent extends ComponentBase {
     //     return opt.isSelected();
     //   }
     // }
-    log.error("unknown option ", label);
+    log.never("unknown option ", label);
     return true;
   }
 
@@ -235,21 +251,24 @@ export class PropertyFilterComponent extends ComponentBase {
     this.fill(
       this.dom.first(".extension.list"),
       this.extensions,
-      this.extTemplate
+      this.extTemplate,
+      this.dom.first(".extension.count")
     );
     this.fill(
       this.dom.first(".resolution.list"),
       this.resolutions,
-      this.resolutionTemplate
+      this.resolutionTemplate,
+      this.dom.first(".resolution.count")
     );
     this.fill(
       this.dom.first(".file-size.list"),
       this.sizes,
-      this.filesizeTemplate
+      this.filesizeTemplate,
+      this.dom.first(".file-size.count")
     );
   }
 
-  fill(selector, list, template) {
+  fill(selector, list, template, countElement) {
     list.sort((a, b) => {
       return a.compare(b);
     });
@@ -264,13 +283,26 @@ export class PropertyFilterComponent extends ComponentBase {
       this.dom.createElement("a", { href: "#none", text: "none" })
     );
     this.dom.append(selector, allNone);
+    var selectCount = 0;
     for (var item of list) {
+      const checked = this.settings.get(item.getLabel());
+      if (checked) {
+        selectCount += 1;
+      }
       var child = template.fill({
         ".label": item.getLabel(),
-        "[type='checkbox']": new PropertyValue("checked", true),
+        "[type='checkbox']": new PropertyValue("checked", checked),
       });
+      // this.dom.check(this.dom.first(child,, this.settings.get(item.getLabel()));
       item.setCheckbox(this.dom.first(child, "[type='checkbox']"));
       this.dom.append(selector, child);
+    }
+    if (countElement) {
+      if (selectCount == list.length) {
+        countElement.innerHTML = "(all)";
+      } else {
+        countElement.innerHTML = `(${selectCount} of ${list.length})`;
+      }
     }
   }
 

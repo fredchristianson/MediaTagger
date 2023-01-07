@@ -125,6 +125,9 @@ export class DOM {
     } else {
       const elements = sel.parent.querySelectorAll(sel.selector);
       result = Array.from(elements);
+      if (sel.parent.matches && sel.parent.matches(sel.selector)) {
+        result.push(sel.parent);
+      }
     }
     return result;
   }
@@ -401,7 +404,7 @@ export class DOM {
 
   check(elements, checked = true) {
     this.find(elements).forEach((element) => {
-      if (element.checked != checked) {
+      if (typeof element.checked == "undefined" || element.checked != checked) {
         this.setProperty(element, "checked", checked);
       }
     });

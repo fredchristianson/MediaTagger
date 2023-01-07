@@ -4,7 +4,7 @@ import { HandlerResponse, MousePosition, HandlerMethod } from "./common.js";
 import dom from "../dom.js";
 import util from "../../util.js";
 import { CancelToken, Task } from "../task.js";
-const log = Logger.create("DragHandler", LOG_LEVEL.INFO);
+const log = Logger.create("DragHandler", LOG_LEVEL.DEBUG);
 
 export class DragHandlerBuilder extends EventHandlerBuilder {
   constructor() {
@@ -52,7 +52,7 @@ export class DragHandler extends EventHandler {
   constructor(...args) {
     super(...args);
     this.setTypeName(["dragstart", "drag", "dragend"]);
-    this.setDefaultResponse = HandlerResponse.Continue;
+    this.setDefaultResponse(HandlerResponse.Continue);
 
     this.onStart = HandlerMethod.None();
     this.onEnd = HandlerMethod.None();

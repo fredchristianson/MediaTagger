@@ -16,7 +16,7 @@ import { media, FilterChangeEvent } from "../modules/media.js";
 import { Settings } from "../modules/settings.js";
 import { LOG_LEVEL, Logger } from "../../drjs/logger.js";
 
-const log = Logger.create("TagComponent", LOG_LEVEL.DEBUG);
+const log = Logger.create("TagComponent", LOG_LEVEL.WARN);
 
 export class TagsComponent extends ComponentBase {
   constructor(selector, htmlName = "tags") {
@@ -117,6 +117,7 @@ export class TagsComponent extends ComponentBase {
     this.dom.append(tree, root);
     this.insertTags(this.dom.first(root, ".children"), top);
     var untagged = this.createTagElement("Untagged", "untagged");
+    this.dom.check(untagged);
     this.dom.addClass(untagged, "untagged");
     this.dom.append(tree, untagged);
   }

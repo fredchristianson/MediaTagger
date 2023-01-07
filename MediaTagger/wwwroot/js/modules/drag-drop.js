@@ -2,6 +2,7 @@ import {
   Listeners,
   BuildDragHandler,
   BuildDropHandler,
+  HandlerResponse,
 } from "../../drjs/browser/event.js";
 import { LOG_LEVEL, Logger } from "../../drjs/logger.js";
 import dom from "../../drjs/browser/dom.js";
@@ -12,6 +13,7 @@ export class Draggable {
     this.listeners = new Listeners(
       BuildDragHandler(draggable)
         .listenTo(draggable)
+        .setDefaultResponse(HandlerResponse.Continue)
         .onStart(this, this.onStart)
         .onEnd(this, this.onEnd)
         .onDrag(this, this.onDrag)
@@ -43,17 +45,20 @@ export class Draggable {
     dom.addClass(element, "dragging");
 
     event.dataTransfer.effectAllowed = "move";
+    event.stopPropagation();
   }
-  onEnd(element) {
+  onEnd(element, event) {
     if (this.dropListener) {
       this.dropListener.remove();
       this.dropListener = null;
     }
     log.debug("dragEnd");
     dom.removeClass(element, "dragging");
+    event.stopPropagation();
   }
-  onDrag() {
+  onDrag(element, event) {
     // log.debug("drag");
+    event.stopPropagation();
   }
   onEnter() {
     log.debug("dragEnter");

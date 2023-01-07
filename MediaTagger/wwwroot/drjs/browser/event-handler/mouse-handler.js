@@ -98,6 +98,9 @@ export class MouseHandler extends EventHandler {
 
   callHandler(method, event) {
     this.mousePosition.update(event);
+    var target = this.getEventTarget(event);
+    log.always(`mouse ${target.id}:${target.className} - ${event.type}`);
+
     try {
       if (event.type == "mousemove") {
         this.onMouseMove.call(

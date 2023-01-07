@@ -30,7 +30,7 @@ import { Listeners } from "../../drjs/browser/event.js";
 import { ObjectEventType, EventEmitter } from "../../drjs/browser/event.js";
 import FileGroup from "../data/file-group.js";
 
-const log = Logger.create("Media", LOG_LEVEL.DEBUG);
+const log = Logger.create("Media", LOG_LEVEL.WARN);
 
 export var FilterChangeEventType = new ObjectEventType("FilterChange");
 export var FilterChangeEvent = new EventEmitter(FilterChangeEventType, this);
@@ -101,12 +101,21 @@ class Media {
     return this.showAllGroupFiles || item.isPrimary();
   }
 
+  step() {
+    log.debug("files ", this.files.getLength());
+  }
   async loadItems() {
-    runSerial(
+    var step = this.step.bind(this);
+    await runSerial(
       this.loadItemsFromDatabase.bind(this),
-      this.createGroups.bind(this),
-      this.loadItemsFromAPI.bind(this),
+      step,
       this.createGroups.bind(this)
+    );
+    runSerial(
+      this.loadItemsFromAPI.bind(this),
+      step,
+      this.createGroups.bind(this),
+      step
     );
   }
 
@@ -149,7 +158,7 @@ class Media {
 
   async loadItemsFromDatabase() {
     try {
-      await runSerial(
+      return await runSerial(
         dataLoader(dbGetMediaFiles, dataAdder(this.files, MediaFile), 10000)
       );
     } catch (ex) {
@@ -159,7 +168,9 @@ class Media {
 
   async loadItemsFromAPI() {
     try {
-      runParallel(
+      //await dataLoader(getMediaFiles, dataUpdater(this.files, MediaFile))();
+      // don't await.  UI works from indexedDB until load is finished
+      return runParallel(
         dataLoader(getMediaFiles, dataUpdater(this.files, MediaFile)),
         dataLoader(getTags, dataUpdater(this.tags, Tag)),
         dataLoader(getProperties, dataUpdater(this.properties, Property)),

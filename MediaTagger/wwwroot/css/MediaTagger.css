@@ -28,6 +28,12 @@ body {
 }
 
 #media-view {
+  background: linear-gradient(142deg, #777777, #ffffff), linear-gradient(0deg, #777777, #ffffff);
+  background-size: 3px 3px;
+  -webkit-user-select: none;
+     -moz-user-select: none;
+      -ms-user-select: none;
+          user-select: none;
   grid-area: content;
   display: grid;
   grid-template-areas: "date-filter date-filter date-filter date-filter date-filter" "media-filter grid-sizer-filter   media-items grid-sizer-details  media-details";
@@ -35,6 +41,9 @@ body {
   grid-template-rows: auto 1fr;
   height: 100%;
   max-height: 100%;
+}
+#media-view > * {
+  background-color: transparent;
 }
 #media-view .media-items {
   grid-area: media-items;
@@ -149,6 +158,7 @@ body {
 }
 #media-view .media-filter {
   grid-area: media-filter;
+  background-color: #ffffff;
   width: 250px;
   overflow: auto;
 }
@@ -527,25 +537,29 @@ button:hover {
   padding-left: 2rem;
 }
 
+.grid-sizer {
+  z-index: 1000;
+  position: relative;
+  margin: 0;
+  padding: 2px;
+  background-color: transparent;
+}
 .grid-sizer.left {
   border-left: 1px solid #777;
   border-right: 1px solid #777;
-  width: 4px;
-  background-color: #ddd;
+  width: 8px;
   cursor: col-resize;
 }
 .grid-sizer.right {
   border-left: 1px solid #777;
   border-right: 1px solid #777;
-  width: 4px;
-  background-color: #ddd;
+  width: 8px;
   cursor: col-resize;
 }
 .grid-sizer.bottom {
   border-top: 1px solid #777;
   border-bottom: 1px solid #777;
   height: 4px;
-  background-color: #ddd;
   cursor: row-resize;
 }
 

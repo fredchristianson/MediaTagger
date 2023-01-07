@@ -1,5 +1,5 @@
 import { ComponentBase } from "../../drjs/browser/component.js";
-
+import { watcher as settingsWatcher } from "../modules/setting-watcher.js";
 import ViewOptionsComponent from "./view-options.js";
 import StatusBarComponent from "./status-bar.js";
 import FileViewComponent from "./file-view.js";
@@ -19,8 +19,11 @@ export class MainComponent extends ComponentBase {
   }
 
   async onHtmlInserted(parent) {
+    this.settingsWatcher = settingsWatcher;
+    await this.settingsWatcher.init();
     this.viewOptions = new ViewOptionsComponent("#view-options");
     this.statusBar = new StatusBarComponent("#status-bar");
+
     var appSettings = await api.GetAppSettings();
     if (
       appSettings != null &&

@@ -175,20 +175,22 @@ button:hover {
 }
 
 .grid-sizer {
-
+  z-index: 1000;
+  position: relative;
+  margin: 0;
+  padding: 2px;
+  background-color: transparent;
   &.left {
     border-left: 1px solid #777;
     border-right: 1px solid #777;
-    width: 4px;
-    background-color: #ddd;
+    width: 8px;
     cursor: col-resize;
   }
 
   &.right {
     border-left: 1px solid #777;
       border-right: 1px solid #777;
-      width: 4px;
-      background-color: #ddd;
+      width: 8px;
     cursor: col-resize;
   }
 
@@ -196,13 +198,12 @@ button:hover {
           border-top: 1px solid #777;
           border-bottom: 1px solid #777;
           height: 4px;
-          background-color: #ddd;
           cursor: row-resize;
         }
 }
 
 .grid-sizer.dragging {
-  opacity: 0;
+  opacity: 0.0;
 }
 
 .toggle-next-sibling {
