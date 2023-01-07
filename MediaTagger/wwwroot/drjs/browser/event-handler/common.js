@@ -70,6 +70,8 @@ export class HandlerMethod {
     if (typeof object == "function") {
       this.handlerObject = null;
       this.handlerFunction = object;
+      this.dataSource = null;
+      this.data = null;
       return;
     }
     this.handlerObject = object;
@@ -84,9 +86,17 @@ export class HandlerMethod {
     }
   }
 
+  setData(dataSource, data) {
+    this.dataSource = dataSource;
+    this.data = data;
+  }
   call(...args) {
     if (this.handlerFunction) {
-      this.handlerFunction.apply(this.handlerObject, args);
+      if (this.dataSource) {
+        this.handlerFunction.call(this.handlerObject, this.data, ...args);
+      } else {
+        this.handlerFunction.apply(this.handlerObject, args);
+      }
     }
   }
 }

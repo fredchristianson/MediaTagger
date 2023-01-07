@@ -4,7 +4,12 @@ export class Settings {
   static async load(scope, defaultValues) {
     var json = await dbLoadSettings(scope);
     if (json == null) {
-      return new Settings({ scope: scope, values: defaultValues ?? {} });
+      var settings = new Settings({
+        scope: scope,
+        values: defaultValues ?? {},
+      });
+      dbSaveSettings(settings);
+      return settings;
     } else {
       return new Settings({ scope: scope, values: json.values });
     }

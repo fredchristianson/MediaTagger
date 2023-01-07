@@ -55,7 +55,7 @@ export class MouseOverHandler extends EventHandler {
     this.mousePosition.update(event);
     try {
       var target = this.getEventTarget(event);
-      log.always(`mouseover ${target.id}:${target.className} - ${event.type}`);
+      log.never(`mouseover ${target.id}:${target.className} - ${event.type}`);
       if (event.type == "mouseover") {
         if (this.disableContextMenu) {
           document.body.oncontextmenu = () => {

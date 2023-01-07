@@ -57,7 +57,7 @@ export class InputHandlerBuilder extends EventHandlerBuilder {
 export class InputHandler extends EventHandler {
   constructor(...args) {
     super(...args);
-    this.setTypeName(["input", "focusin", "focusout", "keydown"]);
+    this.setTypeName(["input", "change", "focusin", "focusout", "keydown"]);
     this.setDefaultResponse(HandlerResponse.Continue);
     this.onChange = HandlerMethod.None();
     this.onFocus = HandlerMethod.None();
@@ -95,6 +95,7 @@ export class InputHandler extends EventHandler {
         if (method != null) {
           method.call(event.target, this.data, event, this);
         }
+        this.onChange.setData(this.dataSource, this.data);
         this.onChange.call(
           this.getValue(event.target),
           this.getEventTarget(event),

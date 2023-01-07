@@ -274,7 +274,7 @@ export class EventHandler {
   invokeHandler(event) {
     var result = null;
     var target = this.getEventTarget(event);
-    log.always(`eventHandler ${target.id}:${target.className} - ${event.type}`);
+    log.never(`eventHandler ${target.id}:${target.className} - ${event.type}`);
     if (this.dataSource) {
       if (typeof this.dataSource == "function") {
         this.data = this.dataSource(this.getEventTarget(event));

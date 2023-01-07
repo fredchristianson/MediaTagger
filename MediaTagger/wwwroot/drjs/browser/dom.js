@@ -110,23 +110,30 @@ export class DOM {
   find(...opts) {
     var result = [];
     const sel = this.getParentAndSelector(opts);
-    if (sel.selector instanceof HTMLElement) {
-      // a DOM element was passed as a selector, so return it
-      result = [sel.selector];
-    } else if (Array.isArray(sel.parent)) {
-      const childLists = sel.parent.map((parent) => {
-        // if the parent matches, keep it
-        if (parent.matches(sel.selector)) {
-          result.push(parent);
-        }
-        // also keep any decendants that match
-        result.push(...Array.from(parent.querySelectorAll(sel.selector)));
-      });
+    if (Array.isArray(sel.selector)) {
+      result = sel.selector.reduce((arr, e) => {
+        arr.push(this.find(sel.parent, e));
+        return arr;
+      }, []);
     } else {
-      const elements = sel.parent.querySelectorAll(sel.selector);
-      result = Array.from(elements);
-      if (sel.parent.matches && sel.parent.matches(sel.selector)) {
-        result.push(sel.parent);
+      if (sel.selector instanceof HTMLElement) {
+        // a DOM element was passed as a selector, so return it
+        result = [sel.selector];
+      } else if (Array.isArray(sel.parent)) {
+        const childLists = sel.parent.map((parent) => {
+          // if the parent matches, keep it
+          if (parent.matches(sel.selector)) {
+            result.push(parent);
+          }
+          // also keep any decendants that match
+          result.push(...Array.from(parent.querySelectorAll(sel.selector)));
+        });
+      } else {
+        const elements = sel.parent.querySelectorAll(sel.selector);
+        result = Array.from(elements);
+        if (sel.parent.matches && sel.parent.matches(sel.selector)) {
+          result.push(sel.parent);
+        }
       }
     }
     return result;
@@ -219,9 +226,12 @@ export class DOM {
     assert.notNull(element, "setProperty requires an element");
     assert.notEmpty(name, "setProperty requires a name");
     this.toElementArray(element).forEach((elem) => {
-      elem[name] = val;
-      const event = new Event("change", { bubbles: true, cancelable: false });
-      elem.dispatchEvent(event);
+      if (elem[name] != val) {
+        elem[name] = val;
+
+        const event = new Event("change", { bubbles: true, cancelable: false });
+        elem.dispatchEvent(event);
+      }
     });
   }
 
@@ -476,6 +486,29 @@ export class DOM {
       parent = parent.parentElement;
     }
     return parent;
+  }
+
+  // return array of all parent elements up to selector or up to this.root if selector is null
+  parents(element, selector = null) {
+    const parentList = [];
+    if (typeof element == "string") {
+      element = this.first(element);
+    }
+    if (selector == null) {
+      selector = this.root;
+    }
+    var next = element.parentElement;
+    while (next != null) {
+      parentList.push(next);
+      if (next == selector || this.matches(next, selector)) {
+        next = null;
+      } else {
+        next = next.parentElement;
+      }
+      return [];
+    }
+
+    return parentList;
   }
 
   setOptions(selector, options, defaultLabel = null) {
