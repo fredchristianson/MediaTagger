@@ -7,9 +7,10 @@
   "properties";
   grid-template-rows: auto auto 1fr;
 
-  #tags {
+  #tag-details {
     grid-area: tags;
-    overflow: scroll;
+    overflow: auto;
+    padding: 4px;
   }
   .grid-sizer {
     grid-area: sizer;

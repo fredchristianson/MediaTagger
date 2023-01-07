@@ -40,7 +40,7 @@ export class CheckboxHandler extends InputHandler {
   callHandler(method, event) {
     super.callHandler(method, event);
     var target = this.getEventTarget(event);
-    if (event.type == "input") {
+    if (event.type == "change") {
       if (dom.isChecked(target)) {
         if (this.dataSource) {
           this.checkedHandler.call(this.data, target, event);

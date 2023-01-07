@@ -8,7 +8,7 @@ import {
 } from "./dom-watcher.js";
 import { LOG_LEVEL, Logger } from "../../drjs/logger.js";
 
-const log = Logger.create("SettingWatcher", LOG_LEVEL.WARN);
+const log = Logger.create("SettingWatcher", LOG_LEVEL.DEBUG);
 
 class SettingWatcher {
   constructor() {

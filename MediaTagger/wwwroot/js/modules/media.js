@@ -2,6 +2,7 @@ import { LOG_LEVEL, Logger } from "../../drjs/logger.js";
 import { compareDates, compareIds, compareNames } from "../data/helpers.js";
 import {
   Tag,
+  MediaTag,
   Property,
   PropertyValue,
   MediaFile,
@@ -16,15 +17,7 @@ import {
   ObservableArray,
   ObservableTree,
 } from "./collections.js";
-import {
-  getMediaFiles,
-  getProperties,
-  getPropertyValues,
-  getTags,
-  getAlbums,
-  saveMediaFiles,
-  createTag,
-} from "./mt-api.js";
+import * as API from "./mt-api.js";
 import { dbGetMediaFiles, dbSaveMediaFiles } from "../data/database.js";
 import { Listeners } from "../../drjs/browser/event.js";
 import { ObjectEventType, EventEmitter } from "../../drjs/browser/event.js";
@@ -43,6 +36,7 @@ class Media {
     this.groups = new ObservableArray();
     this.properties = new ObservableArray();
     this.propertyValues = new ObservableArray();
+    this.mediaTags = new ObservableArray();
     this.showAllGroupFiles = false;
     this.mediaFilterItems = new FilteredObservableView(
       this.files,
@@ -105,17 +99,15 @@ class Media {
     log.debug("files ", this.files.getLength());
   }
   async loadItems() {
-    var step = this.step.bind(this);
     await runSerial(
       this.loadItemsFromDatabase.bind(this),
-      step,
-      this.createGroups.bind(this)
+      this.createGroups.bind(this),
+      this.setupTags.bind(this)
     );
     runSerial(
       this.loadItemsFromAPI.bind(this),
-      step,
       this.createGroups.bind(this),
-      step
+      this.setupTags.bind(this)
     );
   }
 
@@ -138,22 +130,47 @@ class Media {
     }
   }
 
+  getTagMap() {
+    return [...this.tags].reduce((map, tag) => {
+      map[tag.getId()] = tag;
+      return map;
+    }, {});
+  }
+
+  getFileMap() {
+    return [...this.files].reduce((map, file) => {
+      map[file.getId()] = file;
+      return map;
+    }, {});
+  }
+  setupTags() {
+    var tagMap = this.getTagMap();
+    var fileMap = this.getFileMap();
+    for (var fileTags of this.mediaTags) {
+      var file = fileMap[fileTags.getMediaFileId()];
+      if (file == null) {
+        log.error("file not found for MediaTag file ", fileTags.getId());
+      } else {
+        const tags = fileTags.getTagIds().map((id) => {
+          return tagMap[id];
+        });
+        file.setTags(tags);
+        tags.forEach((t) => {
+          t.addFile(file);
+        });
+      }
+    }
+  }
+
   async updateDatabaseItems() {
     var updates = [...this.files].filter((f) => {
       return f.isChanged();
     });
     await dbSaveMediaFiles(updates);
-    await saveMediaFiles(updates);
+    await API.saveMediaFiles(updates);
     for (var update of updates) {
       update.unsetChanged();
     }
-    // for (var item of this.files) {
-
-    //   if (item.isUpdated()) {
-    //     await dbSaveMediaFile(item);
-    //     item.unsetUpdated();
-    //   }
-    // }
   }
 
   async loadItemsFromDatabase() {
@@ -171,14 +188,15 @@ class Media {
       //await dataLoader(getMediaFiles, dataUpdater(this.files, MediaFile))();
       // don't await.  UI works from indexedDB until load is finished
       return runParallel(
-        dataLoader(getMediaFiles, dataUpdater(this.files, MediaFile)),
-        dataLoader(getTags, dataUpdater(this.tags, Tag)),
-        dataLoader(getProperties, dataUpdater(this.properties, Property)),
+        dataLoader(API.getMediaFiles, dataUpdater(this.files, MediaFile)),
+        dataLoader(API.getTags, dataUpdater(this.tags, Tag)),
+        dataLoader(API.getMediaTags, dataUpdater(this.mediaTags, MediaTag)),
+        dataLoader(API.getProperties, dataUpdater(this.properties, Property)),
         dataLoader(
-          getPropertyValues,
+          API.getPropertyValues,
           dataUpdater(this.propertyValues, PropertyValue)
         ),
-        dataLoader(getAlbums, dataUpdater(this.albums, Album))
+        dataLoader(API.getAlbums, dataUpdater(this.albums, Album))
       );
     } catch (ex) {
       log.error(ex, "failed to get items");
@@ -198,6 +216,7 @@ class Media {
   getSelectedItems() {
     return this.selectedItems;
   }
+
   setSearchText(text) {
     var lcText = text.toLowerCase();
     this.searchFilterItems.setKeepFunction((item) => {
@@ -337,9 +356,47 @@ class Media {
       parentId = child.getId();
     }
 
-    var created = await createTag(parentId, leaf);
+    var created = await API.createTag(parentId, leaf);
     this.tags.insert(created);
     return created;
+  }
+
+  async tagSelected(tagId) {
+    var tag = this.tags.findById(tagId);
+    if (tag == null) {
+      log.error("unkown tag", tagId);
+      return;
+    }
+    for (var sel of this.selectedItems) {
+      var file = this.files.findById(sel.getId());
+      if (file == null) {
+        log.error("unknown file ", sel.getId());
+      } else {
+        if (await API.addMediaTag(sel.getId(), tagId)) {
+          file.addTag(tag);
+          tag.addFile(file);
+        }
+      }
+    }
+  }
+
+  async untagSelected(tagId) {
+    var tag = this.tags.findById(tagId);
+    if (tag == null) {
+      log.error("unkown tag", tagId);
+      return;
+    }
+    for (var sel of this.selectedItems) {
+      var file = this.files.findById(sel.getId());
+      if (file == null) {
+        log.error("unknown file ", sel.getId());
+      } else {
+        if (await API.removeMediaTag(sel.getId(), tagId)) {
+          file.removeTag(tag);
+          tag.removeFile(file);
+        }
+      }
+    }
   }
 
   getTagPath(tag) {

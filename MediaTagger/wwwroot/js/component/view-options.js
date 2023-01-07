@@ -53,25 +53,25 @@ export class ViewOptionsComponent extends ComponentBase {
         .build(),
       BuildInputHandler()
         .selector("[name='zoom']")
-        .onChange(this, this.zoom)
+        .onInput(this, this.zoom)
         .build(),
       BuildInputHandler()
         .selector("[name='zoom-slider']")
-        .onChange(this, this.zoomSlider)
+        .onInput(this, this.zoomSlider)
         .build(),
       BuildInputHandler()
         .selector("[name='search']")
-        .onChange(this, this.search)
+        .onInput(this, this.search)
         .debounce(500)
         .build(),
       BuildCheckboxHandler()
         .selector("[name='expand-groups']")
-        .onChange(this, this.expandGroupsChange)
+        .onInput(this, this.expandGroupsChange)
         .build(),
 
       BuildInputHandler()
         .selector("[name='sort']")
-        .onChange(this, this.sort)
+        .onInput(this, this.sort)
         .build(),
       BuildWheelHandler()
         .listenTo("#content-view")
@@ -80,7 +80,7 @@ export class ViewOptionsComponent extends ComponentBase {
         .build(),
       Media.getSelectedItems()
         .getUpdatedEvent()
-        .createListener(this, this.selectionChange)
+        .createListener(this, this.selectionInput)
     );
     this.zoomInput = this.dom.first('[name="zoom"]');
     this.zoomSlider = this.dom.first('[name="zoom-slider"]');
@@ -103,7 +103,7 @@ export class ViewOptionsComponent extends ComponentBase {
     Media.showSecondaryGroupFiles(expand);
     await this.settings.set("showSecondary", expand);
   }
-  selectionChange(selected) {
+  selectionInput(selected) {
     log.debug("selection change ", selected.getLength());
     dom.toggleClass("#content-view", "multi-select", selected.getLength() > 1);
   }

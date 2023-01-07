@@ -208,7 +208,7 @@ body {
   left: 0px;
   width: 10rem;
   position: absolute;
-  background-color: white;
+  background-color: #ccccff;
   text-align: center;
   line-height: 2em;
 }
@@ -220,7 +220,7 @@ body {
   right: 0px;
   width: 10rem;
   position: absolute;
-  background-color: white;
+  background-color: #ccccff;
 }
 .date-select .svg-container {
   position: absolute;
@@ -257,82 +257,93 @@ body {
   width: 128px;
 }
 
-#tags .tag-tree, .tag-filter .tag-tree {
+#tag-details .tag-tree,
+.tag-filter .tag-tree {
   background-color: transparent;
 }
-#tags .tag-tree .tag.root.off, .tag-filter .tag-tree .tag.root.off {
-  grid-template-areas: "checkname" ". children";
-  grid-template-columns: 4px 1fr;
-}
-#tags .tag-tree .tag.root.off > .toggle, .tag-filter .tag-tree .tag.root.off > .toggle {
-  display: none;
-}
-#tags .tag-tree .tag.root.off > label > input, .tag-filter .tag-tree .tag.root.off > label > input {
-  display: none;
-}
-#tags .tag-tree .tag, .tag-filter .tag-tree .tag {
+#tag-details .tag-tree .tag,
+.tag-filter .tag-tree .tag {
   position: relative;
   display: grid;
   grid-template-areas: "toggle checkname" ". children";
   grid-template-columns: 12px 1fr;
   grid-template-rows: 20px auto;
 }
-#tags .tag-tree .tag .toggle, .tag-filter .tag-tree .tag .toggle {
+#tag-details .tag-tree .tag .toggle,
+.tag-filter .tag-tree .tag .toggle {
   grid-area: toggle;
   height: 10px;
   background-color: transparent;
   z-index: 10;
 }
-#tags .tag-tree .tag label, .tag-filter .tag-tree .tag label {
+#tag-details .tag-tree .tag label,
+.tag-filter .tag-tree .tag label {
   grid-area: checkname;
   white-space: nowrap;
 }
-#tags .tag-tree .tag .name, .tag-filter .tag-tree .tag .name {
+#tag-details .tag-tree .tag .name,
+.tag-filter .tag-tree .tag .name {
   padding-left: 2px;
 }
-#tags .tag-tree .tag a.add-child, .tag-filter .tag-tree .tag a.add-child {
+#tag-details .tag-tree .tag a.add-child,
+.tag-filter .tag-tree .tag a.add-child {
   position: absolute;
-  right: 0;
+  right: 8px;
   display: none;
   text-decoration: none;
 }
-#tags .tag-tree .tag a.add-child:hover, .tag-filter .tag-tree .tag a.add-child:hover {
+#tag-details .tag-tree .tag a.add-child:hover,
+.tag-filter .tag-tree .tag a.add-child:hover {
   font-weight: bolder;
 }
-#tags .tag-tree .tag.untagged .add-child, .tag-filter .tag-tree .tag.untagged .add-child {
+#tag-details .tag-tree .tag.untagged .add-child,
+.tag-filter .tag-tree .tag.untagged .add-child {
   display: none !important;
   height: 0;
 }
-#tags .tag-tree .tag.hover > .add-child,
-#tags .tag-tree .tag .add-child:hover, .tag-filter .tag-tree .tag.hover > .add-child,
+#tag-details .tag-tree .tag.hover > label,
+.tag-filter .tag-tree .tag.hover > label {
+  padding: 2px;
+  font-weight: bold;
+  border: 1px dashed #eeeeee;
+}
+#tag-details .tag-tree .tag.hover > .add-child,
+#tag-details .tag-tree .tag .add-child:hover,
+.tag-filter .tag-tree .tag.hover > .add-child,
 .tag-filter .tag-tree .tag .add-child:hover {
   display: inline-block;
 }
-#tags .tag-tree .tag .children, .tag-filter .tag-tree .tag .children {
+#tag-details .tag-tree .tag .children,
+.tag-filter .tag-tree .tag .children {
   grid-area: children;
 }
-#tags .tag-tree .tag .children .new, .tag-filter .tag-tree .tag .children .new {
+#tag-details .tag-tree .tag .children .new,
+.tag-filter .tag-tree .tag .children .new {
   background-color: #aaaa00;
   padding: 2px;
   position: relative;
 }
-#tags .tag-tree .tag .children .new .tag-name, .tag-filter .tag-tree .tag .children .new .tag-name {
+#tag-details .tag-tree .tag .children .new .tag-name,
+.tag-filter .tag-tree .tag .children .new .tag-name {
   width: 100%;
 }
-#tags .tag-tree .tag .children .new .tag-name:-moz-placeholder-shown ~ div .ok, .tag-filter .tag-tree .tag .children .new .tag-name:-moz-placeholder-shown ~ div .ok {
+#tag-details .tag-tree .tag .children .new .tag-name:-moz-placeholder-shown ~ div .ok, .tag-filter .tag-tree .tag .children .new .tag-name:-moz-placeholder-shown ~ div .ok {
   visibility: hidden;
 }
-#tags .tag-tree .tag .children .new .tag-name:-ms-input-placeholder ~ div .ok, .tag-filter .tag-tree .tag .children .new .tag-name:-ms-input-placeholder ~ div .ok {
+#tag-details .tag-tree .tag .children .new .tag-name:-ms-input-placeholder ~ div .ok, .tag-filter .tag-tree .tag .children .new .tag-name:-ms-input-placeholder ~ div .ok {
   visibility: hidden;
 }
-#tags .tag-tree .tag .children .new .tag-name:placeholder-shown ~ div .ok, .tag-filter .tag-tree .tag .children .new .tag-name:placeholder-shown ~ div .ok {
+#tag-details .tag-tree .tag .children .new .tag-name:placeholder-shown ~ div .ok,
+.tag-filter .tag-tree .tag .children .new .tag-name:placeholder-shown ~ div .ok {
   visibility: hidden;
 }
-#tags .tag-tree .tag .children .new .cancel, .tag-filter .tag-tree .tag .children .new .cancel {
+#tag-details .tag-tree .tag .children .new .cancel,
+.tag-filter .tag-tree .tag .children .new .cancel {
   position: absolute;
   right: 0;
 }
-#tags .tag-tree .has-children::after, .tag-filter .tag-tree .has-children::after {
+#tag-details .tag-tree .has-children::after,
+.tag-filter .tag-tree .has-children::after {
   content: "";
   position: absolute;
   left: 0px;
@@ -344,7 +355,8 @@ body {
   transform: rotate(45deg);
   padding: 3px;
 }
-#tags .tag-tree .has-children.closed::after, .tag-filter .tag-tree .has-children.closed::after {
+#tag-details .tag-tree .has-children.closed::after,
+.tag-filter .tag-tree .has-children.closed::after {
   position: absolute;
   left: 0px;
   width: 4px;
@@ -355,13 +367,16 @@ body {
   transform: rotate(-45deg);
   padding: 3px;
 }
-#tags .tag-tree > div, .tag-filter .tag-tree > div {
+#tag-details .tag-tree > div,
+.tag-filter .tag-tree > div {
   margin-left: 8px;
 }
-#tags .tag, .tag-filter .tag {
+#tag-details .tag,
+.tag-filter .tag {
   background-color: transparent;
 }
-#tags .tag.closed div, .tag-filter .tag.closed div {
+#tag-details .tag.closed div,
+.tag-filter .tag.closed div {
   display: none;
 }
 
@@ -370,15 +385,25 @@ body {
   height: 0;
 }
 
+#tag-details .tag.root {
+  display: block;
+}
+#tag-details .tag.root > .toggle {
+  display: none;
+}
+#tag-details .tag-tree.no-select input[type=checkbox] {
+  display: none;
+}
 #media-details > div {
   height: 100%;
   display: grid;
   grid-template-areas: "tags" "sizer" "properties";
   grid-template-rows: auto auto 1fr;
 }
-#media-details > div #tags {
+#media-details > div #tag-details {
   grid-area: tags;
-  overflow: scroll;
+  overflow: auto;
+  padding: 4px;
 }
 #media-details > div .grid-sizer {
   grid-area: sizer;

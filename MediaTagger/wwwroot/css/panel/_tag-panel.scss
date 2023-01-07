@@ -1,22 +1,9 @@
-#tags, .tag-filter {
+#tag-details,
+.tag-filter {
 
   .tag-tree {
     background-color: transparent;
 
-    .tag.root.off {
-      grid-template-areas:
-        "checkname"
-        ". children";
-      grid-template-columns: 4px 1fr;
-
-      >.toggle {
-        display: none;
-      }
-
-      >label>input {
-        display: none
-      }
-    }
 
 
     .tag {
@@ -25,7 +12,7 @@
       grid-template-areas:
         "toggle checkname"
         ". children";
-      grid-template-columns: 12px  1fr;
+      grid-template-columns: 12px 1fr;
       grid-template-rows: 20px auto;
 
       .toggle {
@@ -40,8 +27,7 @@
         white-space: nowrap;
       }
 
-      input.check {
-      }
+      input.check {}
 
       .name {
         padding-left: 2px;
@@ -49,7 +35,7 @@
 
       a.add-child {
         position: absolute;
-        right: 0;
+        right: 8px;
         display: none;
         text-decoration: none;
 
@@ -60,11 +46,16 @@
         ;
       }
 
-      &.untagged .add-child{
+      &.untagged .add-child {
         display: none !important;
         height: 0;
       }
 
+      &.hover>label {
+        padding: 2px;
+        font-weight: bold;
+        border: 1px dashed #eeeeee;
+      }
       &.hover>.add-child,
       .add-child:hover {
         display: inline-block;
@@ -141,7 +132,30 @@
   }
 }
 
-        .tag-filter .add-child {
-          display: none !important;
-          height: 0;
-        }
+.tag-filter .add-child {
+  display: none !important;
+  height: 0;
+}
+
+#tag-details {
+  .tag.root {
+    display: block;
+
+    >.toggle { display: none;}
+
+
+  }
+
+  .tag-tree {
+        &.no-select {
+            input[type='checkbox'] {
+              display: none;
+            }
+          }
+        
+          &.multi-select {
+            
+          }
+  }
+
+}

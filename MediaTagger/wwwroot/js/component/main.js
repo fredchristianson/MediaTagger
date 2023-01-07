@@ -5,7 +5,7 @@ import StatusBarComponent from "./status-bar.js";
 import FileViewComponent from "./file-view.js";
 import FindGroupsComponent from "./find-groups.js";
 import SettingsComponent from "./settings.js";
-import api from "../modules/mt-api.js";
+import { getAppSettings } from "../modules/mt-api.js";
 import { DOMWatcher, toggleClass } from "../modules/dom-watcher.js";
 export class MainComponent extends ComponentBase {
   constructor(selector, htmlName = "main") {
@@ -24,7 +24,7 @@ export class MainComponent extends ComponentBase {
     this.viewOptions = new ViewOptionsComponent("#view-options");
     this.statusBar = new StatusBarComponent("#status-bar");
 
-    var appSettings = await api.GetAppSettings();
+    var appSettings = await getAppSettings();
     if (
       appSettings != null &&
       appSettings.mediaDirectories != null &&

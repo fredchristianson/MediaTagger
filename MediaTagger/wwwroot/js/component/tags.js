@@ -18,6 +18,16 @@ import { LOG_LEVEL, Logger } from "../../drjs/logger.js";
 
 const log = Logger.create("TagComponent", LOG_LEVEL.DEBUG);
 
+function NameCompareFunction(a, b) {
+  if (a == null) {
+    return -1;
+  }
+  if (b == null) {
+    return -1;
+  }
+  return a.getName().localeCompare(b.getName());
+}
+
 export class TagsComponent extends ComponentBase {
   constructor(selector, htmlName = "tags") {
     super(selector, htmlName);
@@ -32,33 +42,19 @@ export class TagsComponent extends ComponentBase {
       this.dom.first("#tags-new-tag-template")
     );
 
+    this.tagTree = this.dom.first(".tag-tree");
     this.listeners.add(
       BuildClickHandler()
-        .listenTo(this.dom, ".add-child")
-        .onClick(this, this.tagNameDialog)
-        .build(),
-      BuildClickHandler()
-        .listenTo(".tag-tree", ".toggle")
+        .listenTo(this.tagTree, ".toggle")
         .onClick(this, this.toggleClosed)
+        .setData((element) => {
+          return this.dom.getDataWithParent(element, "id");
+        })
         .build(),
       media.getTags().getUpdatedEvent().createListener(this, this.tagChange),
-      BuildHoverHandler()
-        .listenTo(".tag-tree", ".tag")
-        .onStart(this, this.hoverTag)
-        .onEnd(this, this.unhoverTag)
-        .build(),
-      BuildInputHandler()
-        .listenTo(".tag-tree", "input[name='name']")
-        .onBlur(this, this.hideNameDialog)
-        .onEnter(this, this.createTag)
-        .onEscape(this, this.hideNameDialog)
-        .build(),
-      BuildClickHandler()
-        .listenTo(".tag-tree", "button.ok")
-        .onClick(this, this.createTag)
-        .build(),
+
       BuildCheckboxHandler()
-        .listenTo(".tag-tree", "input[type='checkbox']")
+        .listenTo(this.tagTree, "input[type='checkbox']")
         .onChecked(this, this.onChecked)
         .onUnchecked(this, this.onUnchecked)
         .setData((element) => {
@@ -69,55 +65,12 @@ export class TagsComponent extends ComponentBase {
     this.tagChange();
   }
 
-  selectionChanged(id) {}
-  onChecked(id, checkbox, event) {
-    this.tagChecked(id);
-    this.selectionChanged(id);
-    this.checkChildren(checkbox, true);
-  }
+  onChecked(id, checkbox, event) {}
+  onUnchecked(id, checkbox, event) {}
 
-  checkChildren(checkbox, isChecked) {
-    var tag = this.dom.parent(checkbox, ".tag");
-    var checks = this.dom.find(tag, '.children input[type="checkbox"]');
-    this.dom.check(checks, isChecked);
-  }
-  onUnchecked(id, checkbox, event) {
-    this.tagUnchecked(id);
-    this.selectionChanged(id);
-    this.checkChildren(checkbox, false);
-    var parents = this.dom.parents(checkbox);
-    parents.forEach((tag) => {
-      var check = this.dom.first(tag, 'input[type="checkbox"]');
-      this.dom.uncheck(check);
-    });
-  }
-  tagChecked(id) {
-    log.debug("checked ", id);
-    if (!this.selectedTagIds.includes(id)) {
-      this.selectedTagIds.push(id);
-      FilterChangeEvent.emit();
-      var checkElement = this.dom.first(`.tag[data-id='${id}'] input.check`);
-      this.dom.check(checkElement);
-    }
-  }
-
-  tagUnchecked(id) {
-    log.debug("unchecked ", id);
-    if (this.selectedTagIds.includes(id)) {
-      this.selectedTagIds.splice(this.selectedTagIds.indexOf(id), 1);
-      FilterChangeEvent.emit();
-    }
-  }
-
-  toggleClosed(element) {
+  toggleClosed(id, element) {
+    log.debug("toggleClosed", id, element);
     this.dom.toggleClass(element.parentNode, "closed");
-  }
-  hoverTag(element) {
-    this.dom.addClass(element, "hover");
-  }
-
-  unhoverTag(element) {
-    this.dom.removeClass(element, "hover");
   }
 
   tagChange() {
@@ -125,17 +78,31 @@ export class TagsComponent extends ComponentBase {
     var tree = this.dom.first(".tag-tree");
     this.dom.removeChildren(tree);
 
-    var root = this.createTagElement("/", "root");
-    this.dom.addClass(root, "root");
-    this.dom.append(tree, root);
-    this.insertTags(this.dom.first(root, ".children"), top);
-    var untagged = this.createTagElement("Untagged", "untagged");
-    this.dom.check(untagged);
-    this.dom.addClass(untagged, "untagged");
-    this.dom.append(tree, untagged);
+    var children = tree;
+    if (this.allowRoot()) {
+      var root = this.createTagElement("/", "root");
+      this.dom.addClass(root, "root");
+      this.dom.append(tree, root);
+      children = this.dom.first(root, ".children");
+    }
+    this.insertTags(children, top);
+    if (this.allowUntagged()) {
+      var untagged = this.createTagElement("Untagged", "untagged");
+      this.dom.check(untagged);
+      this.dom.addClass(untagged, "untagged");
+      this.dom.append(tree, untagged);
+    }
+  }
+
+  allowRoot() {
+    return true;
+  }
+  allowUntagged() {
+    return true;
   }
 
   insertTags(parentElement, nodes) {
+    nodes.sort(NameCompareFunction);
     for (var tag of nodes) {
       var element = this.createTagElement(tag.getName(), tag);
       this.dom.append(parentElement, element);
@@ -162,17 +129,183 @@ export class TagsComponent extends ComponentBase {
       ".add-child": new DataValue("parent-id", id),
       ".check": new PropertyValue("checked", this.isSelected(id)),
     });
+    var settingName = this.getSettingName(id);
+    if (settingName != null) {
+      this.dom.addClass(element, "has-setting");
+      this.dom.setData(element, "data-class-setting-name", settingName);
+      this.dom.setData(element, "data-class-value", "closed");
+    }
     this.insertTags(this.dom.first(element, ".children"), children);
 
     return element;
   }
 
+  getSettingName(id) {
+    return null;
+  }
+
   isSelected(id) {
     return false;
+  }
+}
+
+export class TagFilterComponent extends TagsComponent {
+  constructor(selector, htmlName = "tags") {
+    super(selector, htmlName);
+    media.addFilter(this.filterItem.bind(this));
+  }
+
+  filterItem(item) {
+    if (this.settings == null || this.settings.get("all")) {
+      return true;
+    }
+    var itemTags = item.getTags();
+    if (itemTags.length == 0) {
+      return this.settings.get("untagged");
+    }
+    const found = itemTags.find((tag) => {
+      return this.settings.get(tag.getId());
+    });
+    return found;
+  }
+
+  isSelected(id) {
+    return this.settings.get("all") || this.settings.get(id) !== false;
+  }
+  selectionChanged(id) {
+    FilterChangeEvent.emit();
+  }
+  onChange(id, isChecked, element) {
+    log.debug("filter tag change ", id);
+    this.settings.set(id, isChecked);
+    if (!isChecked) {
+      this.settings.set("all", false);
+    }
+  }
+
+  getSettingName(id) {
+    return `tag-filter-${id}`;
+  }
+  onChecked(id, checkbox, event) {
+    this.tagChecked(id);
+    this.selectionChanged(id);
+    this.checkChildren(checkbox, true);
+  }
+
+  checkChildren(checkbox, isChecked) {
+    var tag = this.dom.parent(checkbox, ".tag");
+    var checks = this.dom.find(tag, '.children input[type="checkbox"]');
+    this.dom.check(checks, isChecked);
+  }
+  onUnchecked(id, checkbox, event) {
+    this.tagUnchecked(id);
+    this.selectionChanged(id);
+    this.checkChildren(checkbox, false);
+    var parents = this.dom.parents(checkbox, ".tag");
+    parents.forEach((tag) => {
+      var check = this.dom.first(tag, 'input[type="checkbox"]');
+      this.dom.uncheck(check);
+    });
+  }
+  tagChecked(id) {
+    log.debug("filter checked ", id);
+    if (!this.selectedTagIds.includes(id)) {
+      this.selectedTagIds.push(id);
+      FilterChangeEvent.emit();
+      var checkElement = this.dom.first(`.tag[data-id='${id}'] input.check`);
+      this.dom.check(checkElement);
+    }
+  }
+
+  tagUnchecked(id) {
+    log.debug("filter unchecked ", id);
+    if (this.selectedTagIds.includes(id)) {
+      this.selectedTagIds.splice(this.selectedTagIds.indexOf(id), 1);
+      FilterChangeEvent.emit();
+    }
+  }
+
+  async onHtmlInserted(elements) {
+    this.settings = await Settings.load("tag-filter", {
+      all: true,
+      untagged: true,
+    });
+    await super.onHtmlInserted(elements);
+
+    this.listeners.add(
+      BuildCheckboxHandler()
+        .listenTo(this.tagTree, "input[type='checkbox']")
+        .onChange(this, this.onChange)
+        .setData((element) => {
+          return this.dom.getDataWithParent(element, "id");
+        })
+        .build()
+    );
+  }
+}
+
+export class TagDetailsComponent extends TagsComponent {
+  constructor(selector, htmlName = "tags") {
+    super(selector, htmlName);
+  }
+
+  allowRoot() {
+    return true;
+  }
+  allowUntagged() {
+    return false;
+  }
+  async onHtmlInserted(elements) {
+    await super.onHtmlInserted(elements);
+
+    this.listeners.add(
+      BuildInputHandler()
+        .listenTo(this.tagTree, "input[name='name']")
+        .onBlur(this, this.hideNameDialog)
+        .onEnter(this, this.createTag)
+        .onEscape(this, this.hideNameDialog)
+        .build(),
+      BuildClickHandler()
+        .listenTo(this.tagTree, "button.ok")
+        .onClick(this, this.createTag)
+        .build(),
+      BuildClickHandler()
+        .listenTo(this.dom, ".add-child")
+        .onClick(this, this.tagNameDialog)
+        .build(),
+      BuildHoverHandler()
+        .listenTo(this.tagTree, ".tag")
+        .onStart(this, this.hoverTag)
+        .onEnd(this, this.unhoverTag)
+        .build(),
+      media
+        .getSelectedItems()
+        .getUpdatedEvent()
+        .createListener(this, this.selectionChange)
+    );
+    this.dom.addClass(this.tagTree, "no-select");
+  }
+
+  hoverTag(element) {
+    this.dom.addClass(element, "hover");
+  }
+
+  unhoverTag(element) {
+    this.dom.removeClass(element, "hover");
+  }
+
+  selectionChange(selected) {
+    log.debug("selected items change");
+    const count = selected.getLength();
+    this.dom.toggleClass(this.tagTree, "no-select", count == 0);
+    this.dom.toggleClass(this.tagTree, "multi-select", count > 1);
   }
 
   addTag(parentId, val) {
     if (val != null && val.trim() != "") {
+      if (parentId == "root") {
+        parentId = null;
+      }
       var tag = media.createTag(parentId, val);
 
       return true;
@@ -181,17 +314,17 @@ export class TagsComponent extends ComponentBase {
     }
   }
   createTag(target, event) {
-    var input = this.dom.firstSibling(target, "input");
-    if (
-      this.addTag(
-        this.dom.getData(target, "parent-id"),
-        this.dom.getValue(input)
-      )
-    ) {
-      // blur may happen at same time so don't hide twice
-      setTimeout(() => {
-        this.hideNameDialog();
-      }, 10);
+    var input = this.dom.first(this.dom.parent(target, ".new"), "input");
+    var val = this.dom.getValue(input);
+    var parentId = this.dom.getData(target, "parent-id");
+    if (val != null && val != "") {
+      if (this.addTag(parentId, val)) {
+        this.dom.setValue(input, "");
+        // blur may happen at same time so don't hide twice
+        setTimeout(() => {
+          this.hideNameDialog();
+        }, 10);
+      }
     }
   }
 
@@ -218,51 +351,19 @@ export class TagsComponent extends ComponentBase {
     this.dom.setFocus(this.newTagElement, "input");
     log.debug("create tag");
   }
-}
 
-export class TagFilterComponent extends TagsComponent {
-  constructor(selector, htmlName = "tags") {
-    super(selector, htmlName);
-    media.addFilter(this.filterItem.bind(this));
-  }
-
-  filterItem(item) {
-    if (this.settings == null) {
-      return true;
-    }
-    return this.settings.get("untagged") || this.settings.get("all");
-  }
-
-  isSelected(id) {
-    return this.settings.get("all") || this.settings.get(id) !== false;
-  }
-  selectionChanged(id) {
-    FilterChangeEvent.emit();
-  }
-  onChange(id, isChecked, element) {
-    log.debug("tag change ", id);
-    this.settings.set(id, isChecked);
-    if (!isChecked) {
-      this.settings.set("all", false);
-    }
-  }
-
-  async onHtmlInserted(elements) {
-    this.settings = await Settings.load("tag-filter", {
-      all: true,
-      untagged: true,
+  onChecked(id, checkbox, event) {
+    log.debug("add tag ", id);
+    var parents = this.dom.parents(checkbox, ".tag");
+    media.tagSelected(id);
+    parents.forEach((tag) => {
+      var check = this.dom.first(tag, 'input[type="checkbox"]');
+      this.dom.check(check);
     });
-    await super.onHtmlInserted(elements);
-
-    this.listeners.add(
-      BuildCheckboxHandler()
-        .listenTo(".tag-tree", "input[type='checkbox']")
-        .onChange(this, this.onChange)
-        .setData((element) => {
-          return this.dom.getDataWithParent(element, "id");
-        })
-        .build()
-    );
+  }
+  onUnchecked(id, checkbox, event) {
+    log.debug("remove tag ", id);
+    media.untagSelected(id);
   }
 }
 

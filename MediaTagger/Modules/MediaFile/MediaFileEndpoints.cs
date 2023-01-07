@@ -82,8 +82,99 @@ namespace MediaTagger.Modules.MediaFile
                            return response;
                        });
 
+            routes.MapGet(V1_URL_PREFIX + "/MediaTags", async (MediaTaggerContext db, AppSettingsService settingsService, int? start, int? count) =>
+                       {
+                           var files = await db.MediaFiles
+                           .Where(f => !f.Hidden)
+                           .Include(f => f.Tags)
+                           .OrderBy(f => f.Id)
+                           .Skip(start ?? 0)
+                           .Take(count ?? 1000)
+                           .Select(f => new
+                           {
+                               id = f.Id,
+                               tags = f.Tags.Select(t => t.Id)
+                           }).ToListAsync();
+                           var total = await db.MediaFiles.CountAsync();
+                           return new
+                           {
+                               success = true,
+                               message = "success",
+                               start = start,
+                               requestCount = count,
+                               totalCount = total,
+                               resultCount = files.Count(),
+                               data = files
+                           };
+                       });
 
+            routes.MapPost(V1_URL_PREFIX + "/MediaTag", async (MediaTaggerContext db, AppSettingsService settingsService, int? mediaFileId, int? tagId) =>
+                    {
+                        var file = await db.MediaFiles
+                           .Where(f => !f.Hidden & f.Id == mediaFileId)
+                           .Include(f => f.Tags)
+                           .FirstAsync();
+                        dynamic response = null!;
+                        if (file != null)
+                        {
+                            var tag = await db.Tags.Where(t => t.Id == tagId).FirstAsync();
+                            file.Tags.Add(tag);
+                            await db.SaveChangesAsync();
+                            response = new
+                            {
+                                success = true,
+                                message = "created",
+                                mediaTag = new
+                                {
+                                    mediaFileId = mediaFileId,
+                                    tagId = tagId
+                                }
+                            };
+                        }
+                        else
+                        {
+                            response = new
+                            {
+                                success = false,
+                                message = "file not found",
+                            };
+                        }
+                        return response;
+                    });
 
+            routes.MapDelete(V1_URL_PREFIX + "/MediaTag", async (MediaTaggerContext db, AppSettingsService settingsService, int? mediaFileId, int? tagId) =>
+                    {
+                        var file = await db.MediaFiles
+                           .Where(f => !f.Hidden & f.Id == mediaFileId)
+                           .Include(f => f.Tags)
+                           .FirstAsync();
+                        dynamic response = null!;
+                        if (file != null)
+                        {
+                            var tag = await db.Tags.Where(t => t.Id == tagId).FirstAsync();
+                            file.Tags.Remove(tag);
+                            await db.SaveChangesAsync();
+                            response = new
+                            {
+                                success = true,
+                                message = "deleted",
+                                mediaTag = new
+                                {
+                                    mediaFileId = mediaFileId,
+                                    tagId = tagId
+                                }
+                            };
+                        }
+                        else
+                        {
+                            response = new
+                            {
+                                success = false,
+                                message = "file not found",
+                            };
+                        }
+                        return response;
+                    });
         }
     }
 }

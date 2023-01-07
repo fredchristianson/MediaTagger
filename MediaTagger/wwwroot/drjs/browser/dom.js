@@ -499,13 +499,10 @@ export class DOM {
     }
     var next = element.parentElement;
     while (next != null) {
-      parentList.push(next);
       if (next == selector || this.matches(next, selector)) {
-        next = null;
-      } else {
-        next = next.parentElement;
+        parentList.push(next);
       }
-      return [];
+      next = next.parentElement;
     }
 
     return parentList;

@@ -89,6 +89,7 @@ export class ClickHandler extends EventHandler {
         method.call(event.currentTarget, this.data, event, this);
       }
       if (event.type == "click" && this.onClick != null) {
+        this.onClick.setData(this.dataSource, this.data);
         this.onClick.call(this.getEventTarget(event), this.data, event, this);
       }
       if (event.type == "mouseup") {

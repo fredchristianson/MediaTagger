@@ -23,6 +23,10 @@ export class InputHandlerBuilder extends EventHandlerBuilder {
     this.handlerInstance.setOnChange(new HandlerMethod(...args, "onChange"));
     return this;
   }
+  onInput(...args) {
+    this.handlerInstance.setOnInput(new HandlerMethod(...args, "onInput"));
+    return this;
+  }
   onBlur(...args) {
     this.handlerInstance.setOnBlur(new HandlerMethod(...args, "onBlur"));
     return this;
@@ -60,6 +64,7 @@ export class InputHandler extends EventHandler {
     this.setTypeName(["input", "change", "focusin", "focusout", "keydown"]);
     this.setDefaultResponse(HandlerResponse.Continue);
     this.onChange = HandlerMethod.None();
+    this.onInput = HandlerMethod.None();
     this.onFocus = HandlerMethod.None();
     this.onBlur = HandlerMethod.None();
     this.keyHandler = {};
@@ -67,6 +72,9 @@ export class InputHandler extends EventHandler {
 
   setOnChange(handler) {
     this.onChange = handler;
+  }
+  setOnInput(handler) {
+    this.onInput = handler;
   }
   setOnBlur(handler) {
     this.onBlur = handler;
@@ -91,41 +99,27 @@ export class InputHandler extends EventHandler {
 
   callHandler(method, event) {
     try {
-      if (event.type == "input" || event.type == "change") {
-        if (method != null) {
-          method.call(event.target, this.data, event, this);
-        }
-        this.onChange.setData(this.dataSource, this.data);
-        this.onChange.call(
-          this.getValue(event.target),
-          this.getEventTarget(event),
-          this.data,
-          event,
-          this
-        );
-      } else if (event.type == "focusout" && this.onBlur) {
-        this.onBlur.call(
-          this.getValue(event.target),
-          this.getEventTarget(event),
-          this.data,
-          event,
-          this
-        );
-      } else if (event.type == "focusin" && this.onFocus) {
-        this.onFocus.call(
-          this.getValue(event.target),
-          this.getEventTarget(event),
-          this.data,
-          event,
-          this
-        );
+      var method = null;
+      var target = this.getEventTarget(event);
+      var value = this.getValue(target);
+      if (event.type == "input") {
+        method = this.onInput;
+      } else if (event.type == "change") {
+        method = this.onChange;
+      } else if (event.type == "focusout") {
+        method = this.onBlur;
+      } else if (event.type == "focusin") {
+        method = this.onFocus;
       } else if (event.type == "keydown") {
         var handler = this.keyHandler[event.which];
         if (handler) {
-          var target = this.getEventTarget(event);
           var key = event.which;
-          handler.call(target, event);
+          handler.call(target, event, key, value);
         }
+      }
+      if (method != null) {
+        method.setData(this.dataSource, this.data);
+        method.call(value, target, event);
       }
     } catch (ex) {
       log.error(ex, "event handler for ", this.typeName, " failed");

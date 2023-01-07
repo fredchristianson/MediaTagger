@@ -1,5 +1,10 @@
 import { ComponentBase } from "../../drjs/browser/component.js";
-import API from "../modules/mt-api.js";
+import {
+  getAppSettings,
+  postAppSettings,
+  getTopFolders,
+  getFolders,
+} from "../modules/mt-api.js";
 import { Tree, TreeDataProvider, TreeItem } from "../controls/tree.js";
 import Media from "../modules/media.js";
 import {
@@ -62,7 +67,7 @@ class FolderTreeData extends TreeDataProvider {
     if (this.topItems) {
       return this.topItems;
     }
-    this.folders = await API.GetTopFolders();
+    this.folders = await getTopFolders();
     var items = this.folders.map((folder) => {
       var item = new TreeItem(folder.name, null, folder.path, true);
       item.data = folder;
@@ -79,7 +84,7 @@ class FolderTreeData extends TreeDataProvider {
     var folders = [];
     try {
       log.debug("get subfolders ", parent.data.path);
-      folders = await API.GetFolders(parent.data.path);
+      folders = await getFolders(parent.data.path);
     } catch (ex) {
       log.error("cannot get child folders for ", parent.data.path);
       folders = [];
@@ -112,7 +117,7 @@ export class SettingsComponent extends ComponentBase {
   }
 
   async onHtmlInserted(parent) {
-    this.settings = await API.GetAppSettings();
+    this.settings = await getAppSettings();
 
     this.setValue(
       "[name='thumbnailDirectory']",
@@ -146,7 +151,7 @@ export class SettingsComponent extends ComponentBase {
       mediaExtensions: this.dom.getValue("[name='mediaExtensions']"),
       mediaDirectories: this.tree.getSelectedValues(),
     };
-    await API.PostAppSettings(settings);
+    await postAppSettings(settings);
 
     this.dom.addClass(".buttons button", "invisible");
   }

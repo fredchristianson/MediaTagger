@@ -17,6 +17,39 @@ export class MediaFile extends MediaEntity {
     this.height = data.height;
     this.name = data.name;
     this._group = null;
+    this._tags = [];
+  }
+
+  setTags(tags) {
+    this._tags = tags;
+  }
+  getTags() {
+    return this._tags;
+  }
+  addTag(tag) {
+    if (!this._tags.includes(tag)) {
+      this._tags.push(tag);
+    }
+  }
+
+  removeTag(tags) {
+    var pos = this._tagss.indexOf(tags);
+    if (pos >= 0) {
+      this._tagss.splice(pos, 1);
+    }
+  }
+
+  hasTag(tag) {
+    if (tag == null) {
+      return true;
+    }
+    var id = tag;
+    if (typeof tag == "object") {
+      id = tag.getId();
+    }
+    return this._tags.find((t) => {
+      return t.getId() == id;
+    });
   }
 
   getGroup() {
