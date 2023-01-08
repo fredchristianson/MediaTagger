@@ -394,6 +394,10 @@ body {
 #tag-details .tag-tree.no-select input[type=checkbox] {
   display: none;
 }
+#tag-details .tag.partial {
+  color: #ffdddd;
+}
+
 #media-details > div {
   height: 100%;
   display: grid;

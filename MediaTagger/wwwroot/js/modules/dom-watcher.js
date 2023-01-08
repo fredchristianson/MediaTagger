@@ -3,7 +3,7 @@ import DOM from "../../drjs/browser/dom.js";
 import { BuildClickHandler, Listeners } from "../../drjs/browser/event.js";
 import { LOG_LEVEL, Logger } from "../../drjs/logger.js";
 
-const log = Logger.create("DOMWatcher", LOG_LEVEL.DEBUG);
+const log = Logger.create("DOMWatcher", LOG_LEVEL.WARN);
 const observerConfig = {
   attributes: true,
   attributeOldValue: true,
@@ -48,7 +48,7 @@ class WatchAction {
     var pos = this.watchedElements.indexOf(element);
     if (pos >= 0) {
       this.removeEvents(element);
-      this.removedElement(element);
+      this.removeElement(element);
 
       this.watchedElements.splice(pos, 1);
     }
@@ -58,7 +58,7 @@ class WatchAction {
   createEvents(element) {}
 
   removeEvents(element) {}
-
+  removeElement(element) {}
   isAttributeMatch(name) {
     return false;
   }

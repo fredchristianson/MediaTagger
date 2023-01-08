@@ -153,6 +153,7 @@ export class TagFilterComponent extends TagsComponent {
   constructor(selector, htmlName = "tags") {
     super(selector, htmlName);
     media.addFilter(this.filterItem.bind(this));
+    this.ignoreCheckboxChange = false;
   }
 
   filterItem(item) {
@@ -175,7 +176,7 @@ export class TagFilterComponent extends TagsComponent {
   selectionChanged(id) {
     FilterChangeEvent.emit();
   }
-  onChange(id, isChecked, element) {
+  updateCheckboxSettings(id, isChecked, element) {
     log.debug("filter tag change ", id);
     this.settings.set(id, isChecked);
     if (!isChecked) {
@@ -190,6 +191,7 @@ export class TagFilterComponent extends TagsComponent {
     this.tagChecked(id);
     this.selectionChanged(id);
     this.checkChildren(checkbox, true);
+    FilterChangeEvent.emit();
   }
 
   checkChildren(checkbox, isChecked) {
@@ -198,6 +200,10 @@ export class TagFilterComponent extends TagsComponent {
     this.dom.check(checks, isChecked);
   }
   onUnchecked(id, checkbox, event) {
+    if (this.ignoreCheckboxChange) {
+      return;
+    }
+    this.ignoreCheckboxChange = true;
     this.tagUnchecked(id);
     this.selectionChanged(id);
     this.checkChildren(checkbox, false);
@@ -206,6 +212,8 @@ export class TagFilterComponent extends TagsComponent {
       var check = this.dom.first(tag, 'input[type="checkbox"]');
       this.dom.uncheck(check);
     });
+    this.ignoreCheckboxChange = false;
+    FilterChangeEvent.emit();
   }
   tagChecked(id) {
     log.debug("filter checked ", id);
@@ -235,7 +243,7 @@ export class TagFilterComponent extends TagsComponent {
     this.listeners.add(
       BuildCheckboxHandler()
         .listenTo(this.tagTree, "input[type='checkbox']")
-        .onChange(this, this.onChange)
+        .onChange(this, this.updateCheckboxSettings)
         .setData((element) => {
           return this.dom.getDataWithParent(element, "id");
         })
@@ -247,6 +255,7 @@ export class TagFilterComponent extends TagsComponent {
 export class TagDetailsComponent extends TagsComponent {
   constructor(selector, htmlName = "tags") {
     super(selector, htmlName);
+    this.ignoreCheckboxChange = false;
   }
 
   allowRoot() {
@@ -295,10 +304,46 @@ export class TagDetailsComponent extends TagsComponent {
   }
 
   selectionChange(selected) {
+    this.ignoreCheckboxChange = true;
     log.debug("selected items change");
     const count = selected.getLength();
     this.dom.toggleClass(this.tagTree, "no-select", count == 0);
     this.dom.toggleClass(this.tagTree, "multi-select", count > 1);
+    var selectedTags = {};
+    for (var sel of selected) {
+      for (var tag of sel.getTags()) {
+        var st = selectedTags[tag.getId()];
+        if (st == null) {
+          st = { id: tag.getId(), count: 0 };
+          selectedTags[tag.getId()] = st;
+        }
+        st.count += 1;
+      }
+    }
+    var checks = this.dom.find("input.check");
+    checks.forEach((check) => {
+      var id = this.dom.getDataWithParent(check, "id");
+      var st = selectedTags[id];
+      var tagElement = this.dom.parent(check, ".tag");
+      if (st == null) {
+        this.dom.uncheck(check);
+        this.dom.removeClass(tagElement, "partial");
+      } else {
+        this.dom.check(check);
+        this.dom.toggleClass(tagElement, "partial", st.count < count);
+      }
+    });
+    // don't hide unchecked tags. need to be visible to user
+    // to check them.  may add a toggle to hide/unhide all
+    // var tags = this.dom.find(".tag");
+    // tags.forEach((tag) => {
+    //   var hasCheck = this.dom.first(tag, ":checked");
+    //   this.dom.show(tag, hasCheck);
+    // });
+    log.debug("change done");
+    this.ignoreCheckboxChange = false;
+
+    FilterChangeEvent.emit();
   }
 
   addTag(parentId, val) {
@@ -353,6 +398,9 @@ export class TagDetailsComponent extends TagsComponent {
   }
 
   onChecked(id, checkbox, event) {
+    if (this.ignoreCheckboxChange) {
+      return;
+    }
     log.debug("add tag ", id);
     var parents = this.dom.parents(checkbox, ".tag");
     media.tagSelected(id);
@@ -360,10 +408,15 @@ export class TagDetailsComponent extends TagsComponent {
       var check = this.dom.first(tag, 'input[type="checkbox"]');
       this.dom.check(check);
     });
+    FilterChangeEvent.emit();
   }
   onUnchecked(id, checkbox, event) {
+    if (this.ignoreCheckboxChange) {
+      return;
+    }
     log.debug("remove tag ", id);
     media.untagSelected(id);
+    FilterChangeEvent.emit();
   }
 }
 

@@ -160,6 +160,7 @@ class Media {
         });
       }
     }
+    FilterChangeEvent.emit();
   }
 
   async updateDatabaseItems() {

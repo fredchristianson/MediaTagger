@@ -33,9 +33,9 @@ export class MediaFile extends MediaEntity {
   }
 
   removeTag(tags) {
-    var pos = this._tagss.indexOf(tags);
+    var pos = this._tags.indexOf(tags);
     if (pos >= 0) {
-      this._tagss.splice(pos, 1);
+      this._tags.splice(pos, 1);
     }
   }
 

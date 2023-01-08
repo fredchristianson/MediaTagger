@@ -47,7 +47,7 @@ export async function addMediaTag(mediaFileId, tagId) {
   var result = await httpAPI.post(url, null, "json");
   return result != null && result.success;
 }
-export async function removeMediaTag(mediaTag) {
+export async function removeMediaTag(mediaFileId, tagId) {
   var url = `MediaTag?mediaFileId=${mediaFileId}&tagId=${tagId}`;
 
   var result = await httpAPI.delete(url, null, "json");
