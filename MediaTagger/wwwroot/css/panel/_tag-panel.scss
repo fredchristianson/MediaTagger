@@ -1,3 +1,92 @@
+.tag-filter {
+  h1 {
+    position: relative;
+
+    .buttons {
+      position: absolute;
+      top: 10px;
+      right: 2px;
+      white-space: nowrap;
+      display: none;
+
+      button {
+        background-color: transparent;
+        display: inline-block;
+        border: 0px;
+        border-radius: 4px;
+        width: 16px;
+        height: 16px;
+        background-size: cover;
+      }
+    }
+  }
+
+  h1:hover {
+    .buttons {
+      display: inline-block;
+    }
+  }
+
+
+            input[type='checkbox'] {
+              position: relative;
+      width: 16px; height: 16px;
+              &::after {
+                content: '';
+                background-color: #777;
+                border: 1px solid #444;
+                z-index: 10;
+                position: absolute;
+                display: block;
+                left: 0;
+                top: 0;
+                width: 100%;
+                height: 100%;
+              }
+            }
+      
+            input[data-state='checked'] {
+      
+              &::after {
+                background-color: #27401d;
+                background-image: url(../image/check.png);
+                background-size: cover;
+                border-radius: 4px;
+              }
+            }
+      
+            input[data-state='checked-and-children'] {
+      
+              &::after {
+                background-color: #27401d;
+                background-image: url(../image/child-check.png);
+                background-size: cover;
+                border-radius: 4px;
+              }
+            }
+      
+            input[data-state='checked-no-children'] {
+      
+              &::after {
+                background-color: #27401d;
+                background-image: url(../image/child-uncheck.png);
+                background-size: cover;
+                border-radius: 4px;
+              }
+            }
+
+      
+            input[data-state='unchecked'] {
+      
+              &::after {
+                background-color: #eee;
+                background-image: url(../image/nocheck.png);
+                background-size: cover;
+                border-radius: 4px;
+              }
+            }
+}
+
 #tag-details,
 .tag-filter {
 
@@ -56,6 +145,7 @@
         font-weight: bold;
         border: 1px dashed #eeeeee;
       }
+
       &.hover>.add-child,
       .add-child:hover {
         display: inline-block;
@@ -119,6 +209,7 @@
     }
 
 
+
   }
 
 
@@ -141,21 +232,21 @@
   .tag.root {
     display: block;
 
-    >.toggle { display: none;}
+    >.toggle {
+      display: none;
+    }
 
 
   }
 
   .tag-tree {
-        &.no-select {
-            input[type='checkbox'] {
-              display: none;
-            }
-          }
-        
-          &.multi-select {
-            
-          }
+    &.no-select {
+      input[type='checkbox'] {
+        display: none;
+      }
+    }
+
+    &.multi-select {}
   }
 
   .tag.partial {

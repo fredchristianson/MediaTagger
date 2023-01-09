@@ -3,6 +3,7 @@ import {
   BuildCheckboxHandler,
   BuildHoverHandler,
   BuildInputHandler,
+  HandlerResponse,
   Listeners,
 } from "../../drjs/browser/event.js";
 import { BuildClickHandler } from "../../drjs/browser/event.js";
@@ -51,32 +52,31 @@ export class TagsComponent extends ComponentBase {
           return this.dom.getDataWithParent(element, "id");
         })
         .build(),
-      media.getTags().getUpdatedEvent().createListener(this, this.tagChange),
 
-      BuildCheckboxHandler()
-        .listenTo(this.tagTree, "input[type='checkbox']")
-        .onChecked(this, this.onChecked)
-        .onUnchecked(this, this.onUnchecked)
-        .setData((element) => {
-          return this.dom.getDataWithParent(element, "id");
-        })
-        .build()
+      media
+        .getTags()
+        .getUpdatedEvent()
+        .createListener(this, this.onTagListChange)
     );
-    this.tagChange();
+    this.onTagListChange();
   }
-
-  onChecked(id, checkbox, event) {}
-  onUnchecked(id, checkbox, event) {}
 
   toggleClosed(id, element) {
     log.debug("toggleClosed", id, element);
     this.dom.toggleClass(element.parentNode, "closed");
   }
 
-  tagChange() {
+  onTagListChange() {
     var top = media.getTags().getTopNodes();
     var tree = this.dom.first(".tag-tree");
     this.dom.removeChildren(tree);
+
+    if (this.allowUntagged()) {
+      var untagged = this.createTagElement("Untagged", "untagged");
+      this.dom.check(untagged);
+      this.dom.addClass(untagged, "untagged");
+      this.dom.append(tree, untagged);
+    }
 
     var children = tree;
     if (this.allowRoot()) {
@@ -86,12 +86,6 @@ export class TagsComponent extends ComponentBase {
       children = this.dom.first(root, ".children");
     }
     this.insertTags(children, top);
-    if (this.allowUntagged()) {
-      var untagged = this.createTagElement("Untagged", "untagged");
-      this.dom.check(untagged);
-      this.dom.addClass(untagged, "untagged");
-      this.dom.append(tree, untagged);
-    }
   }
 
   allowRoot() {
@@ -116,7 +110,7 @@ export class TagsComponent extends ComponentBase {
     }
     var children = tag ? media.getTags().getChildren(tag) : [];
     var classList = "tag";
-    if (children.length > 0) {
+    if (tag == "root" || children.length > 0) {
       classList += " has-children";
     }
     if (tag == null) {
@@ -136,10 +130,13 @@ export class TagsComponent extends ComponentBase {
       this.dom.setData(element, "data-class-value", "closed");
     }
     this.insertTags(this.dom.first(element, ".children"), children);
-
+    this.modifyTagElement(id, element);
     return element;
   }
 
+  modifyTagElement(element) {
+    /* derived classed can modify */
+  }
   getSettingName(id) {
     return null;
   }
@@ -156,83 +153,6 @@ export class TagFilterComponent extends TagsComponent {
     this.ignoreCheckboxChange = false;
   }
 
-  filterItem(item) {
-    if (this.settings == null || this.settings.get("all")) {
-      return true;
-    }
-    var itemTags = item.getTags();
-    if (itemTags.length == 0) {
-      return this.settings.get("untagged");
-    }
-    const found = itemTags.find((tag) => {
-      return this.settings.get(tag.getId());
-    });
-    return found;
-  }
-
-  isSelected(id) {
-    return this.settings.get("all") || this.settings.get(id) !== false;
-  }
-  selectionChanged(id) {
-    FilterChangeEvent.emit();
-  }
-  updateCheckboxSettings(id, isChecked, element) {
-    log.debug("filter tag change ", id);
-    this.settings.set(id, isChecked);
-    if (!isChecked) {
-      this.settings.set("all", false);
-    }
-  }
-
-  getSettingName(id) {
-    return `tag-filter-${id}`;
-  }
-  onChecked(id, checkbox, event) {
-    this.tagChecked(id);
-    this.selectionChanged(id);
-    this.checkChildren(checkbox, true);
-    FilterChangeEvent.emit();
-  }
-
-  checkChildren(checkbox, isChecked) {
-    var tag = this.dom.parent(checkbox, ".tag");
-    var checks = this.dom.find(tag, '.children input[type="checkbox"]');
-    this.dom.check(checks, isChecked);
-  }
-  onUnchecked(id, checkbox, event) {
-    if (this.ignoreCheckboxChange) {
-      return;
-    }
-    this.ignoreCheckboxChange = true;
-    this.tagUnchecked(id);
-    this.selectionChanged(id);
-    this.checkChildren(checkbox, false);
-    var parents = this.dom.parents(checkbox, ".tag");
-    parents.forEach((tag) => {
-      var check = this.dom.first(tag, 'input[type="checkbox"]');
-      this.dom.uncheck(check);
-    });
-    this.ignoreCheckboxChange = false;
-    FilterChangeEvent.emit();
-  }
-  tagChecked(id) {
-    log.debug("filter checked ", id);
-    if (!this.selectedTagIds.includes(id)) {
-      this.selectedTagIds.push(id);
-      FilterChangeEvent.emit();
-      var checkElement = this.dom.first(`.tag[data-id='${id}'] input.check`);
-      this.dom.check(checkElement);
-    }
-  }
-
-  tagUnchecked(id) {
-    log.debug("filter unchecked ", id);
-    if (this.selectedTagIds.includes(id)) {
-      this.selectedTagIds.splice(this.selectedTagIds.indexOf(id), 1);
-      FilterChangeEvent.emit();
-    }
-  }
-
   async onHtmlInserted(elements) {
     this.settings = await Settings.load("tag-filter", {
       all: true,
@@ -243,12 +163,133 @@ export class TagFilterComponent extends TagsComponent {
     this.listeners.add(
       BuildCheckboxHandler()
         .listenTo(this.tagTree, "input[type='checkbox']")
-        .onChange(this, this.updateCheckboxSettings)
+        .onChange(this, this.onCheckboxChange)
         .setData((element) => {
           return this.dom.getDataWithParent(element, "id");
         })
+        .build(),
+      BuildClickHandler()
+        .listenTo("#expand-all-filter-tags")
+        .onClick(this, this.expandAll)
+        .setDefaultResponse(HandlerResponse.StopAll)
+        .build(),
+      BuildClickHandler()
+        .listenTo("#collapse-all-filter-tags")
+        .onClick(this, this.collapseAll)
+        .setDefaultResponse(HandlerResponse.StopAll)
         .build()
     );
+  }
+
+  expandAll() {
+    var parents = this.dom.find(".has-children");
+    this.dom.removeClass(parents, "closed");
+  }
+  collapseAll() {
+    var parents = this.dom.find(".has-children");
+    this.dom.addClass(parents, "closed");
+  }
+
+  onCheckboxChange(id, checked, element) {
+    log.debug("tag change ", checked, element);
+    var state = this.dom.getData(element, "state");
+    const tagElement = this.dom.parent(element, ".tag");
+    var hasChildren = this.dom.hasClass(tagElement, "has-children");
+    var childState = null;
+    if (!hasChildren) {
+      state = state != "checked" ? "checked" : "unchecked";
+    } else {
+      if (state == "unchecked") {
+        state = "checked-and-children";
+        childState = "checked";
+      } else if (state == "checked-and-children") {
+        state = "checked-no-children";
+        childState = "unchecked";
+      } else {
+        state = "unchecked";
+      }
+    }
+    this.dom.setData(element, "state", state);
+    if (childState) {
+      const childrenContainer = this.dom.find(tagElement, ".children");
+      const children = this.dom.find(
+        childrenContainer,
+        'input[type = "checkbox"]'
+      );
+      children.forEach((child) => {
+        if (childState == "checked") {
+          var moreChildren = this.dom.hasClass(
+            this.dom.parent(child, ".tag"),
+            "has-children"
+          );
+          this.dom.setData(
+            child,
+            "state",
+            moreChildren ? "checked-and-children" : "checked"
+          );
+        } else {
+          this.dom.setData(child, "state", "unchecked");
+        }
+      });
+    }
+    if (state == "unchecked") {
+      var parent = this.dom.parent(tagElement, ".tag");
+      while (parent != null) {
+        var parentCheck = this.dom.first(parent, 'input[type="checkbox"]');
+        if (this.dom.getData(parentCheck, "state") == "checked-and-children") {
+          this.dom.setData(parentCheck, "state", "checked");
+        }
+        parent = this.dom.parent(parent, ".tag");
+      }
+    }
+    this.updateSettings();
+    FilterChangeEvent.emit();
+  }
+
+  updateSettings() {
+    var checks = this.dom.find("input.check");
+    checks.forEach((check) => {
+      var id = this.dom.getDataWithParent(check, "id");
+      this.settings.set(`state-${id}`, this.dom.getData(check, "state"));
+    });
+    this.settings.set("all", false);
+  }
+
+  filterItem(item) {
+    var keep = false;
+    if (this.settings == null || this.settings.get("all")) {
+      keep = true;
+    } else {
+      var itemTags = item.getTags();
+      if (itemTags.length == 0) {
+        keep = this.settings.get("state-untagged").startsWith("checked");
+      } else {
+        const found = itemTags.find((tag) => {
+          var state = this.settings.get(`state-${tag.getId()}`);
+          return state.startsWith("checked");
+        });
+        keep = found != null;
+      }
+    }
+    return keep;
+  }
+
+  isSelected(id) {
+    return this.settings.get("all") || this.settings.get(id) !== false;
+  }
+
+  /* override base methods */
+  modifyTagElement(id, element) {
+    const check = this.dom.first(element, "input[type='checkbox']");
+    this.dom.setData(
+      check,
+      "state",
+      this.settings.get(`state-${id}`, "unchecked")
+    );
+  }
+
+  getSettingName(id) {
+    return `tag-filter-${id}`;
   }
 }
 

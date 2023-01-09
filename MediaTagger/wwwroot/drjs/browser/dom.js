@@ -112,7 +112,7 @@ export class DOM {
     const sel = this.getParentAndSelector(opts);
     if (Array.isArray(sel.selector)) {
       result = sel.selector.reduce((arr, e) => {
-        arr.push(this.find(sel.parent, e));
+        arr.push(...this.find(sel.parent, e));
         return arr;
       }, []);
     } else {
