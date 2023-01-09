@@ -1,5 +1,6 @@
 #media-details > div {
   height: 100%;
+  overflow: hidden;
   display: grid;
   grid-template-areas: 
   "tags"
@@ -16,7 +17,12 @@
     grid-area: sizer;
   }
 
-  #properties {
+  .details.property {
     grid-area: properties;
-    overflow: scroll;  }
+    overflow: auto;
+  
+    img { 
+      max-width: 100%;
+    }
+  }
 }

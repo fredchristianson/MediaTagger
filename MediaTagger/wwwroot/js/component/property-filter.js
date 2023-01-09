@@ -266,6 +266,7 @@ export class PropertyFilterComponent extends ComponentBase {
       this.filesizeTemplate,
       this.dom.first(".file-size.count")
     );
+    FilterChangeEvent.emit();
   }
 
   fill(selector, list, template, countElement) {
@@ -286,6 +287,7 @@ export class PropertyFilterComponent extends ComponentBase {
     var selectCount = 0;
     for (var item of list) {
       const checked = this.settings.get(item.getLabel());
+      item.setSelected(checked);
       if (checked) {
         selectCount += 1;
       }

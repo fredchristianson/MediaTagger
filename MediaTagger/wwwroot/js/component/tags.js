@@ -38,7 +38,7 @@ export class TagsComponent extends ComponentBase {
   }
 
   async onHtmlInserted(elements) {
-    this.template = new HtmlTemplate(this.dom.first("#tags-tag-template"));
+    this.template = new HtmlTemplate(this.getTemplateElement());
     this.newTemplate = new HtmlTemplate(
       this.dom.first("#tags-new-tag-template")
     );
@@ -147,7 +147,7 @@ export class TagsComponent extends ComponentBase {
 }
 
 export class TagFilterComponent extends TagsComponent {
-  constructor(selector, htmlName = "tags") {
+  constructor(selector, htmlName = "tags-filter") {
     super(selector, htmlName);
     media.addFilter(this.filterItem.bind(this));
     this.ignoreCheckboxChange = false;
@@ -181,6 +181,10 @@ export class TagFilterComponent extends TagsComponent {
     );
   }
 
+  getTemplateElement() {
+    return this.dom.first("#tags-filter-template");
+  }
+
   expandAll() {
     var parents = this.dom.find(".has-children");
     this.dom.removeClass(parents, "closed");
@@ -207,6 +211,7 @@ export class TagFilterComponent extends TagsComponent {
         childState = "unchecked";
       } else {
         state = "unchecked";
+        childState = "unchecked";
       }
     }
     this.dom.setData(element, "state", state);
@@ -243,7 +248,21 @@ export class TagFilterComponent extends TagsComponent {
       }
     }
     this.updateSettings();
+    this.checkChildOnly();
     FilterChangeEvent.emit();
+  }
+
+  checkChildOnly() {
+    var childOnly = this.dom.find("input[data-state='child-only-check']");
+    this.dom.setData(childOnly, "state", "unchecked");
+    var unchecked = this.dom.find("input[data-state='unchecked']");
+    unchecked.forEach((uncheck) => {
+      var parent = this.dom.parent(uncheck, ".tag");
+      var checkchild = this.dom.first(parent, 'input[data-state^="check"]');
+      if (checkchild != null) {
+        this.dom.setData(uncheck, "state", "child-only-check");
+      }
+    });
   }
 
   updateSettings() {
@@ -294,11 +313,14 @@ export class TagFilterComponent extends TagsComponent {
 }
 
 export class TagDetailsComponent extends TagsComponent {
-  constructor(selector, htmlName = "tags") {
+  constructor(selector, htmlName = "tags-details") {
     super(selector, htmlName);
     this.ignoreCheckboxChange = false;
   }
 
+  getTemplateElement() {
+    return this.dom.first("#tags-details-template");
+  }
   allowRoot() {
     return true;
   }
@@ -314,6 +336,14 @@ export class TagDetailsComponent extends TagsComponent {
         .onBlur(this, this.hideNameDialog)
         .onEnter(this, this.createTag)
         .onEscape(this, this.hideNameDialog)
+        .build(),
+      BuildCheckboxHandler()
+        .listenTo(this.tagTree, "input[type='checkbox']")
+        .onChecked(this, this.onChecked)
+        .onUnchecked(this, this.onUnchecked)
+        .setData((element) => {
+          return this.dom.getDataWithParent(element, "id");
+        })
         .build(),
       BuildClickHandler()
         .listenTo(this.tagTree, "button.ok")
@@ -449,7 +479,6 @@ export class TagDetailsComponent extends TagsComponent {
       var check = this.dom.first(tag, 'input[type="checkbox"]');
       this.dom.check(check);
     });
-    FilterChangeEvent.emit();
   }
   onUnchecked(id, checkbox, event) {
     if (this.ignoreCheckboxChange) {
@@ -457,7 +486,6 @@ export class TagDetailsComponent extends TagsComponent {
     }
     log.debug("remove tag ", id);
     media.untagSelected(id);
-    FilterChangeEvent.emit();
   }
 }
 

@@ -635,6 +635,11 @@ export class DOM {
       element.innerHTML = `${html}`;
     });
   }
+  setInnerText(selector, text) {
+    this.toElementArray(selector).forEach((element) => {
+      element.innerText = `${text}`;
+    });
+  }
 
   isElementIn(element, selectors) {
     if (

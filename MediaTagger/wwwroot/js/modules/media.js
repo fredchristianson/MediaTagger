@@ -60,7 +60,8 @@ class Media {
     );
     this.visibleItems = new ObservableView(this.sortedItems);
     this.selectedItems = new ObservableView([]);
-    this.lastSelect = null;
+    this.lastSelect = null; // lastSelect may be toggled off
+    this.focus = null;
 
     this.listeners = new Listeners(
       this.files.updatedEvent.createListener(this, this.updateDatabaseItems),
@@ -69,8 +70,13 @@ class Media {
     this.filterIncludeFunctions = [];
   }
 
+  getFocus() {
+    return this.focus;
+  }
+
   addFilter(func) {
     this.filterIncludeFunctions.push(func);
+    FilterChangeEvent.emit();
   }
 
   onFilterChanged() {
@@ -256,6 +262,7 @@ class Media {
     }
     this.selectedItems.insertOnce(item);
     this.lastSelect = item;
+    this.focus = item;
   }
 
   addSelectItem(item) {
@@ -273,8 +280,10 @@ class Media {
     }
     if (this.selectedItems.indexOf(item) != null) {
       this.selectedItems.remove(item);
+      this.focus = this.selectedItems.getItemAt(0);
     } else {
       this.selectedItems.insertOnce(item);
+      this.focus = item;
     }
     this.lastSelect = item;
   }
@@ -298,6 +307,7 @@ class Media {
       this.selectedItems.insertOnce(visible.getItemAt(i));
     }
     this.lastSelect = item;
+    this.focus = item;
   }
 
   ungroup(file, saveChange = true) {

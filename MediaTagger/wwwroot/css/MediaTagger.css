@@ -168,6 +168,8 @@ body {
   margin-bottom: 8px;
 }
 #media-view .media-details {
+  height: 100%;
+  overflow: auto;
   grid-area: media-details;
   width: 250px;
 }
@@ -314,6 +316,12 @@ body {
   background-size: cover;
   border-radius: 4px;
 }
+.tag-filter input[data-state=child-only-check]::after {
+  background-color: #27401d;
+  background-image: url(../image/child-only-check.png);
+  background-size: cover;
+  border-radius: 4px;
+}
 .tag-filter input[data-state=unchecked]::after {
   background-color: #eee;
   background-image: url(../image/nocheck.png);
@@ -455,15 +463,27 @@ body {
 #tag-details .tag.root > .toggle {
   display: none;
 }
+#tag-details .tag.root > label {
+  display: inline-block;
+  width: 100%;
+}
+#tag-details .tag.root > label input[type=checkbox] {
+  display: none;
+}
+#tag-details .tag.root::after {
+  display: none;
+  opacity: 0;
+}
 #tag-details .tag-tree.no-select input[type=checkbox] {
   display: none;
 }
-#tag-details .tag.partial {
+#tag-details .tag.partial > label {
   color: #ffdddd;
 }
 
 #media-details > div {
   height: 100%;
+  overflow: hidden;
   display: grid;
   grid-template-areas: "tags" "sizer" "properties";
   grid-template-rows: auto auto 1fr;
@@ -476,9 +496,12 @@ body {
 #media-details > div .grid-sizer {
   grid-area: sizer;
 }
-#media-details > div #properties {
+#media-details > div .details.property {
   grid-area: properties;
-  overflow: scroll;
+  overflow: auto;
+}
+#media-details > div .details.property img {
+  max-width: 100%;
 }
 
 #media-filter .property-filter ul {

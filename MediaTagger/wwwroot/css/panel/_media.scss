@@ -175,6 +175,8 @@
     }
 
     .media-details {
+        height: 100%;
+        overflow: auto;
         grid-area: media-details;
         width: 250px;    }
 

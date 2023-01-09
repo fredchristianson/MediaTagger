@@ -28,63 +28,75 @@
   }
 
 
-            input[type='checkbox'] {
-              position: relative;
-      width: 16px; height: 16px;
-              &::after {
-                content: '';
-                background-color: #777;
-                border: 1px solid #444;
-                z-index: 10;
-                position: absolute;
-                display: block;
-                left: 0;
-                top: 0;
-                width: 100%;
-                height: 100%;
-              }
-            }
-      
-            input[data-state='checked'] {
-      
-              &::after {
-                background-color: #27401d;
-                background-image: url(../image/check.png);
-                background-size: cover;
-                border-radius: 4px;
-              }
-            }
-      
-            input[data-state='checked-and-children'] {
-      
-              &::after {
-                background-color: #27401d;
-                background-image: url(../image/child-check.png);
-                background-size: cover;
-                border-radius: 4px;
-              }
-            }
-      
-            input[data-state='checked-no-children'] {
-      
-              &::after {
-                background-color: #27401d;
-                background-image: url(../image/child-uncheck.png);
-                background-size: cover;
-                border-radius: 4px;
-              }
-            }
+  input[type='checkbox'] {
+    position: relative;
+    width: 16px;
+    height: 16px;
 
-      
-            input[data-state='unchecked'] {
-      
-              &::after {
-                background-color: #eee;
-                background-image: url(../image/nocheck.png);
-                background-size: cover;
-                border-radius: 4px;
-              }
-            }
+    &::after {
+      content: '';
+      background-color: #777;
+      border: 1px solid #444;
+      z-index: 10;
+      position: absolute;
+      display: block;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+    }
+  }
+
+  input[data-state='checked'] {
+
+    &::after {
+      background-color: #27401d;
+      background-image: url(../image/check.png);
+      background-size: cover;
+      border-radius: 4px;
+    }
+  }
+
+  input[data-state='checked-and-children'] {
+
+    &::after {
+      background-color: #27401d;
+      background-image: url(../image/child-check.png);
+      background-size: cover;
+      border-radius: 4px;
+    }
+  }
+
+  input[data-state='checked-no-children'] {
+
+    &::after {
+      background-color: #27401d;
+      background-image: url(../image/child-uncheck.png);
+      background-size: cover;
+      border-radius: 4px;
+    }
+  }
+
+  input[data-state='child-only-check'] {
+
+    &::after {
+      background-color: #27401d;
+      background-image: url(../image/child-only-check.png);
+      background-size: cover;
+      border-radius: 4px;
+    }
+  }
+
+
+  input[data-state='unchecked'] {
+
+    &::after {
+      background-color: #eee;
+      background-image: url(../image/nocheck.png);
+      background-size: cover;
+      border-radius: 4px;
+    }
+  }
 }
 
 #tag-details,
@@ -235,10 +247,20 @@
     >.toggle {
       display: none;
     }
+    
 
+    > label {
+      input[type='checkbox'] {
+          display: none;
+        }
+       display: inline-block; width: 100%;}
+  
 
+  &::after {
+    display: none;
+    opacity: 0;
   }
-
+  }
   .tag-tree {
     &.no-select {
       input[type='checkbox'] {
@@ -249,7 +271,7 @@
     &.multi-select {}
   }
 
-  .tag.partial {
+  .tag.partial > label {
     color: #ffdddd;
   }
 
