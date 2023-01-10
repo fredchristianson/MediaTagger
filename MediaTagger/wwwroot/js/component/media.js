@@ -43,6 +43,8 @@ export class MediaComponent extends ComponentBase {
       });
       return htmlItem;
     });
+    this.navigation = new Navigation(this.layout);
+
     this.listeners.add(
       BuildClickHandler()
         .listenTo(this.dom, ".media-item")

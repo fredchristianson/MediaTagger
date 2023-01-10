@@ -93,9 +93,13 @@ export class HandlerMethod {
   call(...args) {
     if (this.handlerFunction) {
       if (this.dataSource) {
-        this.handlerFunction.call(this.handlerObject, this.data, ...args);
+        return this.handlerFunction.call(
+          this.handlerObject,
+          this.data,
+          ...args
+        );
       } else {
-        this.handlerFunction.apply(this.handlerObject, args);
+        return this.handlerFunction.apply(this.handlerObject, args);
       }
     }
   }

@@ -79,7 +79,7 @@ export class EventHandlerBuilder {
 
 export class EventHandler {
   constructor(...args) {
-    this.defaultResponse = HandlerResponse.StopPropagation;
+    this.defaultResponse = HandlerResponse.Continue;
     this.eventProcessor = this.eventProcessorMethod.bind(this);
     this.listenElement = null;
     this.typeName = null;
@@ -178,6 +178,9 @@ export class EventHandler {
     return false;
   }
   listen() {
+    if (this.listenElement == null) {
+      this.listenElement = document.body;
+    }
     if (this.typeName == null) {
       log.error("EventHandler requires an event type name (e.g. 'click'");
       return;
@@ -286,14 +289,15 @@ export class EventHandler {
     result = this.callHandler(this.handlerMethod, event);
 
     if (result == null) {
-      result = this.defaultResponse || HandlerResponse.stopPropagation;
+      result = this.defaultResponse || HandlerResponse.StopPropagation;
     }
 
     if (
-      result == HandlerResponse.stopPropagation ||
+      result == HandlerResponse.StopPropagation ||
       result == HandlerResponse.StopAll
     ) {
-      event.stopPropagation();
+      //event.stopPropagation();
+      event.stopImmediatePropagation();
     }
     if (
       result == HandlerResponse.StopDefault ||

@@ -424,6 +424,8 @@ class Media {
   }
 }
 
-export const media = new Media();
+const media = new Media();
+
+export { media };
 
 export default media;

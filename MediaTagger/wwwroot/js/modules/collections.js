@@ -16,7 +16,7 @@ var updatedEvent = new ObjectEventType("__collection-updated");
 /*
  * all items in a collection should have a getId() method
  */
-export class ObservableCollection {
+class ObservableCollection {
   constructor() {
     this.sortedEvent = new EventEmitter(sortedEvent, this);
     this.filteredEvent = new EventEmitter(filteredEvent, this);
@@ -65,7 +65,7 @@ export class ObservableCollection {
   }
 }
 
-export class ObservableArray extends ObservableCollection {
+class ObservableArray extends ObservableCollection {
   constructor(items = []) {
     super();
     if (items instanceof ObservableCollection) {
@@ -198,7 +198,7 @@ export class ObservableArray extends ObservableCollection {
 //    baseArray --> FilteredList --> SortedList --> ObservableList
 // the final list in this chain is a filtered and sorted version of the base array.
 // items added/removed in the base array will trigger events in every list in the chain
-export class ObservableView extends ObservableCollection {
+class ObservableView extends ObservableCollection {
   constructor(collectionIn = null) {
     super();
     this.collectionIn = null;
@@ -435,3 +435,5 @@ export class ObservableTree extends ObservableArray {
     });
   }
 }
+
+export { ObservableCollection, ObservableArray, ObservableView };

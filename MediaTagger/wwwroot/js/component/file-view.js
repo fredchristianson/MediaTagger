@@ -16,6 +16,7 @@ import MediaDetailsComponent from "./media-details.js";
 import DateFilterComponent from "./date-filter.js";
 import MediaFilterComponent from "./media-filter.js";
 import Media from "../modules/media.js";
+import { Navigation } from "../modules/navigation.js";
 import { GridLayout } from "../modules/layout.js";
 import { RightGridSizer, LeftGridSizer } from "../modules/drag-drop.js";
 
@@ -140,6 +141,8 @@ export class FileViewComponent extends ComponentBase {
         .onScroll(this, this.hidePopup)
         .build()
     );
+
+    this.navigation = new Navigation(this.layout);
   }
 
   async viewFile() {
