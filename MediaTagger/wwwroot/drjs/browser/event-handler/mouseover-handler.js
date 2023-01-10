@@ -3,7 +3,7 @@ import Util from "../../util.js";
 import { default as dom } from "../dom.js";
 import { EventHandlerBuilder, EventHandler } from "./handler.js";
 import {
-  HandlerResponse,
+  EventHandlerReturn,
   MousePosition,
   HandlerMethod,
   DoNothing,
@@ -37,7 +37,7 @@ export class MouseOverHandler extends EventHandler {
   constructor(...args) {
     super(...args);
     this.setTypeName(["mouseover", "mouseout"]);
-    this.setDefaultResponse = HandlerResponse.Continue;
+    this.setDefaultResponse = EventHandlerReturn.Continue;
     this.endDelayMSecs = 200;
     this.onOver = HandlerMethod.None();
     this.onOut = HandlerMethod.None();
@@ -56,31 +56,37 @@ export class MouseOverHandler extends EventHandler {
     try {
       var target = this.getEventTarget(event);
       log.never(`mouseover ${target.id}:${target.className} - ${event.type}`);
+      var response = EventHandlerReturn.Continue;
       if (event.type == "mouseover") {
         if (this.disableContextMenu) {
           document.body.oncontextmenu = () => {
             return false;
           };
         }
-        this.onOver.call(
-          this.mousePosition,
-          this.getEventTarget(event),
-          event,
-          this.data,
-          this
+        response.replace(
+          this.onOver.call(
+            this.mousePosition,
+            this.getEventTarget(event),
+            event,
+            this.data,
+            this
+          )
         );
       } else if (event.type == "mouseout") {
-        this.onOut.call(
-          this.mousePosition,
-          this.getEventTarget(event),
-          event,
-          this.data,
-          this
+        response.replace(
+          this.onOut.call(
+            this.mousePosition,
+            this.getEventTarget(event),
+            event,
+            this.data,
+            this
+          )
         );
         if (this.disableContextMenu) {
           document.body.oncontextmenu = null;
         }
       }
+      return response;
     } catch (ex) {
       log.error(ex, "event handler for ", this.typeName, " failed");
     }

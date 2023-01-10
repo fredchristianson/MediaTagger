@@ -1,7 +1,11 @@
 import { LOG_LEVEL, Logger } from "../../logger.js";
 import Util from "../../util.js";
 import { DOM, default as dom } from "../dom.js";
-import { ObjectEventType, HandlerResponse, HandlerMethod } from "./common.js";
+import {
+  ObjectEventType,
+  EventHandlerReturn,
+  HandlerMethod,
+} from "./common.js";
 export * from "./common.js";
 
 const log = Logger.create("EventHandler", LOG_LEVEL.WARN);
@@ -79,7 +83,7 @@ export class EventHandlerBuilder {
 
 export class EventHandler {
   constructor(...args) {
-    this.defaultResponse = HandlerResponse.Continue;
+    this.defaultResponse = EventHandlerReturn.Continue;
     this.eventProcessor = this.eventProcessorMethod.bind(this);
     this.listenElement = null;
     this.typeName = null;
@@ -250,13 +254,13 @@ export class EventHandler {
       return;
     }
     if (this.withAlt && !event.altKey) {
-      return HandlerResponse.Continue;
+      return;
     }
     if (this.withCtrl && !event.ctrlKey) {
-      return HandlerResponse.Continue;
+      return;
     }
     if (this.withShift && !event.shiftKey) {
-      return HandlerResponse.Continue;
+      return;
     }
     event.hasShift = event.shiftKey;
     event.hasAlt = event.altKey;
@@ -275,7 +279,7 @@ export class EventHandler {
   }
 
   invokeHandler(event) {
-    var result = null;
+    var result = this.defaultResponse.clone();
     var target = this.getEventTarget(event);
     log.never(`eventHandler ${target.id}:${target.className} - ${event.type}`);
     if (this.dataSource) {
@@ -285,26 +289,8 @@ export class EventHandler {
         this.data = this.dataSource;
       }
     }
-    result = this.defaultResponse;
-    result = this.callHandler(this.handlerMethod, event);
-
-    if (result == null) {
-      result = this.defaultResponse || HandlerResponse.StopPropagation;
-    }
-
-    if (
-      result == HandlerResponse.StopPropagation ||
-      result == HandlerResponse.StopAll
-    ) {
-      //event.stopPropagation();
-      event.stopImmediatePropagation();
-    }
-    if (
-      result == HandlerResponse.StopDefault ||
-      result == HandlerResponse.StopAll
-    ) {
-      event.preventDefault();
-    }
+    result.replace(this.callHandler(this.handlerMethod, event));
+    result.finishEvent(event);
   }
 
   // allow derived classed to just override this.

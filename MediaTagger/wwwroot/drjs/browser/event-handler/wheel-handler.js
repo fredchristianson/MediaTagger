@@ -3,7 +3,7 @@ import { default as dom } from "../dom.js";
 import {
   EventHandlerBuilder,
   EventHandler,
-  HandlerResponse,
+  EventHandlerReturn,
   HandlerMethod,
 } from "./handler.js";
 
@@ -29,7 +29,7 @@ export class WheelHandler extends EventHandler {
     super(...args);
     this.setTypeName("wheel");
     // passive handlers can't stop default
-    this.setDefaultResponse(HandlerResponse.Continue);
+    this.setDefaultResponse(EventHandlerReturn.Continue);
     this.setListenElement(dom.getBody());
 
     this.onChange = HandlerMethod.None;
@@ -46,10 +46,16 @@ export class WheelHandler extends EventHandler {
   callHandler(method, event) {
     try {
       log.debug("wheel event ", event.wheelDelta);
+      var response = EventHandlerReturn.Continue;
       if (method) {
-        method.call(event.currentTarget, this.data, event, this);
+        response.replace(
+          method.call(event.currentTarget, this.data, event, this)
+        );
       }
-      this.onChange.call(event.wheelDelta, event.target, event, this);
+      response.replace(
+        this.onChange.call(event.wheelDelta, event.target, event, this)
+      );
+      return response;
     } catch (ex) {
       log.error(ex, "event handler for ", this.typeName, " failed");
     }

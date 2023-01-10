@@ -1,6 +1,6 @@
 import { LOG_LEVEL, Logger } from "../../logger.js";
 import { EventHandlerBuilder, EventHandler } from "./handler.js";
-import { HandlerResponse, MousePosition, HandlerMethod } from "./common.js";
+import { EventHandlerReturn, MousePosition, HandlerMethod } from "./common.js";
 import dom from "../dom.js";
 import util from "../../util.js";
 import { CancelToken, Task } from "../task.js";
@@ -55,7 +55,7 @@ export class HoverHandler extends EventHandler {
   constructor(...args) {
     super(...args);
     this.setTypeName(["mousemove", "mouseout"]);
-    this.setDefaultResponse = HandlerResponse.Continue;
+    this.setDefaultResponse = EventHandlerReturn.Continue;
     this.startDelayMSecs = 200;
     this.endDelayMSecs = 200;
     this.onStart = HandlerMethod.None();
@@ -118,6 +118,7 @@ export class HoverHandler extends EventHandler {
     try {
       var target = this.getEventTarget(event);
       log.debug(`hover: ${target.tagName} ${target.className} - ${event.type}`);
+      var response = EventHandlerReturn.Continue;
       if (event.type == "mousemove") {
         if (this.selector == null || dom.matches(target, this.selector)) {
           this.endCancel.cancel();
@@ -148,6 +149,7 @@ export class HoverHandler extends EventHandler {
           log.debug("mouse out to included element");
         }
       }
+      return response;
     } catch (ex) {
       log.error(ex, "event handler for ", this.typeName, " failed");
     }

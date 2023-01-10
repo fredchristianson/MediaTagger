@@ -2,7 +2,7 @@ import {
   Listeners,
   BuildDragHandler,
   BuildDropHandler,
-  HandlerResponse,
+  EventHandlerReturn,
 } from "../../drjs/browser/event.js";
 import { LOG_LEVEL, Logger } from "../../drjs/logger.js";
 import dom from "../../drjs/browser/dom.js";
@@ -13,7 +13,7 @@ export class Draggable {
     this.listeners = new Listeners(
       BuildDragHandler(draggable)
         .listenTo(draggable)
-        .setDefaultResponse(HandlerResponse.Continue)
+        .setDefaultResponse(EventHandlerReturn.Continue)
         .onStart(this, this.onStart)
         .onEnd(this, this.onEnd)
         .onDrag(this, this.onDrag)

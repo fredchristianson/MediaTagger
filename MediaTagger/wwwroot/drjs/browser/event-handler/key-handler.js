@@ -1,22 +1,92 @@
+import { Assert } from "../../assert.js";
 import { LOG_LEVEL, Logger } from "../../logger.js";
 import { default as dom } from "../dom.js";
 import {
   EventHandlerBuilder,
   EventHandler,
-  HandlerResponse,
+  EventHandlerReturn,
   HandlerMethod,
 } from "./handler.js";
 
 const log = Logger.create("KeyHandler", LOG_LEVEL.WARN);
 
-export function BuildKeyHandler() {
+class KeyMatch {
+  static get Enter() {
+    return new Key("Enter");
+  }
+  static get Escape() {
+    return new Key("Escape");
+  }
+
+  static Shift(key) {
+    return new Key(key).shift(true);
+  }
+  static Control(key) {
+    return new Key(key).control(true);
+  }
+  static Alt(key) {
+    return new Key(key).alt(true);
+  }
+
+  constructor(key) {
+    Assert.notNull(key, "KeyMatch requires a non-null key");
+    this.key = key.toLowerCase();
+    this.withShift = false;
+    this.withControl = false;
+    this.withAlt = false;
+    // response if handled and handler doesn't have a response
+    this.defaultResponse = EventHandlerReturn.StopAll;
+  }
+
+  isMatch(event) {
+    if (this.withAlt && !event.hasAlt) {
+      return false;
+    }
+    if (this.withControl && !event.hasCtrl) {
+      return false;
+    }
+    if (this.withAlt && !event.hasAlt) {
+      return false;
+    }
+    return this.key == event.key.toLowerCase();
+  }
+
+  shift(has = true) {
+    this.withShift = has;
+    return this;
+  }
+  control(has = true) {
+    this.withControl = has;
+    return this;
+  }
+  alt(has = true) {
+    this.withAlt = has;
+    return this;
+  }
+}
+
+function Key(key) {
+  return new KeyMatch(key);
+}
+Key.Enter = KeyMatch.Enter;
+Key.Escape = KeyMatch.Escape;
+Key.Shift = function (key) {
+  return Key(key).shift(true);
+};
+Key.Control = function (key) {
+  return Key(key).control(true);
+};
+Key.Alt = function (key) {
+  return Key(key).alt(true);
+};
+
+function BuildKeyHandler() {
   return new KeyHandlerBuilder();
 }
-export class KeyHandlerBuilder extends EventHandlerBuilder {
+
+class KeyHandlerBuilder extends EventHandlerBuilder {
   constructor(type) {
     super(type || KeyHandler);
-    this.ENTER_KEY = "Enter";
-    this.ESCAPE_KEY = "Escape";
   }
 
   onKeyDown(...args) {
@@ -29,32 +99,64 @@ export class KeyHandlerBuilder extends EventHandlerBuilder {
   }
   onEnter(...args) {
     this.handlerInstance.setOnKey(
-      this.ENTER_KEY,
+      Key.Enter,
       new HandlerMethod(...args, "onEnter")
     );
     return this;
   }
   onEscape(...args) {
     this.handlerInstance.setOnKey(
-      this.ESCAPE_KEY,
+      Key.Escape,
       new HandlerMethod(...args, "onEscape")
     );
     return this;
   }
   onKey(key, ...args) {
+    if (!(key instanceof KeyMatch)) {
+      key = Key(key);
+    }
+
     this.handlerInstance.setOnKey(key, new HandlerMethod(...args, "onKey"));
     return this;
   }
 }
 
-export class KeyHandler extends EventHandler {
+class KeyMatchHandler {
+  constructor(keyMatch, handler) {
+    Assert.notNull(keyMatch, "KeyMatchHandler requires a KeyMatch");
+    Assert.type(
+      keyMatch,
+      KeyMatch,
+      "keyMatch parameter is not a KeyMatch instance"
+    );
+    Assert.notNull(handler, "KeyMatchHandler requires a handler method");
+    this.keyMatch = keyMatch;
+    this.handlerMethod = handler;
+  }
+  handleEvent(event, keyHandler) {
+    if (this.keyMatch.isMatch(event)) {
+      this.handlerMethod.setData(keyHandler.dataSource, keyHandler.data);
+      var response = this.keyMatch.defaultResponse.clone();
+      response.replace(
+        this.handlerMethod.call(
+          event.key,
+          keyHandler.getEventTarget(event),
+          event
+        )
+      );
+      return response;
+    }
+  }
+}
+
+class KeyHandler extends EventHandler {
   constructor(...args) {
     super(...args);
     this.setTypeName(["keydown", "keyup"]);
-    this.setDefaultResponse(HandlerResponse.Continue);
+    this.setDefaultResponse(EventHandlerReturn.Continue);
     this.onKeyDown = HandlerMethod.None();
     this.onKeyUp = HandlerMethod.None();
-    this.keyHandler = {};
+    this.keyHandlers = [];
   }
 
   setOnKeyDown(handler) {
@@ -65,29 +167,23 @@ export class KeyHandler extends EventHandler {
   }
 
   setOnKey(key, handler) {
-    this.keyHandler[key] = handler;
+    this.keyHandlers.push(new KeyMatchHandler(key, handler));
   }
 
   callHandler(method, event) {
     try {
-      var response = null;
+      var response = EventHandlerReturn.Continue;
       var target = this.getEventTarget(event);
       if (event.type == "keydown") {
         this.onKeyDown.setData(this.dataSource, this.data);
-        var keyDownResponse = this.onKeyDown.call(event.key, target, event);
-        response = response ?? keyDownResponse;
-        var handler = this.keyHandler[event.key];
-        if (handler) {
-          var key = event.key;
-          handler.setData(this.dataSource, this.data);
-          var handlerResponse = handler.call(key, target, event);
-          response = response ?? handlerResponse;
-        }
+        response.replace(this.onKeyDown.call(event.key, target, event));
       } else if (event.type == "keyup") {
         this.onKeyUp.setData(this.dataSource, this.data);
-        var keyUpResponse = this.onKeyUp.call(event.key, target, event);
-        response = response ?? keyUpResponse;
+        response.replace(this.onKeyUp.call(event.key, target, event));
       }
+      this.keyHandlers.forEach((kh) => {
+        response.combine(kh.handleEvent(event, this));
+      });
       return response;
     } catch (ex) {
       log.error(ex, "event handler for ", this.typeName, " failed");
@@ -98,4 +194,4 @@ export class KeyHandler extends EventHandler {
   }
 }
 
-export default { KeyHandlerBuilder, BuildKeyHandler, KeyHandler };
+export { Key, KeyMatch, KeyHandlerBuilder, BuildKeyHandler, KeyHandler };

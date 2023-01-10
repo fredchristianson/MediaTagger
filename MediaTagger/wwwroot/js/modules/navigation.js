@@ -4,7 +4,7 @@ import {
   ObjectEventType,
   Listeners,
   BuildClickHandler,
-  HandlerResponse,
+  EventHandlerReturn,
 } from "../../drjs/browser/event.js";
 import UTIL from "../../drjs/util.js";
 import { BuildKeyHandler } from "../../drjs/browser/event-handler/key-handler.js";
@@ -47,11 +47,11 @@ class Navigation {
   }
   keyA(key, target, event) {
     log.debug("key A ", key);
-    return HandlerResponse.StopAll;
+    return EventHandlerReturn.Continue;
   }
   keyAA(key, target, event) {
     log.debug("key AA ", key);
-    return HandlerResponse.Continue;
+    return EventHandlerReturn.Continue;
   }
 }
 

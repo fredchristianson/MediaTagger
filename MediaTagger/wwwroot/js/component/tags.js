@@ -3,7 +3,7 @@ import {
   BuildCheckboxHandler,
   BuildHoverHandler,
   BuildInputHandler,
-  HandlerResponse,
+  EventHandlerReturn,
   Listeners,
 } from "../../drjs/browser/event.js";
 import { BuildClickHandler } from "../../drjs/browser/event.js";
@@ -171,12 +171,12 @@ export class TagFilterComponent extends TagsComponent {
       BuildClickHandler()
         .listenTo("#expand-all-filter-tags")
         .onClick(this, this.expandAll)
-        .setDefaultResponse(HandlerResponse.StopAll)
+        .setDefaultResponse(EventHandlerReturn.StopAll)
         .build(),
       BuildClickHandler()
         .listenTo("#collapse-all-filter-tags")
         .onClick(this, this.collapseAll)
-        .setDefaultResponse(HandlerResponse.StopAll)
+        .setDefaultResponse(EventHandlerReturn.StopAll)
         .build()
     );
   }

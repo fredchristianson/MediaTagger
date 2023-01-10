@@ -4,7 +4,7 @@ import {
   BuildCheckboxHandler,
   BuildClickHandler,
   Listeners,
-  HandlerResponse,
+  EventHandlerReturn,
 } from "../../drjs/browser/event.js";
 import {
   HtmlTemplate,
@@ -122,14 +122,14 @@ export class PropertyFilterComponent extends ComponentBase {
         .build(),
       BuildClickHandler()
         .listenTo(this.dom, "[href='#all']")
-        .setDefaultResponse(HandlerResponse.StopAll)
+        .setDefaultResponse(EventHandlerReturn.StopAll)
         .onClick(this, this.checkAll)
 
         .build(),
       BuildClickHandler()
         .listenTo(this.dom, "[href='#none']")
         .onClick(this, this.checkNone)
-        .setDefaultResponse(HandlerResponse.StopAll)
+        .setDefaultResponse(EventHandlerReturn.StopAll)
         .build()
     );
     this.onFilesChanged();

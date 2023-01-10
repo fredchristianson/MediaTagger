@@ -1,7 +1,11 @@
 import { LOG_LEVEL, Logger } from "../../logger.js";
 import { default as dom } from "../dom.js";
 import { EventHandler, EventHandlerBuilder } from "./handler.js";
-import { ObjectEventType, HandlerMethod, HandlerResponse } from "./common.js";
+import {
+  ObjectEventType,
+  HandlerMethod,
+  EventHandlerReturn,
+} from "./common.js";
 import { OnNextLoop } from "../timer.js";
 export * from "./common.js";
 
@@ -10,7 +14,7 @@ const log = Logger.create("CustomEvents", LOG_LEVEL.WARN);
 export class EventListener extends EventHandler {
   constructor(objectEventType, ...args) {
     super(objectEventType, dom.getBody(), ...args);
-    this.defaultResponse = HandlerResponse.Continue;
+    this.defaultResponse = EventHandlerReturn.Continue;
     this.listen();
   }
 
@@ -29,14 +33,16 @@ export class ObjectListener extends EventHandler {
 
   callHandler(method, event) {
     const detail = event.detail;
+    var response = EventHandlerReturn.Continue;
     if (
       (this.target == null || this.target == detail.object) &&
       (this.typeName == null ||
         this.typeName == "*" ||
         this.typeName == detail.typeName)
     ) {
-      method.call(detail.object, detail.data, detail.type);
+      response.combine(method.call(detail.object, detail.data, detail.type));
     }
+    return response;
   }
 }
 

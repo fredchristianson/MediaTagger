@@ -4,7 +4,6 @@ import {
   BuildCheckboxHandler,
   BuildClickHandler,
   Listeners,
-  HandlerResponse,
 } from "../../drjs/browser/event.js";
 import {
   HtmlTemplate,

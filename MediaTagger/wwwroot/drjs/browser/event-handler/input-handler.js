@@ -3,16 +3,16 @@ import { default as dom } from "../dom.js";
 import {
   EventHandlerBuilder,
   EventHandler,
-  HandlerResponse,
+  EventHandlerReturn,
   HandlerMethod,
 } from "./handler.js";
 
 const log = Logger.create("InputHandler", LOG_LEVEL.WARN);
 
-export function BuildInputHandler() {
+function BuildInputHandler() {
   return new InputHandlerBuilder();
 }
-export class InputHandlerBuilder extends EventHandlerBuilder {
+class InputHandlerBuilder extends EventHandlerBuilder {
   constructor(type) {
     super(type || InputHandler);
     this.ENTER_KEY = 13;
@@ -58,11 +58,11 @@ export class InputHandlerBuilder extends EventHandlerBuilder {
   }
 }
 
-export class InputHandler extends EventHandler {
+class InputHandler extends EventHandler {
   constructor(...args) {
     super(...args);
     this.setTypeName(["input", "change", "focusin", "focusout", "keydown"]);
-    this.setDefaultResponse(HandlerResponse.Continue);
+    this.setDefaultResponse(EventHandlerReturn.Continue);
     this.onChange = HandlerMethod.None();
     this.onInput = HandlerMethod.None();
     this.onFocus = HandlerMethod.None();
@@ -102,6 +102,7 @@ export class InputHandler extends EventHandler {
       var method = null;
       var target = this.getEventTarget(event);
       var value = this.getValue(target);
+      var response = EventHandlerReturn.Continue;
       if (event.type == "input") {
         method = this.onInput;
       } else if (event.type == "change") {
@@ -114,13 +115,14 @@ export class InputHandler extends EventHandler {
         var handler = this.keyHandler[event.which];
         if (handler) {
           var key = event.which;
-          handler.call(target, event, key, value);
+          response.combine(handler.call(target, event, key, value));
         }
       }
       if (method != null) {
         method.setData(this.dataSource, this.data);
-        method.call(value, target, event);
+        response.combine(method.call(value, target, event));
       }
+      return response;
     } catch (ex) {
       log.error(ex, "event handler for ", this.typeName, " failed");
     }
@@ -130,4 +132,4 @@ export class InputHandler extends EventHandler {
   }
 }
 
-export default { InputHandlerBuilder, BuildInputHandler, InputHandler };
+export { InputHandlerBuilder, BuildInputHandler, InputHandler };

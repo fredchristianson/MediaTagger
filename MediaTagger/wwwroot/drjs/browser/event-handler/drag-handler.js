@@ -1,6 +1,6 @@
 import { LOG_LEVEL, Logger } from "../../logger.js";
 import { EventHandlerBuilder, EventHandler } from "./handler.js";
-import { HandlerResponse, MousePosition, HandlerMethod } from "./common.js";
+import { EventHandlerReturn, MousePosition, HandlerMethod } from "./common.js";
 import dom from "../dom.js";
 import util from "../../util.js";
 import { CancelToken, Task } from "../task.js";
@@ -52,7 +52,7 @@ export class DragHandler extends EventHandler {
   constructor(...args) {
     super(...args);
     this.setTypeName(["dragstart", "drag", "dragend"]);
-    this.setDefaultResponse(HandlerResponse.Continue);
+    this.setDefaultResponse(EventHandlerReturn.Continue);
 
     this.onStart = HandlerMethod.None();
     this.onEnd = HandlerMethod.None();
@@ -61,18 +61,20 @@ export class DragHandler extends EventHandler {
 
   callHandler(method, event) {
     try {
+      var response = EventHandlerReturn.Continue;
       var target = this.getEventTarget(event);
       log.debug(`Drag: ${target.className} - ${event.type}`);
       if (event.type == "dragstart") {
         log.debug("drag: ", event.type);
-        this.onStart.call(target, event);
+        response.combineOrStop(this.onStart.call(target, event));
       } else if (event.type == "drag") {
         log.debug("drag: ", event.type);
-        this.onDrag.call(target, event);
+        response.combineOrStop(this.onDrag.call(target, event));
       } else if (event.type == "dragend") {
         log.debug("drag: ", event.type);
-        this.onEnd.call(target, event);
+        response.combineOrStop(this.onEnd.call(target, event));
       }
+      return response;
     } catch (ex) {
       log.error(ex, "event handler for ", this.typeName, " failed");
     }
@@ -83,7 +85,7 @@ export class DropHandler extends EventHandler {
   constructor(...args) {
     super(...args);
     this.setTypeName(["dragenter", "dragover", "dragleave", "drop"]);
-    this.setDefaultResponse = HandlerResponse.Continue;
+    this.setDefaultResponse = EventHandlerReturn.Continue;
 
     this.onEnter = HandlerMethod.None();
     this.onOver = HandlerMethod.None();
@@ -96,21 +98,21 @@ export class DropHandler extends EventHandler {
     try {
       var target = this.getEventTarget(event);
       log.debug(`Drag: ${target.className} - ${event.type}`);
+      var response = EventHandlerReturn.Continue;
       if (event.type == "dragenter") {
         log.debug("drag: ", event.type);
-        this.onEnter.call(target, event);
-        event.preventDefault();
+        response.combineOrStop(this.onEnter.call(target, event));
       } else if (event.type == "dragover") {
-        this.onOver.call(target, event);
+        response.combineOrStop(this.onOver.call(target, event));
         log.debug("drag: ", event.type);
-        event.preventDefault();
       } else if (event.type == "dragleave") {
-        this.onLeave.call(target, event);
+        response.combineOrStop(this.onLeave.call(target, event));
         log.debug("drag: ", event.type);
       } else if (event.type == "drop") {
-        this.onDrop.call(target, event);
+        response.combineOrStop(this.onDrop.call(target, event));
         log.debug("drag: ", event.type);
       }
+      return response;
     } catch (ex) {
       log.error(ex, "event handler for ", this.typeName, " failed");
     }

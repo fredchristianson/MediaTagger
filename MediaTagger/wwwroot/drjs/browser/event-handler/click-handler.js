@@ -5,7 +5,7 @@ import {
   EventHandler,
   HandlerMethod,
   DoNothing,
-  HandlerResponse,
+  EventHandlerReturn,
 } from "./handler.js";
 
 const log = Logger.create("ClickHandler", LOG_LEVEL.WARN);
@@ -69,6 +69,8 @@ export class ClickHandler extends EventHandler {
 
   callHandler(method, event) {
     try {
+      var response = EventHandlerReturn.Continue;
+
       if (event.type == "mouseover") {
         if (this.onRightClick) {
           document.oncontextmenu = DoNothing;
@@ -82,43 +84,54 @@ export class ClickHandler extends EventHandler {
       }
       if (event.type == "mousedown") {
         if (event.button == 1 && this.onMiddleClick) {
+          response.preventDefault = true;
           event.preventDefault(); // don't scroll if middle click handler exists
         }
       }
       if (method != null) {
-        method.call(event.currentTarget, this.data, event, this);
+        response.combine(
+          method.call(event.currentTarget, this.data, event, this)
+        );
       }
       if (event.type == "click" && this.onClick != null) {
         this.onClick.setData(this.dataSource, this.data);
-        this.onClick.call(this.getEventTarget(event), this.data, event, this);
+        response.combine(
+          this.onClick.call(this.getEventTarget(event), this.data, event, this)
+        );
       }
       if (event.type == "mouseup") {
         if (event.button == 0) {
-          this.onLeftClick.call(
-            this.getEventTarget(event),
-            this.data,
-            this.onLeftClick,
-            "onLeftClick"
+          response.combine(
+            this.onLeftClick.call(
+              this.getEventTarget(event),
+              this.data,
+              this.onLeftClick,
+              "onLeftClick"
+            )
           );
         }
         if (event.button == 1) {
-          this.onMiddleClick.call(
-            this.getEventTarget(event),
-            this.data,
-            this.onMiddleClick,
-            "onMiddleClick"
+          response.combine(
+            this.onMiddleClick.call(
+              this.getEventTarget(event),
+              this.data,
+              this.onMiddleClick,
+              "onMiddleClick"
+            )
           );
         }
         if (event.button == 2) {
-          this.onRightClick.call(
-            this.getEventTarget(event),
-            this.data,
-            this.onRightClick,
-            "onRightClick"
+          response.combine(
+            this.onRightClick.call(
+              this.getEventTarget(event),
+              this.data,
+              this.onRightClick,
+              "onRightClick"
+            )
           );
         }
       }
-      return HandlerResponse.StopAll;
+      return response;
     } catch (ex) {
       log.error(ex, "event handler for ", this.typeName, " failed");
     }

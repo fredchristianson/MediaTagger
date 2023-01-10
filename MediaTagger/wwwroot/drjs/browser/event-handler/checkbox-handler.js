@@ -1,6 +1,6 @@
 import { LOG_LEVEL, Logger } from "../../logger.js";
 import { default as dom } from "../dom.js";
-import { HandlerMethod, HandlerResponse } from "./common.js";
+import { HandlerMethod, EventHandlerReturn } from "./common.js";
 import { InputHandlerBuilder, InputHandler } from "./input-handler.js";
 
 const log = Logger.create("CheckboxHandler", LOG_LEVEL.WARN);
@@ -40,23 +40,26 @@ export class CheckboxHandler extends InputHandler {
   callHandler(method, event) {
     super.callHandler(method, event);
     var target = this.getEventTarget(event);
+    var response = EventHandlerReturn.Continue;
     if (event.type == "change") {
+      response.replace(EventHandlerReturn.StopAll);
       if (dom.isChecked(target)) {
         if (this.dataSource) {
-          this.checkedHandler.call(this.data, target, event);
+          response.replace(this.checkedHandler.call(this.data, target, event));
         } else {
-          this.checkedHandler.call(target, event);
+          response.replace(this.checkedHandler.call(target, event));
         }
-        return HandlerResponse.StopAll;
       } else {
         if (this.dataSource) {
-          this.uncheckedHandler.call(this.data, target, event);
+          response.replace(
+            this.uncheckedHandler.call(this.data, target, event)
+          );
         } else {
-          this.uncheckedHandler.call(target, event);
+          response.replace(this.uncheckedHandler.call(target, event));
         }
-        return HandlerResponse.StopAll;
       }
     }
+    return response;
   }
 }
 
