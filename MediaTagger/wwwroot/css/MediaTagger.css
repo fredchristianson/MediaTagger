@@ -137,6 +137,16 @@ body {
 #media-view .media-items .media-item.selected {
   outline: 6px solid #ffa;
 }
+#media-view .media-items .media-item.focus::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  border: 2px solid blue;
+  z-index: 999;
+}
 #media-view .media-items .media-item.loaded {
   background-image: unset;
 }

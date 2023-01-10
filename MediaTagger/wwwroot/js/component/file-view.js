@@ -169,6 +169,9 @@ export class FileViewComponent extends ComponentBase {
 
   clickItem(element, data, event, handler) {
     log.debug("click element ");
+    if (document.activeElement) {
+      document.activeElement.blur();
+    }
   }
   leftClick(element, data, event, handler) {
     log.debug("leftClick element ");

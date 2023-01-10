@@ -45,7 +45,6 @@ export class Draggable {
     dom.addClass(element, "dragging");
 
     event.dataTransfer.effectAllowed = "move";
-    event.stopPropagation();
   }
   onEnd(element, event) {
     if (this.dropListener) {
@@ -54,11 +53,9 @@ export class Draggable {
     }
     log.debug("dragEnd");
     dom.removeClass(element, "dragging");
-    event.stopPropagation();
   }
   onDrag(element, event) {
     // log.debug("drag");
-    event.stopPropagation();
   }
   onEnter() {
     log.debug("dragEnter");

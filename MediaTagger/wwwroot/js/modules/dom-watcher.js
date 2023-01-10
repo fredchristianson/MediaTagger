@@ -40,7 +40,7 @@ class WatchAction {
       this.newElement(element);
       this.watchedElements.push(element);
     } else {
-      log.warn("element added multiple times");
+      log.never("element added multiple times");
     }
   }
 

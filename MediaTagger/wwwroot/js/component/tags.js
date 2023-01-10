@@ -414,7 +414,7 @@ export class TagDetailsComponent extends TagsComponent {
     log.debug("change done");
     this.ignoreCheckboxChange = false;
 
-    FilterChangeEvent.emit();
+    //FilterChangeEvent.emit();
   }
 
   addTag(parentId, val) {

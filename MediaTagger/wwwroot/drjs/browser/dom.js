@@ -732,6 +732,9 @@ export class DOM {
 }
 
 const dom = new DOM();
+export { dom };
+
+// window.drjs shouldn't be needed any more.  usefule without modules
 window.drjs = window.drjs || {};
 window.drjs.dom = dom;
 export default dom;

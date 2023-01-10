@@ -1,5 +1,5 @@
 import { LOG_LEVEL, Logger } from "../../drjs/logger.js";
-import dom from "../../drjs/browser/dom.js";
+import { dom } from "../../drjs/browser/dom.js";
 import { ZoomEvent } from "../component/view-options.js";
 import {
   Listeners,
@@ -71,6 +71,47 @@ export class Layout {
     OnNextLoop(() => {
       this.onListUpdated(this.list);
     });
+
+    this.focusItem = null;
+    this.focusIndex = -1;
+    this.firstVisibleIndex = -1;
+    this.lastVisibleIndex = -1;
+    this.visibleItemCount = -1;
+    this.itemStepCount = -1;
+  }
+
+  getNavigationStepCount() {
+    return this.itemStepCount >= 0 ? this.itemStepCount : 1;
+  }
+  setFocus(item) {
+    this.focusItem = item;
+    this.ensureVisible(this.focusItem);
+  }
+
+  ensureVisible(item) {
+    if (this.list == null) {
+      return;
+    }
+    var oldFocus = dom.first(".focus");
+    dom.removeClass(oldFocus, "focus");
+
+    this.focusIndex = this.list.indexOf(this.focusItem);
+    if (this.focusIndex < this.firstVisibleIndex || this.lastVisibleIndex < 0) {
+      this.scrollToItem(
+        this.focusIndex - this.itemStepCount,
+        0,
+        this.layoutView
+      );
+    } else if (this.focusIndex > this.lastVisibleIndex) {
+      this.scrollToItem(
+        this.focusIndex - this.visibleItemCount + 1,
+        0,
+        this.layoutView
+      );
+    }
+    if (item && item.__layout_element) {
+      dom.addClass(item.__layout_element, "focus");
+    }
   }
 
   detach() {
@@ -189,7 +230,7 @@ export class GridLayout extends Layout {
       return;
     }
     var cols = Math.floor(viewWidth / (width + gap));
-    var rows = Math.floor(viewHeight / (gap + height)) + 1; // draw an extra row
+    var rows = Math.floor(viewHeight / (gap + height)); // draw an extra row
     var visibleCount = cols * rows;
     if (
       itemIndex > visibleCount &&
@@ -201,14 +242,19 @@ export class GridLayout extends Layout {
       }
     }
     var colPos = itemIndex % cols;
-    itemIndex -= colPos;
+    // itemIndex -= colPos;
     var topOffset = (1.0 * (height + gap) * colPos) / cols;
     if (itemIndex < 0) {
       itemIndex = 0;
       topOffset = 0;
     }
+    this.itemStepCount = cols;
+    this.firstVisibleIndex = itemIndex;
+    this.lastVisibleIndex = itemIndex + visibleCount - 1;
+    this.visibleItemCount = visibleCount;
     var html = this.getItemHtml(itemIndex);
     var layoutChildren = [];
+    left = this.gap / 2;
     while (visible && html != null) {
       //fragment.appendChild(html);
       layoutChildren.push(html);
@@ -217,8 +263,8 @@ export class GridLayout extends Layout {
       html.style.width = px(width);
       html.style.height = px(height);
       left += width + gap;
-      if (left + width > viewWidth) {
-        left = 0;
+      if (left + width + gap > viewWidth) {
+        left = this.gap / 2;
         top += height + gap;
         visible = top < viewHeight + 2 * height + gap;
       }
