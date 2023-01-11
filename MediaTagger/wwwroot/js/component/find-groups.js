@@ -85,11 +85,11 @@ export class FindGroupsComponent extends ComponentBase {
         ".reason": match.reason,
         ".img1": new AttributeValue(
           "src",
-          `/thumbnail/${match.file.getId()}?v=6`
+          `/thumbnail/${match.file.getId()}?v=7`
         ),
         ".img2": new AttributeValue(
           "src",
-          `/thumbnail/${match.test.getId()}?v=6`
+          `/thumbnail/${match.test.getId()}?v=7`
         ),
       });
       dom.append(this.matches, element);

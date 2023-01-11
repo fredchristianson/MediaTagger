@@ -11,11 +11,12 @@ import {
   BuildClickHandler,
   BuildHoverHandler,
   BuildScrollHandler,
+  BuildFocusHandler,
 } from "../../drjs/browser/event.js";
 import MediaDetailsComponent from "./media-details.js";
 import DateFilterComponent from "./date-filter.js";
 import MediaFilterComponent from "./media-filter.js";
-import Media from "../modules/media.js";
+import Media, { media } from "../modules/media.js";
 import { Navigation } from "../modules/navigation.js";
 import { GridLayout } from "../modules/layout.js";
 import { RightGridSizer, LeftGridSizer } from "../modules/drag-drop.js";
@@ -88,7 +89,7 @@ export class FileViewComponent extends ComponentBase {
         ".name": item.name,
         ".thumbnail": [
           new DataValue("file-id", item.getId()),
-          new AttributeValue("src", `/thumbnail/${item.getId()}?v=6`),
+          new AttributeValue("src", `/thumbnail/${item.getId()}?v=7`),
         ],
       });
       return htmlItem;
@@ -139,10 +140,20 @@ export class FileViewComponent extends ComponentBase {
       BuildScrollHandler()
         .listenTo(".items")
         .onScroll(this, this.hidePopup)
+        .build(),
+      BuildFocusHandler()
+        .listenTo(document.body)
+        .onFocusIn(this, this.clearItemFocus)
+        .onBlur(this, this.clearFocus)
         .build()
     );
 
     this.navigation = new Navigation(this.layout);
+  }
+
+  // remove focus from file item if another control (e.g. input) gets focus
+  clearItemFocus() {
+    media.clearFocus();
   }
 
   async viewFile() {
@@ -168,7 +179,6 @@ export class FileViewComponent extends ComponentBase {
   }
 
   clickItem(element, data, event, handler) {
-    log.debug("click element ");
     if (document.activeElement) {
       document.activeElement.blur();
     }
@@ -184,9 +194,11 @@ export class FileViewComponent extends ComponentBase {
     }
   }
   rightClick(element, data, event, handler) {
+    this.layout.setFocus(data.item);
     Media.selectToItem(data.item);
   }
   middleClick(element, data, event, handler) {
+    this.layout.setFocus(data.item);
     Media.toggleSelectItem(data.item);
   }
 }

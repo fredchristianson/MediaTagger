@@ -8,8 +8,9 @@ import {
   EventEmitter,
   BuildScrollHandler,
 } from "../../drjs/browser/event.js";
-import Media from "./media.js";
+import Media, { media } from "./media.js";
 import { OnNextLoop } from "./timer.js";
+import { Assert } from "../../drjs/assert.js";
 
 const log = Logger.create("Layout", LOG_LEVEL.INFO);
 
@@ -32,6 +33,90 @@ function px(num) {
   return `${num.toString()}px`;
 }
 
+class LayoutDetails {
+  constructor(container, zoom = 1) {
+    this.container = dom.first(container);
+    Assert.notNull(this.container, "Layout requires and element");
+    this.containerWidth = dom.getWidth(this.container);
+    this.containerHeight = dom.getHeight(this.container);
+    this.zoom = zoom;
+    this.baseItemWidth = 128;
+    this.baseItemHeight = 128;
+    this.itemWidth = 128;
+    this.itemHeight = 128;
+    this.rows = 1;
+    this.cols = 1;
+    this.gap = 8;
+    this.setItemSize(zoom, this.baseItemWidth, this.baseItemHeight);
+  }
+
+  get Columns() {
+    return this.cols;
+  }
+  get Rows() {
+    return this.rows;
+  }
+  get ItemHeight() {
+    return this.itemHeight;
+  }
+  get ItemWidth() {
+    return this.itemWidth;
+  }
+
+  get RowHeight() {
+    return this.itemHeight + this.gap;
+  }
+
+  get ViewWidth() {
+    return this.containerWidth;
+  }
+
+  get ViewHeight() {
+    return this.containerHeight;
+  }
+
+  get Gap() {
+    return this.gap;
+  }
+
+  get Zoom() {
+    return this.zoom;
+  }
+  setZoom(zoom) {
+    this.setItemSize(zoom);
+  }
+
+  setItemSize(zoom = 1, baseItemWidth = null, baseItemHeight = null) {
+    this.zoom = zoom ?? 1;
+    this.baseItemWidth = baseItemWidth ?? 128;
+    this.baseItemHeight = baseItemHeight ?? 128;
+    this.itemHeight = this.zoom * this.baseItemHeight;
+    this.itemWidth = this.zoom * this.baseItemWidth;
+    this.calcFit();
+  }
+
+  calcFit() {
+    if (this.containerWidth == 0) {
+      this.cols = 1;
+    } else {
+      this.cols = Math.floor(this.containerWidth / (this.itemWidth + this.gap));
+    }
+    if (this.containerHeight == 0) {
+      this.rows = 1;
+    } else {
+      // draw one extra row for partial scroll
+      this.rows =
+        Math.floor(this.containerHeight / (this.itemHeight + this.gap)) + 1;
+    }
+    this.visibleCount = this.rows * this.cols;
+    this.pageSize = (this.rows - 2) * this.cols;
+  }
+
+  get VisibleRows() {
+    return this.rows;
+  }
+}
+
 export class Layout {
   constructor(containerSelector, list, htmlCreator) {
     this.containerSelector = containerSelector;
@@ -39,8 +124,7 @@ export class Layout {
     this.layoutView = dom.createElement("div", { "@class": "layout-view" });
     this.htmlCreator = htmlCreator;
     this.list = list;
-    this.scrollItemIndex = 0;
-    this.scrollItemPercent = 0;
+
     this.zoomPercent = 1;
     this.container = dom.first(this.containerSelector);
     if (this.container == null) {
@@ -49,15 +133,7 @@ export class Layout {
     dom.append(this.container, this.layoutScroll);
     dom.append(this.container, this.layoutView);
 
-    this.resizeObserver = new ResizeObserver((entries) => {
-      this.containerWidth = this.container.offsetWidth;
-      this.containerHeight = this.container.offsetHeight;
-      this.onContainerResize(
-        this.containerWidth,
-        this.containerHeight,
-        entries
-      );
-    });
+    this.resizeObserver = new ResizeObserver(this.onContainerResize.bind(this));
     this.resizeObserver.observe(this.container);
     this.listeners = new Listeners(
       ZoomEvent.createListener(this, this.onZoomChange),
@@ -65,53 +141,66 @@ export class Layout {
       this.list.getUpdatedEvent().createListener(this, this.onListUpdated),
       Media.getSelectedItems()
         .getUpdatedEvent()
-        .createListener(this, this.onSelectionChanged)
+        .createListener(this, this.onSelectionChanged),
+      Media.getFocusChangeEvent().createListener(this, this.setFocus)
     );
 
     OnNextLoop(() => {
       this.onListUpdated(this.list);
     });
 
-    this.focusItem = null;
-    this.focusIndex = -1;
     this.firstVisibleIndex = -1;
     this.lastVisibleIndex = -1;
     this.visibleItemCount = -1;
     this.itemStepCount = -1;
+    this.layoutDetails = this.createLayoutDetails();
+  }
+
+  createLayoutDetails() {
+    return new LayoutDetails(this.container, this.zoomPercent);
   }
 
   getNavigationStepCount() {
-    return this.itemStepCount >= 0 ? this.itemStepCount : 1;
-  }
-  setFocus(item) {
-    this.focusItem = item;
-    this.ensureVisible(this.focusItem);
+    return this.layoutDetails.Columns;
   }
 
-  ensureVisible(item) {
-    if (this.list == null) {
-      return;
-    }
+  setFocus(sender, item) {
     var oldFocus = dom.first(".focus");
     dom.removeClass(oldFocus, "focus");
-
-    this.focusIndex = this.list.indexOf(this.focusItem);
-    if (this.focusIndex < this.firstVisibleIndex || this.lastVisibleIndex < 0) {
-      this.scrollToItem(
-        this.focusIndex - this.itemStepCount,
-        0,
-        this.layoutView
-      );
-    } else if (this.focusIndex > this.lastVisibleIndex) {
-      this.scrollToItem(
-        this.focusIndex - this.visibleItemCount + 1,
-        0,
-        this.layoutView
-      );
+    var focusItem = item;
+    if (item != null) {
+      this.ensureVisible(focusItem);
     }
-    if (item && item.__layout_element) {
+    if (item != null && item.__layout_element) {
       dom.addClass(item.__layout_element, "focus");
     }
+  }
+
+  redrawItem(item) {
+    this.ensureVisible(item);
+    this.drawItems(this.firstVisibleIndex, this.layoutDetails, this.layoutView);
+  }
+  ensureVisible(item) {
+    if (this.list == null || this.list.Length == 0) {
+      return;
+    }
+    this.focusIndex = this.list.indexOf(this.focusItem);
+    var index = this.focusIndex ?? 0;
+    var itemCount = this.list.Length;
+    var scrollHeight = this.layoutScroll.scrollHeight;
+    var viewHeight = this.layoutView.offsetHeight;
+    var totalRows = Math.floor(scrollHeight / this.layoutDetails.Columns);
+    var itemRow = Math.floor(index / this.layoutDetails.Columns);
+    var scrollPos = this.layoutScroll.scrollTop;
+    var firstVisibleRow = Math.floor((totalRows * index) / itemCount);
+    var lastVisibleRow = firstVisibleRow + this.layoutDetails.VisibleRows - 1;
+
+    if (itemRow <= firstVisibleRow) {
+      firstVisibleRow = itemRow;
+    } else if (itemRow >= lastVisibleRow) {
+      firstVisibleRow = itemRow - this.layoutDetails.VisibleRows;
+    }
+    this.scrollTo(firstVisibleRow * this.layoutDetails.ItemHeight);
   }
 
   detach() {
@@ -136,72 +225,43 @@ export class Layout {
   }
 
   onScroll(pos) {
+    var row = Math.floor(pos / this.layoutScroll.scrollHeight);
+    var rowStartTop = row * this.layoutDetails.ItemHeight;
     this.layoutView.style.top = px(pos);
-    this.layoutView.style.height = px(this.container.clientHeight);
-    this.scrollItemIndex = Math.floor(pos / 100);
-    this.scrollItemPercent = (pos % 100) / 100.0;
-    this.scrollToItem(
-      this.scrollItemIndex,
-      this.scrollItemPercent,
-      this.layoutView
-    );
+    this.firstVisibleIndex = row * this.layoutDetails.Columns;
+    this.scrollTo(pos);
   }
 
-  scrollToItem(itemIndex, itemPercent) {
-    throw new Error("layout class must implement scrollToItem");
+  scrollTo(pos) {
+    this.firstVisibleItem = this.list.getItemAt(this.firstVisibleIndex);
+    this.drawItems(this.firstVisibleIndex, this.layoutDetails, this.layoutView);
   }
 
   onSelectionChanged(list) {
-    this.scrollToItem(
-      this.scrollItemIndex,
-      this.scrollItemPercent,
-      this.layoutView
-    );
+    this.drawItems(this.firstVisibleIndex, this.layoutDetails, this.layoutView);
   }
+
   onListUpdated(list) {
-    this.layoutScroll.style.height = px(list.getLength() * 100);
-
-    this.scrollToItem(
-      this.scrollItemIndex,
-      this.scrollItemPercent,
-      this.layoutView
-    );
+    this.focusIndex = list.indexOf(this.focusItem);
+    this.onContainerResize();
+    if (this.focusIndex != null) {
+      this.ensureVisible(this.focusItem);
+    }
   }
 
-  onContainerResize(containerWidth, containerHeight, entries) {
-    this.scrollToItem(
-      this.scrollItemIndex,
-      this.scrollItemPercent,
-      this.layoutView
-    );
+  onContainerResize() {
+    this.layoutDetails = this.createLayoutDetails();
+
+    var totalRows = this.list.Length / this.layoutDetails.Columns + 1;
+    var totalHeight = totalRows * this.layoutDetails.RowHeight;
+    this.layoutScroll.style.height = px(totalHeight);
+    this.ensureVisible(this.focusItem);
+    this.drawItems(this.firstVisibleIndex, this.layoutDetails, this.layoutView);
   }
 
   onZoomChange(sender, newValue) {
-    this.zoomPercent = newValue / 100.0;
-    this.scrollToItem(
-      this.scrollItemIndex,
-      this.scrollItemPercent,
-      this.layoutView
-    );
-  }
-
-  addItem(item) {
-    if (item instanceof HTMLElement) {
-      this.items.push(item);
-    } else {
-      throw new Error("Layout can only add HTML items");
-    }
-    this.insertElement(item);
-  }
-
-  addItems(items) {
-    dom.hide(this.container);
-    items.forEach((item) => this.addItem(item));
-    dom.show(this.container);
-  }
-
-  insertElement(item) {
-    throw new Error("derived class must implement insertElement");
+    this.zoomPercent = newValue;
+    this.onContainerResize();
   }
 }
 
@@ -215,43 +275,28 @@ export class GridLayout extends Layout {
     this.gridDataName = "data-layout-grid-visible";
   }
 
-  scrollToItem(itemIndex, itemPercent, view) {
+  drawItems(firstItemIndex, layoutDetails, view) {
+    if (firstItemIndex < 0) {
+      firstItemIndex = 0;
+    }
     var selection = Media.getSelectedItems();
     var visibleItems = Media.getVisibleItems();
     var visible = true;
     var left = 0;
     var top = 0;
-    var width = this.itemWidth * this.zoomPercent;
-    var height = this.itemHeight * this.zoomPercent;
-    var gap = this.gap;
-    var viewWidth = view.clientWidth;
-    var viewHeight = view.clientHeight;
+    var width = layoutDetails.ItemWidth;
+    var height = layoutDetails.ItemHeight;
+    var gap = layoutDetails.Gap;
+    var viewWidth = layoutDetails.ViewWidth;
+    var viewHeight = layoutDetails.ViewHeight;
     if (viewWidth == 0 || viewHeight == 0) {
       return;
     }
-    var cols = Math.floor(viewWidth / (width + gap));
-    var rows = Math.floor(viewHeight / (gap + height)); // draw an extra row
-    var visibleCount = cols * rows;
-    if (
-      itemIndex > visibleCount &&
-      itemIndex + visibleCount >= this.list.getLength()
-    ) {
-      itemIndex = this.list.getLength() - visibleCount + 2 * cols;
-      if (itemIndex < 0) {
-        itemIndex = 0;
-      }
-    }
-    var colPos = itemIndex % cols;
-    // itemIndex -= colPos;
-    var topOffset = (1.0 * (height + gap) * colPos) / cols;
-    if (itemIndex < 0) {
-      itemIndex = 0;
-      topOffset = 0;
-    }
+    var cols = layoutDetails.Columns;
+    var rows = layoutDetails.Rows;
+
     this.itemStepCount = cols;
-    this.firstVisibleIndex = itemIndex;
-    this.lastVisibleIndex = itemIndex + visibleCount - 1;
-    this.visibleItemCount = visibleCount;
+    var itemIndex = firstItemIndex;
     var html = this.getItemHtml(itemIndex);
     var layoutChildren = [];
     left = this.gap / 2;
@@ -259,12 +304,12 @@ export class GridLayout extends Layout {
       //fragment.appendChild(html);
       layoutChildren.push(html);
       html.style.left = px(left);
-      html.style.top = px(top - topOffset);
+      html.style.top = px(top);
       html.style.width = px(width);
       html.style.height = px(height);
       left += width + gap;
-      if (left + width + gap > viewWidth) {
-        left = this.gap / 2;
+      if (left + width + gap >= viewWidth) {
+        left = gap / 2;
         top += height + gap;
         visible = top < viewHeight + 2 * height + gap;
       }
@@ -273,6 +318,10 @@ export class GridLayout extends Layout {
       dom.toggleClass(html, "group", item.isInGroup());
       dom.toggleClass(html, "primary", item.isPrimary());
 
+      dom.removeClass(html, [`rotate-90`, "rotate-180", "rotate-270"]);
+      if (item.RotationDegrees) {
+        dom.addClass(html, `rotate-${(item.RotationDegrees + 360) % 360}`);
+      }
       itemIndex += 1;
       html = this.getItemHtml(itemIndex);
     }

@@ -27,12 +27,20 @@ class InputHandlerBuilder extends EventHandlerBuilder {
     this.handlerInstance.setOnInput(new HandlerMethod(...args, "onInput"));
     return this;
   }
-  onBlur(...args) {
-    this.handlerInstance.setOnBlur(new HandlerMethod(...args, "onBlur"));
+  onFocus(...args) {
+    this.handlerInstance.setOnFocus(new HandlerMethod(...args, "onBlur"));
     return this;
   }
-  onFocus(...args) {
-    this.handlerInstance.setOnFocus(new HandlerMethod(...args, "onFocus"));
+  onBlur(...args) {
+    this.handlerInstance.setOnBlur(new HandlerMethod(...args, "onFocus"));
+    return this;
+  }
+  onFocusOut(...args) {
+    this.handlerInstance.setOnFocusOut(new HandlerMethod(...args, "onBlur"));
+    return this;
+  }
+  onFocusIn(...args) {
+    this.handlerInstance.setOnFocusIn(new HandlerMethod(...args, "onFocus"));
     return this;
   }
   onEnter(...args) {
@@ -61,12 +69,22 @@ class InputHandlerBuilder extends EventHandlerBuilder {
 class InputHandler extends EventHandler {
   constructor(...args) {
     super(...args);
-    this.setTypeName(["input", "change", "focusin", "focusout", "keydown"]);
+    this.setTypeName([
+      "input",
+      "change",
+      "focus",
+      "blur",
+      "focusin",
+      "focusout",
+      "keydown",
+    ]);
     this.setDefaultResponse(EventHandlerReturn.Continue);
     this.onChange = HandlerMethod.None();
     this.onInput = HandlerMethod.None();
     this.onFocus = HandlerMethod.None();
     this.onBlur = HandlerMethod.None();
+    this.onFocusIn = HandlerMethod.None();
+    this.onFocusOut = HandlerMethod.None();
     this.keyHandler = {};
   }
 
@@ -81,6 +99,12 @@ class InputHandler extends EventHandler {
   }
   setOnFocus(handler) {
     this.onFocus = handler;
+  }
+  setOnFocusIn(handler) {
+    this.onFocusIn = handler;
+  }
+  setOnFocusOut(handler) {
+    this.onFocusOut = handler;
   }
 
   setOnKey(key, handler) {
@@ -108,8 +132,12 @@ class InputHandler extends EventHandler {
       } else if (event.type == "change") {
         method = this.onChange;
       } else if (event.type == "focusout") {
-        method = this.onBlur;
+        method = this.onFocusOut;
       } else if (event.type == "focusin") {
+        method = this.onFocusIn;
+      } else if (event.type == "blur") {
+        method = this.onBlur;
+      } else if (event.type == "focus") {
         method = this.onFocus;
       } else if (event.type == "keydown") {
         var handler = this.keyHandler[event.which];

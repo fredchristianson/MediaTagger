@@ -101,6 +101,8 @@ body {
   max-width: 100%;
   max-height: 100%;
   z-index: 1;
+  -o-object-fit: contain;
+     object-fit: contain;
 }
 #media-view .media-items .media-item .error {
   display: block;
@@ -208,6 +210,18 @@ body {
 
 .multi-select .popup button.group {
   display: unset;
+}
+
+.rotate-90 img {
+  transform: rotate(90deg);
+}
+
+.rotate-180 img {
+  transform: rotate(180deg);
+}
+
+.rotate-270 img {
+  transform: rotate(-90deg);
 }
 
 .date-select {
@@ -508,9 +522,25 @@ body {
 }
 #media-details > div .details.property {
   grid-area: properties;
-  overflow: auto;
+  overflow: hidden;
 }
-#media-details > div .details.property img {
+#media-details > div .details.property .properties {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+}
+#media-details > div .details.property .properties .preview {
+  flex: 1;
+}
+#media-details > div .details.property .properties .preview .center {
+  height: 100%;
+  position: relative;
+  left: 50%;
+  transform: translate(-50%);
+}
+#media-details > div .details.property .properties .preview .center img {
+  position: relative;
   max-width: 100%;
 }
 

@@ -58,10 +58,14 @@ export class MediaEntity {
         var newValue = data[key];
         if (value != newValue) {
           this.setChanged();
-          this[key] = newValue;
+          this.setValue(key, newValue);
         }
       }
     });
+  }
+
+  setValue(name, newValue) {
+    this[name] = newValue;
   }
 
   getId() {

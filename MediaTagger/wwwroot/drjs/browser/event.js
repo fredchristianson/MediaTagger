@@ -19,6 +19,10 @@ export function BuildHandler(handlerClass) {
   return new EventHandlerBuilder(handlerClass);
 }
 
+export function BuildFocusHandler() {
+  return new InputHandlerBuilder();
+}
+
 export function BuildDragHandler() {
   return new DragHandlerBuilder();
 }

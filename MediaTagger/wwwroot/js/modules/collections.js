@@ -88,6 +88,9 @@ class ObservableArray extends ObservableCollection {
     return this.items.find(selector);
   }
 
+  get Length() {
+    return this.items.length;
+  }
   getLength() {
     return this.items.length;
   }
@@ -256,6 +259,10 @@ class ObservableView extends ObservableCollection {
     return this.collectionIn.getById(id);
   }
 
+  get Length() {
+    return this.collectionIn.Length;
+  }
+
   getLength() {
     return this.collectionIn.getLength();
   }
@@ -334,6 +341,10 @@ export class SortedObservableView extends ObservableView {
     return this.sortedItems.indexOf(item);
   }
 
+  get Length() {
+    return this.sortedItems.Length;
+  }
+
   getLength() {
     return this.sortedItems.getLength();
   }
@@ -381,6 +392,10 @@ export class FilteredObservableView extends ObservableView {
 
   findById(id) {
     return this.filteredItems.findById(id);
+  }
+
+  get Length() {
+    return this.filteredItems.Length;
   }
 
   getLength() {

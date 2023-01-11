@@ -26,20 +26,21 @@ export class PropertyDetailsComponent extends ComponentBase {
   async onHtmlInserted(elements) {
     this.settings = await Settings.load("property-details");
 
-    this.selection = media.getSelectedItems();
     this.listeners.add(
-      this.selection
-        .getUpdatedEvent()
-        .createListener(this, this.onSelectionChanged)
+      // this.selection
+      //   .getUpdatedEvent()
+      //   .createListener(this, this.onSelectionChanged)
+      media.getFocusChangeEvent().createListener(this, this.focusChange)
     );
   }
 
-  onSelectionChanged(sel) {
+  focusChange() {
     var focus = media.getFocus();
     this.dom.show(".properties", focus != null);
     if (focus == null) {
       return;
     }
+    var sel = media.getSelectedItems();
     if (sel.getLength() == 1) {
       this.dom.setInnerHTML("h1.name", focus.getName());
     } else {
@@ -54,7 +55,25 @@ export class PropertyDetailsComponent extends ComponentBase {
       ".resolution",
       `${focus.getWidth()} x ${focus.getHeight()}`
     );
-    this.dom.setAttribute("img", "src", `/image/${focus.getId()}`);
+    this.dom.setAttribute(".preview img", "src", `/image/${focus.getId()}`);
+    this.dom.removeClass(".preview", [`rotate-90`, "rotate-180", "rotate-270"]);
+    var preview = this.dom.first(".preview");
+    var img = this.dom.first(preview, "img");
+    if (focus.RotationDegrees) {
+      this.dom.addClass(
+        ".preview",
+        `rotate-${(focus.RotationDegrees + 360) % 360}`
+      );
+    }
+    if (focus.RotationDegrees == 90 || focus.RotationDegrees == 270) {
+      img.style.maxWidth = `${preview.offsetHeight}px`;
+      img.style.maxHeight = `${preview.offsetWidth}px`;
+      img.style.left = `${(preview.offsetWidth - img.offsetWidth) / 2}px`;
+    } else {
+      img.style.maxHeight = `${preview.offsetHeight}px`;
+      img.style.maxWidth = `${preview.offsetWidth}px`;
+      img.style.left = "0px";
+    }
   }
 }
 

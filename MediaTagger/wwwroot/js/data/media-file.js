@@ -1,6 +1,7 @@
 import { MediaEntity } from "./media-entity.js";
 import { LOG_LEVEL, Logger } from "../../drjs/logger.js";
 import { toDate } from "./helpers.js";
+import { Util } from "../../drjs/util.js";
 const log = Logger.create("MediaFile", LOG_LEVEL.DEBUG);
 
 export class MediaFile extends MediaEntity {
@@ -13,13 +14,31 @@ export class MediaFile extends MediaEntity {
     this.fileCreatedOn = toDate(data.fileCreatedOn);
     this.fileSetPrimaryId = data.fileSetPrimaryId;
     this.filename = data.filename;
-    this.width = data.width;
-    this.height = data.height;
+    this.width = isNaN(data.width) ? 0 : Math.floor(data.width / 10) * 10;
+    this.height = isNaN(data.height) ? 0 : Math.floor(data.height / 10) * 10;
     this.name = data.name;
+    this.rotationDegrees = data.rotationDegrees || 0;
     this._group = null;
+
     this._tags = [];
   }
 
+  setValue(name, newValue) {
+    // don't set rotationDegrees to null in an update
+    if (name != "rotationDegrees" || newValue != null) {
+      this[name] = newValue;
+    }
+  }
+
+  get RotationDegrees() {
+    return this.rotationDegrees;
+  }
+  rotate(degrees) {
+    var d = Util.toNumber(this.rotationDegrees, 0);
+    var change = Util.toNumber(degrees, 0);
+    this.rotationDegrees = (d + change + 360) % 360;
+    this._changed = true;
+  }
   setTags(tags) {
     this._tags = tags;
   }

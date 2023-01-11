@@ -17,10 +17,6 @@ const log = Logger.create("Navigation", LOG_LEVEL.DEBUG);
 class Navigation {
   constructor(layout) {
     this.layout = layout;
-    this.items = media.getVisibleItems();
-    this.focusIndex = 0;
-    this.focusItem = this.items.getItemAt(this.focusIndex);
-
     this.listeners = new Listeners(
       BuildKeyHandler()
         .ifActive()
@@ -32,61 +28,71 @@ class Navigation {
         .onKey(Key.LeftArrow, this, this.movePrev)
         .onKey(Key.Home, this, this.moveStart)
         .onKey(Key.End, this, this.moveEnd)
-        .onKeyDown(this, this.onKeyDown)
-        .build(),
-
-      this.items.getUpdatedEvent().createListener(this, this.itemsChanged)
+        .onKey("[", this, this.rotate270)
+        .onKey("]", this, this.rotate90)
+        .onKey("\\", this, this.rotate180)
+        .onKeyDown(this, this.onKeyDown) // to log keypresses
+        .build()
     );
-    this.changeIndex(0);
   }
 
-  itemsChanged(list) {
-    this.items = list;
-    var newIndex = list.indexOf(this.focusItem);
-    if (newIndex == null || newIndex < 0) {
-      this.focusIndex = Math.min(this.focusIndex, list.getLength() - 1);
-      this.focusItem = list.getItemAt(this.focusIndex);
-    } else {
-      this.focusIndex = newIndex;
-    }
-    this.changeIndex(newIndex);
-  }
+  changeIndex(change, extendSelect = false) {
+    var index = media.getFocusIndex();
 
-  changeIndex(index, extendSelect) {
-    this.focusIndex = Math.max(0, Math.min(index, this.items.getLength() - 1));
-    this.focusItem = this.items.getItemAt(this.focusIndex);
-    this.layout.setFocus(this.focusItem);
-    if (extendSelect) {
-      media.selectToItem(this.focusItem);
-    } else {
-      media.selectItem(this.focusItem);
+    var newIndex = Math.max(
+      0,
+      Math.min(index + change, media.getVisibleItems().getLength() - 1)
+    );
+    var focusItem = media.getVisibleItems().getItemAt(newIndex);
+    if (focusItem != null) {
+      media.setFocus(focusItem);
+      if (extendSelect) {
+        media.selectToItem(this.focusItem);
+      } else {
+        media.selectItem(this.focusItem);
+      }
     }
   }
 
   moveUp(key, target, event) {
-    this.changeIndex(
-      this.focusIndex - this.layout.getNavigationStepCount(),
-      event.hasShift
-    );
+    this.changeIndex(-this.layout.getNavigationStepCount(), event.hasShift);
   }
   moveDown(key, target, event) {
-    this.changeIndex(
-      this.focusIndex + this.layout.getNavigationStepCount(),
-      event.hasShift
-    );
+    this.changeIndex(this.layout.getNavigationStepCount(), event.hasShift);
   }
   movePrev(key, target, event) {
-    this.changeIndex(this.focusIndex - 1, event.hasShift);
+    this.changeIndex(-1, event.hasShift);
   }
   moveNext(key, target, event) {
-    this.changeIndex(this.focusIndex + 1, event.hasShift);
+    this.changeIndex(1, event.hasShift);
   }
 
   moveStart(key, target, event) {
-    this.changeIndex(0, event.hasShift);
+    this.changeIndex(-media.getFocusIndex(), event.hasShift);
   }
   moveEnd(key, target, event) {
-    this.changeIndex(this.items.getLength() - 1, event.hasShift);
+    this.changeIndex(
+      media.getVisibleItems().getLength() - media.getFocusIndex(),
+      event.hasShift
+    );
+  }
+
+  rotate270() {
+    this.rotate(-90);
+  }
+  rotate90() {
+    this.rotate(90);
+  }
+  rotate180() {
+    this.rotate(180);
+  }
+  rotate(degrees) {
+    var focus = media.getFocus();
+    if (focus == null) {
+      return;
+    }
+    focus.rotate(degrees);
+    media.updateFocus();
   }
 
   detach() {

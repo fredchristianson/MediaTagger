@@ -11,41 +11,49 @@ namespace MediaTagger.Modules.MediaFile
         public static void MapEndpoints(this IEndpointRouteBuilder routes)
         {
 
-            routes.MapGet(V1_URL_PREFIX + "/MediaFiles", async (MediaTaggerContext db, AppSettingsService settingsService, int? start, int? count) =>
+            routes.MapGet(V1_URL_PREFIX + "/MediaFiles", async (ILogger<MediaFileModule> logger, MediaTaggerContext db, AppSettingsService settingsService, int? start, int? count) =>
             {
-                var files = await db.MediaFiles
-                .Where(f => !f.Hidden)
-                .Include(f => f.Directory)
-                .OrderBy(f => f.Id)
-                .Skip(start ?? 0)
-                .Take(count ?? 1000)
-                .Select(f => new
+                try
                 {
-                    id = f.Id,
-                    fileSetPrimaryId = f.FileSetPrimaryId,
-                    createdOn = f.CreatedOn,
-                    modifiedOn = f.ModifiedOn,
-                    name = f.Name,
-                    filename = f.Filename,
-                    fileCreatedOn = f.FileCreated,
-                    fileModifiedOn = f.FileModified,
-                    directory = f.Directory == null ? null : f.Directory.Value,
-                    fileSize = f.FileSize,
-                    width = f.Width,
-                    height = f.Height,
-                    hidden = f.Hidden
-                }).ToListAsync();
-                var total = await db.MediaFiles.CountAsync();
-                return new
+                    var files = await db.MediaFiles
+                    .Where(f => !f.Hidden)
+                    .Include(f => f.Directory)
+                    .OrderBy(f => f.Id)
+                    .Skip(start ?? 0)
+                    .Take(count ?? 1000)
+                    .Select(f => new
+                    {
+                        id = f.Id,
+                        fileSetPrimaryId = f.FileSetPrimaryId,
+                        createdOn = f.CreatedOn,
+                        modifiedOn = f.ModifiedOn,
+                        name = f.Name,
+                        filename = f.Filename,
+                        fileCreatedOn = f.FileCreated,
+                        fileModifiedOn = f.FileModified,
+                        directory = f.Directory == null ? null : f.Directory.Value,
+                        fileSize = f.FileSize,
+                        width = f.Width,
+                        height = f.Height,
+                        hidden = f.Hidden
+                    }).ToListAsync();
+                    var total = await db.MediaFiles.CountAsync();
+                    return new
+                    {
+                        success = true,
+                        message = "success",
+                        start = start,
+                        requestCount = count,
+                        totalCount = total,
+                        resultCount = files.Count(),
+                        data = files
+                    };
+                }
+                catch (Exception ex)
                 {
-                    success = true,
-                    message = "success",
-                    start = start,
-                    requestCount = count,
-                    totalCount = total,
-                    resultCount = files.Count(),
-                    data = files
-                };
+                    logger.LogError(ex, "failed to load files");
+                    throw ex;
+                }
             });
 
             routes.MapPost(V1_URL_PREFIX + "/MediaFile", async (MediaTaggerContext db,

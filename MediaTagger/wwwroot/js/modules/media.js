@@ -28,6 +28,9 @@ const log = Logger.create("Media", LOG_LEVEL.WARN);
 export var FilterChangeEventType = new ObjectEventType("FilterChange");
 export var FilterChangeEvent = new EventEmitter(FilterChangeEventType, this);
 
+export var FocusChangeEventType = new ObjectEventType("FocusChange");
+export var FocusChangeEvent = new EventEmitter(FocusChangeEventType, this);
+
 class Media {
   constructor() {
     this.files = new ObservableArray();
@@ -70,8 +73,32 @@ class Media {
     this.filterIncludeFunctions = [];
   }
 
+  getFocusChangeEvent() {
+    return FocusChangeEvent;
+  }
+
+  clearFocus() {
+    this.focus = null;
+    this.focusIndex = null;
+    FocusChangeEvent.emit(null);
+  }
   getFocus() {
     return this.focus;
+  }
+  getFocusIndex() {
+    return this.focusIndex;
+  }
+
+  setFocus(item) {
+    this.focus = item;
+    this.focusIndex = this.visibleItems.indexOf(item);
+    FocusChangeEvent.emit(item);
+  }
+
+  // updateFocus happens when the item doesn't change, but an attribute does (e.g. rotation)
+  updateFocus() {
+    this.updateDatabaseItems();
+    FocusChangeEvent.emit(this.focus);
   }
 
   addFilter(func) {
@@ -262,7 +289,7 @@ class Media {
     }
     this.selectedItems.insertOnce(item);
     this.lastSelect = item;
-    this.focus = item;
+    this.setFocus(item);
   }
 
   addSelectItem(item) {
@@ -280,10 +307,8 @@ class Media {
     }
     if (this.selectedItems.indexOf(item) != null) {
       this.selectedItems.remove(item);
-      this.focus = this.selectedItems.getItemAt(0);
     } else {
       this.selectedItems.insertOnce(item);
-      this.focus = item;
     }
     this.lastSelect = item;
   }
@@ -307,7 +332,7 @@ class Media {
       this.selectedItems.insertOnce(visible.getItemAt(i));
     }
     this.lastSelect = item;
-    this.focus = item;
+    this.setFocus(item);
   }
 
   ungroup(file, saveChange = true) {

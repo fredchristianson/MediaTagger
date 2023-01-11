@@ -317,6 +317,12 @@ export class DOM {
   }
 
   removeClass(elements, className) {
+    if (Array.isArray(className)) {
+      className.forEach((cn) => {
+        this.removeClass(elements, cn);
+      });
+      return;
+    }
     this.find(elements).forEach((element) => {
       element.classList.remove(className);
     });

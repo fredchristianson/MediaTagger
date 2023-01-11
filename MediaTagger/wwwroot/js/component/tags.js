@@ -281,11 +281,12 @@ export class TagFilterComponent extends TagsComponent {
     } else {
       var itemTags = item.getTags();
       if (itemTags.length == 0) {
-        keep = this.settings.get("state-untagged").startsWith("checked");
+        var untagged = this.settings.get("state-untagged");
+        keep = untagged == null || untagged.startsWith("checked");
       } else {
         const found = itemTags.find((tag) => {
           var state = this.settings.get(`state-${tag.getId()}`);
-          return state.startsWith("checked");
+          return state != null && state.startsWith("checked");
         });
         keep = found != null;
       }
@@ -333,7 +334,7 @@ export class TagDetailsComponent extends TagsComponent {
     this.listeners.add(
       BuildInputHandler()
         .listenTo(this.tagTree, "input[name='name']")
-        .onBlur(this, this.hideNameDialog)
+        .onFocusOut(this, this.hideNameDialog)
         .onEnter(this, this.createTag)
         .onEscape(this, this.hideNameDialog)
         .build(),

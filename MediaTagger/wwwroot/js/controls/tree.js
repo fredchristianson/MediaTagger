@@ -104,7 +104,7 @@ export class Tree {
     );
   }
 
-  checkChange(isChecked, checkbox, item, event, handler) {
+  checkChange(item, isChecked, checkbox, event, handler) {
     item.isSelected = isChecked;
     var checks = dom.find(
       dom.find(item.element, ".children"),
@@ -122,7 +122,7 @@ export class Tree {
     log.debug("checkbox blur ");
   }
 
-  async toggleOpen(element, item) {
+  async toggleOpen(element, ignoreitem) {
     log.debug("toggleopen");
     log.debug("treeElement ", element, item);
     var item = element.treeItem;

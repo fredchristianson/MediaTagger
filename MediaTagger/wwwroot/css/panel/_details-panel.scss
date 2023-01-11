@@ -19,10 +19,27 @@
 
   .details.property {
     grid-area: properties;
-    overflow: auto;
+    overflow: hidden;
   
-    img { 
-      max-width: 100%;
+    
+    .properties {
+      display:flex;
+      flex-direction: column;
+      height: 100%;
+      width: 100%;
+      .preview {
+        flex: 1;
+        .center {
+          height: 100%;
+          position: relative;
+          left: 50%;
+          transform: translate(-50%);
+          img {
+          position: relative;
+            max-width: 100%;
+          }
+        }
+      }
     }
   }
 }
