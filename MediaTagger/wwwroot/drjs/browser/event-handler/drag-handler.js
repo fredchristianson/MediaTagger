@@ -4,7 +4,7 @@ import { EventHandlerReturn, MousePosition, HandlerMethod } from "./common.js";
 import dom from "../dom.js";
 import util from "../../util.js";
 import { CancelToken, Task } from "../task.js";
-const log = Logger.create("DragHandler", LOG_LEVEL.DEBUG);
+const log = Logger.create("DragHandler", LOG_LEVEL.WARN);
 
 export class DragHandlerBuilder extends EventHandlerBuilder {
   constructor() {

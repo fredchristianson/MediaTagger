@@ -51,20 +51,18 @@ body {
   max-height: 100%;
   overflow: hidden;
   position: relative;
-  display: grid;
-  grid-template-areas: "view scroll";
-  grid-template-columns: 1fr 20px;
-  grid-template-rows: 100%;
+  display: block;
+  position: relative;
   background-color: #dddddd;
 }
 #media-view .media-items .view {
   grid-area: view;
-}
-#media-view .media-items .scroll {
-  grid-area: scroll;
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
   overflow: auto;
-  position: relative;
-  height: 100%;
 }
 #media-view .media-items .media-item.unloaded {
   background-image: url("../image/loading.gif");
@@ -308,12 +306,16 @@ body {
 .tag-filter h1:hover .buttons {
   display: inline-block;
 }
-.tag-filter input[type=checkbox] {
+.tag-filter label.check-state {
   position: relative;
   width: 16px;
   height: 16px;
+  display: inline-block;
 }
-.tag-filter input[type=checkbox]::after {
+.tag-filter label.check-state input[type=checkbox] {
+  opacity: 0;
+}
+.tag-filter label.check-state::after {
   content: "";
   background-color: #777;
   border: 1px solid #444;
@@ -325,31 +327,36 @@ body {
   width: 100%;
   height: 100%;
 }
-.tag-filter input[data-state=checked]::after {
+.tag-filter input[data-state=checked]::after,
+.tag-filter label.check-state[data-state=checked]::after {
   background-color: #27401d;
   background-image: url(../image/check.png);
   background-size: cover;
   border-radius: 4px;
 }
-.tag-filter input[data-state=checked-and-children]::after {
+.tag-filter input[data-state=checked-and-children]::after,
+.tag-filter label.check-state[data-state=checked-and-children]::after {
   background-color: #27401d;
   background-image: url(../image/child-check.png);
   background-size: cover;
   border-radius: 4px;
 }
-.tag-filter input[data-state=checked-no-children]::after {
+.tag-filter input[data-state=checked-no-children]::after,
+.tag-filter label.check-state[data-state=checked-no-children]::after {
   background-color: #27401d;
   background-image: url(../image/child-uncheck.png);
   background-size: cover;
   border-radius: 4px;
 }
-.tag-filter input[data-state=child-only-check]::after {
+.tag-filter input[data-state=child-only-check]::after,
+.tag-filter label.check-state[data-state=child-only-check]::after {
   background-color: #27401d;
   background-image: url(../image/child-only-check.png);
   background-size: cover;
   border-radius: 4px;
 }
-.tag-filter input[data-state=unchecked]::after {
+.tag-filter input[data-state=unchecked]::after,
+.tag-filter label.check-state[data-state=unchecked]::after {
   background-color: #eee;
   background-image: url(../image/nocheck.png);
   background-size: cover;

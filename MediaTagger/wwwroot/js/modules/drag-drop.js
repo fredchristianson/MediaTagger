@@ -6,7 +6,7 @@ import {
 } from "../../drjs/browser/event.js";
 import { LOG_LEVEL, Logger } from "../../drjs/logger.js";
 import dom from "../../drjs/browser/dom.js";
-const log = Logger.create("Draggable", LOG_LEVEL.DEBUG);
+const log = Logger.create("Draggable", LOG_LEVEL.WARN);
 
 export class Draggable {
   constructor(draggable) {

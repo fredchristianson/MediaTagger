@@ -142,7 +142,8 @@ export class PropertyFilterComponent extends ComponentBase {
       "[type='checkbox']"
     );
     checkboxes.forEach((cb) => {
-      this.dom.check(cb);
+      //this.dom.check(cb);
+      cb.checked = true;
     });
     this.updateOptions(this.sizes, ".file-size.count");
     this.updateOptions(this.resolutions, ".resolution.count");
@@ -156,7 +157,8 @@ export class PropertyFilterComponent extends ComponentBase {
       "[type='checkbox']"
     );
     checkboxes.forEach((cb) => {
-      this.dom.uncheck(cb);
+      //this.dom.uncheck(cb);
+      cb.checked = false;
     });
     this.updateOptions(this.sizes, ".file-size.count");
     this.updateOptions(this.resolutions, ".resolution.count");

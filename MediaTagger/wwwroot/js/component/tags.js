@@ -247,6 +247,11 @@ export class TagFilterComponent extends TagsComponent {
         parent = this.dom.parent(parent, ".tag");
       }
     }
+    var labels = this.dom.find("label.check-state");
+    labels.forEach((label) => {
+      const check = this.dom.first(label, "input");
+      this.dom.setData(label, "state", this.dom.getData(check, "state"));
+    });
     this.updateSettings();
     this.checkChildOnly();
     FilterChangeEvent.emit();
@@ -305,6 +310,11 @@ export class TagFilterComponent extends TagsComponent {
       check,
       "state",
       this.settings.get(`state-${id}`, "unchecked")
+    );
+    this.dom.setData(
+      check.parentNode,
+      "state",
+      this.dom.getData(check, "state")
     );
   }
 

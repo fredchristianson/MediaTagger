@@ -1,44 +1,44 @@
 ﻿<!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta http-equiv="off-Content-Security-Policy" 
-      content="default-src 'self' 'unsafe-eval' 'unsafe-inline'; script-src 'self' 'unsafe-eval' 'unsafe-inline';">
-    <title>@ViewData["Title"] - MediaTagger</title>
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="~/MediaTagger.styles.css" asp-append-version="true" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="off-Content-Security-Policy"
+    content="default-src 'self' 'unsafe-eval' 'unsafe-inline'; script-src 'self' 'unsafe-eval' 'unsafe-inline';">
+  <title>@ViewData["Title"] - MediaTagger</title>
+  <link rel="stylesheet" href="~/MediaTagger.styles.css" asp-append-version="true" />
 
-    <link rel="stylesheet" href="~/drjs/css/drjs.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/css/MediaTagger.css" asp-append-version="true" />
+  <link rel="stylesheet" href="~/drjs/css/drjs.css" asp-append-version="true" />
+  <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+  <link rel="stylesheet" href="~/css/MediaTagger.css" asp-append-version="true" />
 </head>
+
 <body>
-  @{ IgnoreBody(); }
+  @{
+    IgnoreBody(); 
+  }
 
 
-    <section id='main-content'>
-    </section>
-
-  <script src="~/js/signalr/dist/browser/signalr.js"></script>
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/js/site.js" asp-append-version="true"></script>
+  <section id='main-content'>
+  </section>
 
 
-    <script type="module">
-        import env from '../drjs/env.js';
-        env.load(`../js/env-${location.hostname}.js`);
-        import { LOG_LEVEL, Logger } from "/drjs/logger.js";
-        import ConsoleLogWriter from "/drjs/log-writer-console.js";
-        var console = new ConsoleLogWriter(LOG_LEVEL.DEBUG);
-        var log = new Logger("MediaTagger");
-        const {default:MediaTaggerApp} = await import('../js/mt-app.js');
-        var app = new MediaTaggerApp();
-        app.start();
-        log.info("MediaTaggerApp running");
-    </script>
 
-    @await RenderSectionAsync("Scripts", required: false)
+  <script type="module">
+    import env from '../drjs/env.js';
+    env.load(`../js/env-${location.hostname}.js`);
+    import { LOG_LEVEL, Logger } from "/drjs/logger.js";
+    import ConsoleLogWriter from "/drjs/log-writer-console.js";
+    var console = new ConsoleLogWriter(LOG_LEVEL.DEBUG);
+    var log = new Logger("MediaTagger");
+    const { default: MediaTaggerApp } = await import('../js/mt-app.js');
+    var app = new MediaTaggerApp();
+    app.start();
+    log.info("MediaTaggerApp running");
+  </script>
+
+  @await RenderSectionAsync("Scripts", required: false)
 </body>
+
 </html>

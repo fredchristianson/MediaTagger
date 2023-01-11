@@ -122,7 +122,7 @@ export class Layout {
   constructor(containerSelector, list, htmlCreator) {
     this.containerSelector = containerSelector;
     this.container = dom.first(this.containerSelector);
-    this.layoutScroll = dom.first(this.container, ".scroll"); // dom.createElement("div", { "@class": "layout" });
+    this.layoutScroll = dom.first(this.container, ".view"); // dom.createElement("div", { "@class": "layout" });
     this.layoutView = dom.first(this.container, ".view"); //dom.createElement("div", { "@class": "layout-view" });
     this.htmlCreator = htmlCreator;
     this.list = list;
@@ -195,7 +195,7 @@ export class Layout {
       firstVisibleRow = itemRow;
       this.scrollToRow(firstVisibleRow);
     } else if (itemRow > lastVisibleRow) {
-      firstVisibleRow = itemRow - this.layoutDetails.VisibleRows + 1;
+      firstVisibleRow = itemRow - this.layoutDetails.VisibleRows + 2;
       this.scrollToRow(firstVisibleRow);
     }
   }
@@ -227,16 +227,15 @@ export class Layout {
       1;
 
     var rowPercent = pos / this.layoutScroll.scrollHeight;
-    var row = Math.floor(totalRows * rowPercent);
-    // var rowStartTop = row * this.layoutDetails.ItemHeight;
-    // this.layoutView.style.top = px(pos);
-    // this.firstVisibleIndex = row * this.layoutDetails.Columns;
-    this.scrollToRow(row);
+    var row = Math.floor(totalRows * (rowPercent + 0.0005)); // add .0005 for rounding error in percent
+    this.firstVisibleIndex = row * this.layoutDetails.Columns;
+    this.drawItems(this.firstVisibleIndex, this.layoutDetails, this.layoutView);
   }
 
   scrollToRow(row) {
     this.firstVisibleIndex = row * this.layoutDetails.Columns;
-    this.drawItems(this.firstVisibleIndex, this.layoutDetails, this.layoutView);
+    this.layoutScroll.scrollTo(0, row * this.layoutDetails.RowHeight);
+    //this.drawItems(this.firstVisibleIndex, this.layoutDetails, this.layoutView);
   }
 
   onSelectionChanged(list) {
@@ -290,11 +289,6 @@ export class GridLayout extends Layout {
   }
 
   drawItems(firstItemIndex, layoutDetails, view) {
-    this.layoutScroll.scrollTo(
-      0,
-      (this.layoutDetails.RowHeight * firstItemIndex) /
-        this.layoutDetails.Columns
-    );
     if (firstItemIndex < 0) {
       firstItemIndex = 0;
     }
@@ -302,7 +296,8 @@ export class GridLayout extends Layout {
     var visibleItems = Media.getVisibleItems();
     var visible = true;
     var left = 0;
-    var top = 0;
+    var top = view.scrollTop;
+    var viewBottom = view.scrollTop + view.clientHeight;
     var width = layoutDetails.ItemWidth;
     var height = layoutDetails.ItemHeight;
     var gap = layoutDetails.Gap;
@@ -330,7 +325,7 @@ export class GridLayout extends Layout {
       if (left + width + gap >= viewWidth) {
         left = gap / 2;
         top += height + gap;
-        visible = top < viewHeight + 2 * height + gap;
+        visible = top < viewBottom;
       }
       var item = visibleItems.getItemAt(itemIndex);
       dom.toggleClass(html, "selected", selection.contains(item));
@@ -360,7 +355,9 @@ export class GridLayout extends Layout {
       for (var child of layoutChildren) {
         fragment.appendChild(child);
       }
+      var bottom = dom.first(view, ".bottom");
       view.replaceChildren(fragment);
+      dom.append(view, bottom);
     }
   }
 }

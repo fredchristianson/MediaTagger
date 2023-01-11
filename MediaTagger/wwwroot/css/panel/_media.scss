@@ -25,29 +25,28 @@
         max-height: 100%;
         overflow: hidden;
         position: relative;
-        display: grid;
-        grid-template-areas: "view scroll";
-        grid-template-columns: 1fr 20px;
-        grid-template-rows: 100%;
+        display: block;
+        position: relative;
         background-color: #dddddd;
         
         .view {
             grid-area: view;
+            position: absolute;
+            left:0;
+            right:0;
+            top:0;
+            bottom:0;
+            overflow: auto;
         }
 
-        .scroll {
-            grid-area: scroll;
-            overflow: auto;
-            position: relative;
-            height: 100%;
-        }
+
         
         .media-item.unloaded {
             background-image: url("../image/loading.gif");
         }
 
         .media-item {
-            left: 0;
+            left: 0; 
             top: 0;
             overflow: hidden;
             border: 2px solid #444444;

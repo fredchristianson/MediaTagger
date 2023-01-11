@@ -6,7 +6,7 @@ import MediaFile from "../data/media-file.js";
 import { Tag, MediaTag } from "../data/tag.js";
 import media from "./media.js";
 
-const log = Logger.create("MTApi", LOG_LEVEL.DEBUG);
+const log = Logger.create("MTApi", LOG_LEVEL.WARN);
 const httpAPI = new HttpRequest("/api/v1");
 
 export async function getMediaFiles(startPos, count) {

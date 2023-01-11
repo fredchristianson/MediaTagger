@@ -244,6 +244,9 @@ export class EventHandler {
   }
 
   eventProcessorMethod(event) {
+    var target = event.target;
+    log.never(`eventHandler ${target.id}:${target.className} - ${event.type}`);
+
     if (this.selectorMismatch(event)) {
       return;
     }
@@ -276,12 +279,14 @@ export class EventHandler {
     } else {
       this.invokeHandler(event);
     }
+    log.never(
+      `done eventHandler ${target.id}:${target.className} - ${event.type}`
+    );
   }
 
   invokeHandler(event) {
     var result = this.defaultResponse.clone();
     var target = this.getEventTarget(event);
-    log.never(`eventHandler ${target.id}:${target.className} - ${event.type}`);
     if (this.dataSource) {
       if (typeof this.dataSource == "function") {
         this.data = this.dataSource(this.getEventTarget(event));

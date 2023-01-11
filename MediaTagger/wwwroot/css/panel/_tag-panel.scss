@@ -28,11 +28,14 @@
   }
 
 
-  input[type='checkbox'] {
+  label.check-state {
     position: relative;
     width: 16px;
     height: 16px;
-
+    display: inline-block;
+    input[type='checkbox'] {
+      opacity: 0;
+    }
     &::after {
       content: '';
       background-color: #777;
@@ -47,7 +50,8 @@
     }
   }
 
-  input[data-state='checked'] {
+  input[data-state='checked'] ,
+  label.check-state[data-state='checked']{
 
     &::after {
       background-color: #27401d;
@@ -57,7 +61,8 @@
     }
   }
 
-  input[data-state='checked-and-children'] {
+  input[data-state='checked-and-children'] ,
+  label.check-state[data-state='checked-and-children']{
 
     &::after {
       background-color: #27401d;
@@ -67,7 +72,8 @@
     }
   }
 
-  input[data-state='checked-no-children'] {
+  input[data-state='checked-no-children'],
+  label.check-state[data-state='checked-no-children'] {
 
     &::after {
       background-color: #27401d;
@@ -77,7 +83,8 @@
     }
   }
 
-  input[data-state='child-only-check'] {
+  input[data-state='child-only-check'] ,
+  label.check-state[data-state='child-only-check']{
 
     &::after {
       background-color: #27401d;
@@ -88,7 +95,8 @@
   }
 
 
-  input[data-state='unchecked'] {
+  input[data-state='unchecked'] ,
+  label.check-state[data-state='unchecked']{
 
     &::after {
       background-color: #eee;
@@ -276,3 +284,4 @@
   }
 
 }
+
