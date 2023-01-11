@@ -21,24 +21,27 @@
 
     .media-items {
         grid-area: media-items;
-        height: auto;
+        height: 100%;
         max-height: 100%;
-        overflow: auto;
+        overflow: hidden;
         position: relative;
+        display: grid;
+        grid-template-areas: "view scroll";
+        grid-template-columns: 1fr 20px;
+        grid-template-rows: 100%;
+        background-color: #dddddd;
+        
+        .view {
+            grid-area: view;
+        }
 
-        .layout {
+        .scroll {
+            grid-area: scroll;
+            overflow: auto;
             position: relative;
+            height: 100%;
         }
-
-        .layout-view {
-            position: absolute;
-            left: 0;
-            top: 0;
-            right: 0;
-            bottom: 0;
-            background-color: #dddddd;
-        }
-
+        
         .media-item.unloaded {
             background-image: url("../image/loading.gif");
         }

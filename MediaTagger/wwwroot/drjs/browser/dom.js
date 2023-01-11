@@ -559,12 +559,12 @@ export class DOM {
     Object.getOwnPropertyNames(values).forEach((prop) => {
       var val = values[prop];
       if (prop[0] == "@") {
-        var attr = prop.substr(1);
+        var attr = prop.substring(1);
         element.setAttribute(attr, val);
       } else if (prop == "innerHTML" || prop == "text" || prop == "html") {
         element.innerHTML = val;
       } else {
-        element[prop] = val;
+        element.setAttribute(prop, val);
       }
     });
     return element;

@@ -47,9 +47,9 @@ class Navigation {
     if (focusItem != null) {
       media.setFocus(focusItem);
       if (extendSelect) {
-        media.selectToItem(this.focusItem);
+        media.selectToItem(focusItem);
       } else {
-        media.selectItem(this.focusItem);
+        media.selectItem(focusItem);
       }
     }
   }

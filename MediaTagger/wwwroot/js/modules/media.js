@@ -320,7 +320,7 @@ class Media {
     var visible = this.getVisibleItems();
     var idx1 = visible.indexOf(item);
     var idx2 = visible.indexOf(this.lastSelect);
-    if (idx1 == null || idx1 == null) {
+    if (idx2 == null) {
       return this.selectItem(item);
     }
     log.debug(`select items ${idx1}-${idx2}`);
