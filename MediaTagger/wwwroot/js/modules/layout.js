@@ -169,6 +169,7 @@ export class Layout {
     if (item != null && item.__layout_element) {
       dom.addClass(item.__layout_element, "focus");
     }
+    this.drawItems(this.firstVisibleIndex, this.layoutDetails, this.layoutView);
   }
 
   redrawItem(item) {

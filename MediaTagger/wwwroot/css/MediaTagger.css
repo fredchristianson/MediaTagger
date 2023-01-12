@@ -713,13 +713,13 @@ button:hover {
 .grid-sizer.left {
   border-left: 1px solid #777;
   border-right: 1px solid #777;
-  width: 8px;
+  width: 4px;
   cursor: col-resize;
 }
 .grid-sizer.right {
   border-left: 1px solid #777;
   border-right: 1px solid #777;
-  width: 8px;
+  width: 4px;
   cursor: col-resize;
 }
 .grid-sizer.bottom {
