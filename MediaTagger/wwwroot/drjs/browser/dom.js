@@ -480,7 +480,7 @@ export class DOM {
     });
   }
 
-  parent(element, selector = null) {
+  closest(element, selector = null) {
     if (typeof element == "string") {
       element = this.first(element);
     }
@@ -498,7 +498,7 @@ export class DOM {
   }
 
   // return array of all parent elements up to selector or up to this.root if selector is null
-  parents(element, selector = null) {
+  ancestors(element, selector = null) {
     const parentList = [];
     if (typeof element == "string") {
       element = this.first(element);

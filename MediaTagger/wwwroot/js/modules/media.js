@@ -7,6 +7,7 @@ import {
   PropertyValue,
   MediaFile,
   Album,
+  MediaAlbum,
 } from "../data/items.js";
 import { runParallel, runSerial } from "./task.js";
 import { dataAdder, dataLoader, dataUpdater } from "../data/data-loader.js";
@@ -40,6 +41,7 @@ class Media {
     this.properties = new ObservableArray();
     this.propertyValues = new ObservableArray();
     this.mediaTags = new ObservableArray();
+    this.mediaAlbums = new ObservableArray();
     this.showAllGroupFiles = false;
     this.mediaFilterItems = new FilteredObservableView(
       this.files,
@@ -135,12 +137,14 @@ class Media {
     await runSerial(
       this.loadItemsFromDatabase.bind(this),
       this.createGroups.bind(this),
-      this.setupTags.bind(this)
+      this.setupTags.bind(this),
+      this.setupAlbums.bind(this)
     );
     runSerial(
       this.loadItemsFromAPI.bind(this),
       this.createGroups.bind(this),
-      this.setupTags.bind(this)
+      this.setupTags.bind(this),
+      this.setupAlbums.bind(this)
     );
   }
 
@@ -182,13 +186,39 @@ class Media {
     for (var fileTags of this.mediaTags) {
       var file = fileMap[fileTags.getMediaFileId()];
       if (file == null) {
-        log.error("file not found for MediaTag file ", fileTags.getId());
+        log.error("file not found for tag ", fileTags.getId());
       } else {
         const tags = fileTags.getTagIds().map((id) => {
           return tagMap[id];
         });
         file.setTags(tags);
         tags.forEach((t) => {
+          t.addFile(file);
+        });
+      }
+    }
+    FilterChangeEvent.emit();
+  }
+
+  getAlbumMap() {
+    return [...this.albums].reduce((map, album) => {
+      map[album.getId()] = album;
+      return map;
+    }, {});
+  }
+  setupAlbums() {
+    var albumMap = this.getAlbumMap();
+    var fileMap = this.getFileMap();
+    for (var fileAlbum of this.mediaAlbums) {
+      var file = fileMap[fileAlbum.getMediaFileId()];
+      if (file == null) {
+        log.error("file not found for album ", fileAlbum.getId());
+      } else {
+        const albums = fileAlbum.getAlbumIds().map((id) => {
+          return albumMap[id];
+        });
+        file.setAlbums(albums);
+        albums.forEach((t) => {
           t.addFile(file);
         });
       }
@@ -227,6 +257,10 @@ class Media {
         dataLoader(API.getMediaFiles, dataUpdater(this.files, MediaFile)),
         dataLoader(API.getTags, dataUpdater(this.tags, Tag)),
         dataLoader(API.getMediaTags, dataUpdater(this.mediaTags, MediaTag)),
+        dataLoader(
+          API.getMediaAlbums,
+          dataUpdater(this.mediaAlbums, MediaAlbum)
+        ),
         dataLoader(API.getProperties, dataUpdater(this.properties, Property)),
         dataLoader(
           API.getPropertyValues,
@@ -460,6 +494,44 @@ class Media {
       this.albums.insertOnce(album);
     }
     return album;
+  }
+
+  async albumAddSelected(albumId) {
+    var album = this.albums.findById(albumId);
+    if (album == null) {
+      log.error("unkown album", albumId);
+      return;
+    }
+    for (var sel of this.selectedItems) {
+      var file = this.files.findById(sel.getId());
+      if (file == null) {
+        log.error("unknown file ", sel.getId());
+      } else {
+        if (await API.addMediaAlbum(sel.getId(), albumId)) {
+          file.addAlbum(album);
+          album.addFile(file);
+        }
+      }
+    }
+  }
+
+  async albumRemoveSelected(albumId) {
+    var album = this.albums.findById(albumId);
+    if (album == null) {
+      log.error("unkown album", albumId);
+      return;
+    }
+    for (var sel of this.selectedItems) {
+      var file = this.files.findById(sel.getId());
+      if (file == null) {
+        log.error("unknown file ", sel.getId());
+      } else {
+        if (await API.removeMediaAlbum(sel.getId(), albumId)) {
+          file.removeAlbum(album);
+          album.removeFile(file);
+        }
+      }
+    }
   }
 }
 

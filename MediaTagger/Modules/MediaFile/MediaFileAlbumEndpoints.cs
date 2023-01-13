@@ -38,7 +38,7 @@ namespace MediaTagger.Modules.MediaFile
                            };
                        });
 
-            routes.MapPut(V1_URL_PREFIX + "/MediaAlbum", async (MediaTaggerContext db, AppSettingsService settingsService, int? mediaFileId, int? tagId) =>
+            routes.MapPut(V1_URL_PREFIX + "/MediaAlbum", async (MediaTaggerContext db, AppSettingsService settingsService, int? mediaFileId, int? albumId) =>
                     {
                         var file = await db.MediaFiles
                            .Where(f => !f.Hidden & f.Id == mediaFileId)
@@ -47,7 +47,7 @@ namespace MediaTagger.Modules.MediaFile
                         dynamic response = null!;
                         if (file != null)
                         {
-                            var album = await db.Albums.Where(t => t.Id == tagId).FirstAsync();
+                            var album = await db.Albums.Where(t => t.Id == albumId).FirstAsync();
                             file.Albums.Add(album);
                             await db.SaveChangesAsync();
                             response = new
@@ -57,7 +57,7 @@ namespace MediaTagger.Modules.MediaFile
                                 mediaTag = new
                                 {
                                     mediaFileId = mediaFileId,
-                                    tagId = tagId
+                                    albumId = albumId
                                 }
                             };
                         }
@@ -72,7 +72,7 @@ namespace MediaTagger.Modules.MediaFile
                         return response;
                     });
 
-            routes.MapDelete(V1_URL_PREFIX + "/MediaAlbum", async (MediaTaggerContext db, AppSettingsService settingsService, int? mediaFileId, int? tagId) =>
+            routes.MapDelete(V1_URL_PREFIX + "/MediaAlbum", async (MediaTaggerContext db, AppSettingsService settingsService, int? mediaFileId, int? albumId) =>
                     {
                         var file = await db.MediaFiles
                            .Where(f => !f.Hidden & f.Id == mediaFileId)
@@ -81,7 +81,7 @@ namespace MediaTagger.Modules.MediaFile
                         dynamic response = null!;
                         if (file != null)
                         {
-                            var tag = await db.Albums.Where(t => t.Id == tagId).FirstAsync();
+                            var tag = await db.Albums.Where(t => t.Id == albumId).FirstAsync();
                             file.Albums.Remove(tag);
                             await db.SaveChangesAsync();
                             response = new
@@ -91,7 +91,7 @@ namespace MediaTagger.Modules.MediaFile
                                 mediaTag = new
                                 {
                                     mediaFileId = mediaFileId,
-                                    tagId = tagId
+                                    albumId = albumId
                                 }
                             };
                         }

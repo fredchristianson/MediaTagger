@@ -197,7 +197,7 @@ export class TagFilterComponent extends TagsComponent {
   onCheckboxChange(id, checked, element) {
     log.debug("tag change ", checked, element);
     var state = this.dom.getData(element, "state");
-    const tagElement = this.dom.parent(element, ".tag");
+    const tagElement = this.dom.closest(element, ".tag");
     var hasChildren = this.dom.hasClass(tagElement, "has-children");
     var childState = null;
     if (!hasChildren) {
@@ -224,7 +224,7 @@ export class TagFilterComponent extends TagsComponent {
       children.forEach((child) => {
         if (childState == "checked") {
           var moreChildren = this.dom.hasClass(
-            this.dom.parent(child, ".tag"),
+            this.dom.closest(child, ".tag"),
             "has-children"
           );
           this.dom.setData(
@@ -238,13 +238,13 @@ export class TagFilterComponent extends TagsComponent {
       });
     }
     if (state == "unchecked") {
-      var parent = this.dom.parent(tagElement, ".tag");
+      var parent = this.dom.closest(tagElement, ".tag");
       while (parent != null) {
         var parentCheck = this.dom.first(parent, 'input[type="checkbox"]');
         if (this.dom.getData(parentCheck, "state") == "checked-and-children") {
           this.dom.setData(parentCheck, "state", "checked");
         }
-        parent = this.dom.parent(parent, ".tag");
+        parent = this.dom.closest(parent, ".tag");
       }
     }
     var labels = this.dom.find("label.check-state");
@@ -262,7 +262,7 @@ export class TagFilterComponent extends TagsComponent {
     this.dom.setData(childOnly, "state", "unchecked");
     var unchecked = this.dom.find("input[data-state='unchecked']");
     unchecked.forEach((uncheck) => {
-      var parent = this.dom.parent(uncheck, ".tag");
+      var parent = this.dom.closest(uncheck, ".tag");
       var checkchild = this.dom.first(parent, 'input[data-state^="check"]');
       if (checkchild != null) {
         this.dom.setData(uncheck, "state", "child-only-check");
@@ -406,7 +406,7 @@ export class TagDetailsComponent extends TagsComponent {
     checks.forEach((check) => {
       var id = this.dom.getDataWithParent(check, "id");
       var st = selectedTags[id];
-      var tagElement = this.dom.parent(check, ".tag");
+      var tagElement = this.dom.closest(check, ".tag");
       if (st == null) {
         this.dom.uncheck(check);
         this.dom.removeClass(tagElement, "partial");
@@ -441,7 +441,7 @@ export class TagDetailsComponent extends TagsComponent {
     }
   }
   createTag(target, event) {
-    var input = this.dom.first(this.dom.parent(target, ".new"), "input");
+    var input = this.dom.first(this.dom.closest(target, ".new"), "input");
     var val = this.dom.getValue(input);
     var parentId = this.dom.getData(target, "parent-id");
     if (val != null && val != "") {
@@ -484,7 +484,7 @@ export class TagDetailsComponent extends TagsComponent {
       return;
     }
     log.debug("add tag ", id);
-    var parents = this.dom.parents(checkbox, ".tag");
+    var parents = this.dom.ancestors(checkbox, ".tag");
     media.tagSelected(id);
     parents.forEach((tag) => {
       var check = this.dom.first(tag, 'input[type="checkbox"]');

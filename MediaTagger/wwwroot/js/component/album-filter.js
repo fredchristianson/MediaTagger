@@ -138,7 +138,7 @@ export class AlbumFilterComponent extends ComponentBase {
     log.debug("id change ", id, val);
     var state = val ? "checked" : "unchecked";
     this.settings.set(`album-state-${id}`, state);
-    var label = this.dom.parent(element, ".check-state");
+    var label = this.dom.closest(element, ".check-state");
     this.dom.setData(label, "state", state);
     this.showAlbumCount();
     FilterChangeEvent.emit();

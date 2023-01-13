@@ -254,7 +254,7 @@ export class EventHandler {
     if (event.target.matches(this.selector)) {
       return event.target;
     }
-    return dom.parent(event.target, this.selector);
+    return dom.closest(event.target, this.selector);
   }
 
   selectorMismatch(event) {

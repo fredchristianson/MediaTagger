@@ -643,6 +643,10 @@ label.check-state[data-state=unchecked]::after {
 #tag-album-details > div h1 {
   background-color: #ccc;
 }
+#tag-album-details .partial {
+  color: #774444;
+}
+
 .album-filter-filter h1 {
   position: relative;
 }

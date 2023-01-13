@@ -21,6 +21,7 @@ export class MediaFile extends MediaEntity {
     this._group = null;
 
     this._tags = [];
+    this._albums = [];
   }
 
   setValue(name, newValue) {
@@ -67,6 +68,39 @@ export class MediaFile extends MediaEntity {
       id = tag.getId();
     }
     return this._tags.find((t) => {
+      return t.getId() == id;
+    });
+  }
+
+  setAlbums(albums) {
+    this._albums = albums;
+  }
+
+  getAlbums() {
+    return this._albums;
+  }
+  addAlbum(album) {
+    if (!this._albums.includes(album)) {
+      this._albums.push(album);
+    }
+  }
+
+  removeAlbum(albums) {
+    var pos = this._albums.indexOf(albums);
+    if (pos >= 0) {
+      this._albums.splice(pos, 1);
+    }
+  }
+
+  hasAlbum(album) {
+    if (album == null) {
+      return true;
+    }
+    var id = album;
+    if (typeof album == "object") {
+      id = album.getId();
+    }
+    return this._albums.find((t) => {
       return t.getId() == id;
     });
   }

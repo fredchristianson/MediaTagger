@@ -138,7 +138,7 @@ export class PropertyFilterComponent extends ComponentBase {
 
   checkAll(element) {
     var checkboxes = this.dom.find(
-      this.dom.parent(element, ".list"),
+      this.dom.closest(element, ".list"),
       "[type='checkbox']"
     );
     checkboxes.forEach((cb) => {
@@ -153,7 +153,7 @@ export class PropertyFilterComponent extends ComponentBase {
 
   checkNone(element) {
     var checkboxes = this.dom.find(
-      this.dom.parent(element, ".list"),
+      this.dom.closest(element, ".list"),
       "[type='checkbox']"
     );
     checkboxes.forEach((cb) => {

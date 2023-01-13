@@ -46,12 +46,80 @@ class AlbumDetailsComponent extends ComponentBase {
     this.listeners.add(
       BuildCheckboxHandler()
         .listenTo(this.dom.first("ul"), "input[type='checkbox']")
-        .onChange(this, this.selectChanged)
+        .onChecked(this, this.albumSelected)
+        .onUnchecked(this, this.albumUnselected)
         .setData((element) => {
           return this.dom.getDataWithParent(element, "id");
         })
-        .build()
+        .build(),
+      media
+        .getAlbums()
+        .getUpdatedEvent()
+        .createListener(this, this.onAlbumListChange),
+      media
+        .getSelectedItems()
+        .getUpdatedEvent()
+        .createListener(this, this.onSelectionChange)
     );
+    this.onAlbumListChange();
+    this.onSelectionChange();
+  }
+
+  onSelectionChange() {
+    const selected = media.getSelectedItems();
+    if (selected.Length == 0) {
+      this.dom.hide("input.check");
+      return;
+    }
+    this.dom.show("input.check");
+
+    var selectedAlbums = {};
+    for (var sel of selected) {
+      for (var album of sel.getAlbums()) {
+        var st = selectedAlbums[album.getId()];
+        if (st == null) {
+          st = { id: album.getId(), count: 0 };
+          selectedAlbums[album.getId()] = st;
+        }
+        st.count += 1;
+      }
+    }
+
+    var checks = this.dom.find("input.check");
+    const count = selected.Length;
+    checks.forEach((check) => {
+      var id = this.dom.getDataWithParent(check, "id");
+      var st = selectedAlbums[id];
+      var tagElement = this.dom.closest(check, "label");
+      if (st == null) {
+        this.dom.uncheck(check);
+        this.dom.removeClass(tagElement, "partial");
+      } else {
+        this.dom.check(check);
+        this.dom.toggleClass(tagElement, "partial", st.count < count);
+      }
+    });
+  }
+
+  onAlbumListChange() {
+    this.dom.removeChildren("ul.items.album-list");
+    var albums = media.getAlbums();
+    for (var album of albums) {
+      const item = this.template.fill({
+        "input.check": new DataValue("id", album.getId()),
+        "span.name": album.getName(),
+      });
+      this.dom.append("ul.items.album-list", item);
+    }
+  }
+
+  albumSelected(id) {
+    log.debug("selected album ", id);
+    media.albumAddSelected(id);
+  }
+
+  albumUnselected(id) {
+    media.albumRemoveSelected(id);
   }
 }
 
