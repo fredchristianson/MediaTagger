@@ -197,9 +197,11 @@ class Media {
   }
 
   async updateDatabaseItems() {
+    log.never("updateDatabaseItems");
     var updates = [...this.files].filter((f) => {
       return f.isChanged();
     });
+    log.never("\tcount=", updates.length);
     await dbSaveMediaFiles(updates);
     await API.saveMediaFiles(updates);
     for (var update of updates) {
@@ -446,6 +448,18 @@ class Media {
       path = this.getTagPath(parent) + path;
     }
     return path;
+  }
+
+  getAlbums() {
+    return this.albums;
+  }
+
+  async createAlbum(name, description = null) {
+    var album = await API.createAlbum(name, description);
+    if (album != null) {
+      this.albums.insertOnce(album);
+    }
+    return album;
   }
 }
 

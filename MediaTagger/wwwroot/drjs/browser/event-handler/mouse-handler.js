@@ -17,6 +17,15 @@ export class MouseHandlerBuilder extends EventHandlerBuilder {
   constructor() {
     super(MouseHandler);
   }
+  onMouseDown(...args) {
+    this.handlerInstance.setonMouseDown(new HandlerMethod(...args));
+    return this;
+  }
+
+  onMouseUp(...args) {
+    this.handlerInstance.setonMouseUp(new HandlerMethod(...args));
+    return this;
+  }
   onLeftDown(...args) {
     this.handlerInstance.setOnLeftDown(new HandlerMethod(...args));
     return this;
@@ -57,6 +66,8 @@ export class MouseHandler extends EventHandler {
     super(...args);
     this.setTypeName(["mousedown", "mouseup", "mousemove"]);
     this.endDelayMSecs = 200;
+    this.onMouseDown = HandlerMethod.None();
+    this.onMouseUp = HandlerMethod.None();
     this.onLeftDown = HandlerMethod.None();
     this.onLeftUp = HandlerMethod.None();
     this.onRightDown = HandlerMethod.None();
@@ -69,6 +80,14 @@ export class MouseHandler extends EventHandler {
 
   getEventType() {
     return this.typeName;
+  }
+
+  setonMouseDown(handler) {
+    this.onMouseDown = handler;
+  }
+
+  setonMouseUp(handler) {
+    this.onMouseUp = handler;
   }
 
   setOnLeftDown(handler) {
@@ -111,6 +130,13 @@ export class MouseHandler extends EventHandler {
           this
         );
       } else if (event.type == "mousedown") {
+        this.onMouseDown.call(
+          this.mousePosition,
+          this.getEventTarget(event),
+          event,
+          this.data,
+          this
+        );
         if (event.button >= 0 && event.button <= 2) {
           [this.onLeftDown, this.onMiddleDown, this.onRightDown][
             event.button
@@ -125,6 +151,13 @@ export class MouseHandler extends EventHandler {
           log.error("unknown button ", event.button);
         }
       } else if (event.type == "mouseup") {
+        this.onMouseDown.call(
+          this.mousePosition,
+          this.getEventTarget(event),
+          event,
+          this.data,
+          this
+        );
         if (event.button >= 0 && event.button <= 2) {
           [this.onLeftUp, this.onMiddleUp, this.onRightUp][event.button].call(
             this.mousePosition,

@@ -69,7 +69,7 @@ export class ClickHandler extends EventHandler {
 
   callHandler(method, event) {
     try {
-      var response = EventHandlerReturn.Continue;
+      var response = this.defaultResponse.clone();
 
       if (event.type == "mouseover") {
         if (this.onRightClick) {

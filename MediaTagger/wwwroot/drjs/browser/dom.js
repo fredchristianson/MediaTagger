@@ -61,6 +61,9 @@ export class DOM {
         }
         return validParent;
       });
+    } else if (typeof parent == "string") {
+      parent = this.first(parent);
+      assert.type(parent, [HTMLElement], "parent must be an HTMLElement");
     } else {
       assert.type(
         parent,
@@ -548,7 +551,18 @@ export class DOM {
   }
 
   createElement(tagName, values = null) {
-    var element = document.createElement(tagName);
+    if (tagName == null || tagName.length == 0) {
+      return null;
+    }
+    var element = null;
+    tagName = tagName.trim();
+    if (tagName[0] == "<") {
+      var div = document.createElement("div");
+      div.innerHTML = tagName;
+      element = div.firstChild;
+    } else {
+      element = document.createElement(tagName);
+    }
     if (values == null) {
       return element;
     }
@@ -620,19 +634,15 @@ export class DOM {
     return element.childNodes.length == 0;
   }
 
-  addListener(selector, typeName, handler, passive) {
+  addListener(selector, typeName, handler, options = null) {
     this.toElementArray(selector).forEach((element) => {
-      element.addEventListener(
-        typeName,
-        handler,
-        passive ? { passive: true } : false
-      );
+      element.addEventListener(typeName, handler, options);
     });
   }
 
-  removeListener(selector, typeName, handler) {
+  removeListener(selector, typeName, handler, options = null) {
     this.toElementArray(selector).forEach((element) => {
-      element.removeEventListener(typeName, handler);
+      element.removeEventListener(typeName, handler, options);
     });
   }
 
@@ -734,6 +744,20 @@ export class DOM {
     if (e) {
       e.focus();
     }
+  }
+
+  /* simple value collector.  doesn't handle unnamed inputs or
+   * multiple inputs with same name
+   */
+  getFormValues(form) {
+    var inputs = this.find(form, ["input", "select", "textarea"]);
+    const values = {};
+    inputs.forEach((input) => {
+      if (!util.isEmpty(input.name)) {
+        values[input.name] = input.value;
+      }
+    });
+    return values;
   }
 }
 

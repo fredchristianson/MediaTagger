@@ -123,6 +123,37 @@ export class HttpRequest {
     const result = await promise;
     return result;
   }
+  async put(path, body, responseType = "text", bodyType = "application/json") {
+    const promise = new Promise((resolve, reject) => {
+      var fullPath = path;
+      if (fullPath.substr(0, 3) == "://") {
+        fullPath = location.protocol + fullPath.substr(1);
+      }
+      if (fullPath.substr(0, 4) != "http") {
+        fullPath = util.combinePath(this.baseUrl, encodeURI(fullPath));
+      }
+      if (typeof body == "object") {
+        body = util.toString(body);
+      }
+      var xhttp = new XMLHttpRequest();
+      xhttp.responseType = responseType;
+      xhttp.onreadystatechange = () => {
+        log.info("PUT readyState ", xhttp.readyState, " ", xhttp.status);
+
+        if (xhttp.readyState == 4 && xhttp.status < 400) {
+          resolve(xhttp.response);
+        } else if (xhttp.readyState == 4 && xhttp.status >= 400) {
+          reject(xhttp);
+        }
+      };
+      xhttp.open("PUT", fullPath, true);
+
+      xhttp.setRequestHeader("content-type", bodyType);
+      xhttp.send(body);
+    });
+    const result = await promise;
+    return result;
+  }
 
   encodeParams(params) {
     if (params == null) {

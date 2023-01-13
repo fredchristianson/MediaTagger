@@ -27,6 +27,10 @@ export class EventHandlerBuilder {
     }
     return this;
   }
+  capture(shouldCapture = true) {
+    this.handlerInstance.Capture = shouldCapture;
+    return this;
+  }
   handler(...args) {
     this.handlerInstance.handlerMethod = HandlerMethod.Of(...args);
     return this;
@@ -97,6 +101,7 @@ export class EventHandler {
     this.withCtrl = null;
     this.withAlt = null;
     this.handlerMethod = HandlerMethod.None();
+    this.capture = null;
 
     if (args.length == 0) {
       return;
@@ -126,6 +131,10 @@ export class EventHandler {
       }
     });
     this.handlerMethod = new HandlerMethod(handlerObj, handlerFunc);
+  }
+
+  set Capture(shouldCapture) {
+    this.capture = true;
   }
 
   setWithAlt(require) {
@@ -181,6 +190,10 @@ export class EventHandler {
   isPassive() {
     return false;
   }
+
+  isCapture() {
+    return this.capture;
+  }
   listen() {
     if (this.listenElement == null) {
       this.listenElement = document.body;
@@ -191,13 +204,17 @@ export class EventHandler {
     }
     this.typeNames = Util.toArray(this.getEventType());
 
+    const options = {
+      passive: this.isPassive(),
+      capture: this.isCapture(),
+    };
     this.typeNames.forEach((typeName) => {
       if (this.listenElement != null) {
         dom.addListener(
           this.listenElement,
           typeName,
           this.eventProcessor,
-          this.isPassive() ? { passive: true } : false
+          options
         );
       } else if (this.selector != null) {
         this.listenElement = dom.find(this.selector);
@@ -205,7 +222,7 @@ export class EventHandler {
           this.listenElement,
           typeName,
           this.eventProcessor,
-          this.isPassive() ? { passive: true } : false
+          options
         );
       } else {
         log.error("EventHandler needs an element or selector");
@@ -217,7 +234,10 @@ export class EventHandler {
   remove() {
     if (this.listenElement) {
       this.typeNames.forEach((typeName) => {
-        dom.removeListener(this.listenElement, typeName, this.eventProcessor);
+        dom.removeListener(this.listenElement, typeName, this.eventProcessor, {
+          passive: this.isPassive,
+          capture: this.capture,
+        });
       });
     }
     this.listenElement = null;

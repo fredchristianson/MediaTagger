@@ -14,6 +14,7 @@ import {
 export * from "./event-handler/listeners.js";
 export * from "./event-handler/common.js";
 export * from "./event-handler/custom-events.js";
+export * from "./event-handler/key-handler.js";
 
 export function BuildHandler(handlerClass) {
   return new EventHandlerBuilder(handlerClass);

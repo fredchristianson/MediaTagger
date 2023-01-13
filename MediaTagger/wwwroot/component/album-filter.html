@@ -1,0 +1,31 @@
+<div>
+  <ul class="albums">
+
+  </ul>
+</div>
+
+<script type="text/template" class="album-filter-template">
+  <li class='album'>
+    <span class='toggle'></span>
+    <label><label class='check-state'><input class='check' type='checkbox'/></label>
+    <span class='name'></span>
+    </label>
+  </li>
+</script>
+
+
+<script type="text/template" class="new-album-dialog">
+  <div class='dialog'>
+    <h1>Create Album</h1>
+    <div class='body'>
+      <input type='text' name='name' placeholder="Album name" required/>
+      <textarea rows="5" name='description' placeholder="description" ></textarea>
+    </div>
+    <div class='messages'></div>
+    <div class='buttons'>
+      <button class='ok'>Create</button>
+      <button class='cancel'>Cancel</button>
+    </div>
+  </div>
+</script>
+

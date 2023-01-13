@@ -27,6 +27,8 @@ namespace MediaTagger.Modules.MediaFile
         public long Width { get; set; }
         public long Height { get; set; }
 
+        public long RotationDegrees { get; set; } = 0;
+
         public string? ExifJson { get; set; }
 
 
@@ -36,18 +38,5 @@ namespace MediaTagger.Modules.MediaFile
 
     }
 
-    // public class FileTagModel
-    // {
-    //     public long TagId { get; set; }
-    //     public TagModel Tag { get; set; } = null!;
-    //     public long FileId { get; set; }
-    //     public MediaFileModel MediaFile { get; set; } = null!;
-    // }
-    // public class FilePropertyValueModel
-    // {
-    //     public long PropertyValueId { get; set; }
-    //     public PropertyValueModel PropertyValue { get; set; } = null!;
-    //     public long MediaFileId { get; set; }
-    //     public MediaFileModel MediaFile { get; set; } = null!;
-    // }
+
 }

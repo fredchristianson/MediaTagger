@@ -1,9 +1,12 @@
 ﻿@use 'common/reset' as *;
+@use 'common/elements' as *;
+@use 'common/dialog' as *;
 @use 'panel/main' as *;
 @use 'panel/media' as *;
 @use 'panel/date-filter' as *;
 @use 'panel/tag-panel' as *;
 @use 'panel/details-panel' as *;
+@use 'panel/album-filter' as *;
 @use 'panel/property-filter-panel' as *;
 
 

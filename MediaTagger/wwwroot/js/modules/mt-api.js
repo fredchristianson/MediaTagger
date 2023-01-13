@@ -3,6 +3,7 @@ import { LOG_LEVEL, Logger } from "../../drjs/logger.js";
 import { HttpRequest } from "../../drjs/browser/http-request.js";
 import util from "../../drjs/util.js";
 import MediaFile from "../data/media-file.js";
+import Album from "../data/album.js";
 import { Tag, MediaTag } from "../data/tag.js";
 import media from "./media.js";
 
@@ -26,9 +27,60 @@ export async function createTag(parentId, name) {
   if (parentId != null) {
     url += "?parentId=" + parentId;
   }
-  var result = await httpAPI.post(url, null, "json");
+  var result = await httpAPI.put(url, null, "json");
   if (result != null) {
     return new Tag(result);
+  }
+  return null;
+}
+
+export async function updateTag(parentId, tag) {
+  var url = "Tag";
+  if (parentId != null) {
+    url += "?parentId=" + parentId;
+  }
+  var data = {
+    id: tag.getId(),
+    name: tag.getName(),
+    hidden: tag.getHidden(),
+    parentId: tag.getParentId,
+  };
+  var result = await httpAPI.put(url, data, "json");
+  if (result != null) {
+    return new Tag(result);
+  }
+  return null;
+}
+
+export async function createAlbum(name, description) {
+  var url = "Album";
+
+  var model = {
+    name: name,
+    description: description,
+  };
+  var result = await httpAPI.put(url, model, "json");
+  if (result != null && result.success) {
+    return new Album(result.data);
+  } else {
+    throw result;
+  }
+}
+
+export async function updateAlbum(parentId, Album) {
+  var url = "Album";
+  if (parentId != null) {
+    url += "?parentId=" + parentId;
+  }
+  var data = {
+    id: Album.getId(),
+    name: Album.getName(),
+    hidden: Album.getHidden(),
+    parentId: Album.getParentId,
+  };
+  var result = await httpAPI.put(url, data, "json");
+  if (result != null) {
+    return new Album(result);
   }
   return null;
 }
@@ -44,11 +96,32 @@ export async function getMediaTags(startPos, count) {
 export async function addMediaTag(mediaFileId, tagId) {
   var url = `MediaTag?mediaFileId=${mediaFileId}&tagId=${tagId}`;
 
-  var result = await httpAPI.post(url, null, "json");
+  var result = await httpAPI.put(url, null, "json");
   return result != null && result.success;
 }
 export async function removeMediaTag(mediaFileId, tagId) {
   var url = `MediaTag?mediaFileId=${mediaFileId}&tagId=${tagId}`;
+
+  var result = await httpAPI.delete(url, null, "json");
+  return result != null && result.success;
+}
+
+export async function getMediaAlbums(startPos, count) {
+  return await httpAPI.get(
+    "MediaAlbums",
+    { start: startPos, count: count },
+    "json"
+  );
+}
+
+export async function addMediaAlbum(mediaFileId, albumId) {
+  var url = `MediaAlbum?mediaFileId=${mediaFileId}&albumId=${albumId}`;
+
+  var result = await httpAPI.put(url, null, "json");
+  return result != null && result.success;
+}
+export async function removeMediaAlbum(mediaFileId, albumId) {
+  var url = `MediaAlbum?mediaFileId=${mediaFileId}&albumId=${albumId}`;
 
   var result = await httpAPI.delete(url, null, "json");
   return result != null && result.success;

@@ -35,7 +35,8 @@ namespace MediaTagger.Modules.MediaFile
                         fileSize = f.FileSize,
                         width = f.Width,
                         height = f.Height,
-                        hidden = f.Hidden
+                        hidden = f.Hidden,
+                        rotationDegrees = f.RotationDegrees
                     }).ToListAsync();
                     var total = await db.MediaFiles.CountAsync();
                     return new
@@ -78,6 +79,8 @@ namespace MediaTagger.Modules.MediaFile
                                file.DateTaken = data.DateTaken;
                                file.Name = data.Name;
                                file.Hidden = data.Hidden;
+                               file.RotationDegrees = data.RotationDegrees;
+                               file.ModifiedOn = DateTime.Now;
                                await db.SaveChangesAsync();
                                response = new
                                {
@@ -116,7 +119,7 @@ namespace MediaTagger.Modules.MediaFile
                            };
                        });
 
-            routes.MapPost(V1_URL_PREFIX + "/MediaTag", async (MediaTaggerContext db, AppSettingsService settingsService, int? mediaFileId, int? tagId) =>
+            routes.MapPut(V1_URL_PREFIX + "/MediaTag", async (MediaTaggerContext db, AppSettingsService settingsService, int? mediaFileId, int? tagId) =>
                     {
                         var file = await db.MediaFiles
                            .Where(f => !f.Hidden & f.Id == mediaFileId)

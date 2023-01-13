@@ -274,7 +274,7 @@ export class Layout {
   }
 
   onZoomChange(sender, newValue) {
-    this.zoomPercent = newValue;
+    this.zoomPercent = newValue / 100.0;
     this.onContainerResize();
   }
 }

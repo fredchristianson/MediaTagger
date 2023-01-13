@@ -5,6 +5,7 @@ const log = Logger.create("Album", LOG_LEVEL.DEBUG);
 export class Album extends MediaEntity {
   constructor(data = {}) {
     super(data);
+    this.description = data.description;
   }
 
   update(data) {
