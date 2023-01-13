@@ -1,18 +1,20 @@
-#media-details > div {
+#media-details>div {
   height: 100%;
   overflow: hidden;
   display: grid;
-  grid-template-areas: 
-  "tags"
-  "sizer"
-  "properties";
+  grid-template-areas:
+    "tag-album"
+    "sizer"
+    "properties";
   grid-template-rows: auto auto 1fr;
 
-  #tag-details {
-    grid-area: tags;
-    overflow: auto;
-    padding: 4px;
+  #tag-album-details {
+    grid-area: tag-album;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 0px;
   }
+
   .grid-sizer {
     grid-area: sizer;
   }
@@ -20,26 +22,53 @@
   .details.property {
     grid-area: properties;
     overflow: hidden;
-  
-    
+
+
     .properties {
-      display:flex;
+      display: flex;
       flex-direction: column;
       height: 100%;
       width: 100%;
+
       .preview {
         flex: 1;
+
         .center {
           height: 100%;
           position: relative;
           left: 50%;
           transform: translate(-50%);
+
           img {
-          position: relative;
+            position: relative;
             max-width: 100%;
           }
         }
       }
+    }
+  }
+}
+
+#tag-album-details {
+  max-height: 100%;
+  width: 100%;
+  overflow: auto;
+  display: flex;
+flex-direction: row;
+  flex-wrap: wrap;
+  gap: 10px;
+  &>div {
+    flex: 1 0 auto;
+    vertical-align: top;
+    min-width: 45%;
+    width: auto;
+    margin-bottom: 2rem;
+    display: inline-block;
+    h1 {
+      background-color: #ccc;
+    }
+    &>div {
+
     }
   }
 }

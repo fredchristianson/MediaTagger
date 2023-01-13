@@ -19,6 +19,7 @@ import { Settings } from "../modules/settings.js";
 import { LOG_LEVEL, Logger } from "../../drjs/logger.js";
 import Album from "../data/album.js";
 import { Dialog } from "../controls/dialog.js";
+import { dom } from "../../drjs/browser/dom.js";
 
 const log = Logger.create("AlbumComponent", LOG_LEVEL.DEBUG);
 
@@ -96,6 +97,16 @@ export class AlbumFilterComponent extends ComponentBase {
     dialog.show();
   }
 
+  showAlbumCount() {
+    const checks = this.dom.find("input.check");
+    const checked = checks.filter((c) => {
+      return c.checked;
+    });
+    const selCount = checked.length;
+    const totalCount = checks.length;
+    const msg = `(${selCount} of ${totalCount})`;
+    dom.setInnerHTML("#album-filter .selected.count", msg);
+  }
   onAlbumListChange() {
     var albums = media.getAlbums();
     var list = this.dom.first("ul.albums");
@@ -120,6 +131,7 @@ export class AlbumFilterComponent extends ComponentBase {
       });
       this.dom.append(list, listItem);
     }
+    this.showAlbumCount();
   }
 
   selectChanged(id, val, element) {
@@ -128,6 +140,7 @@ export class AlbumFilterComponent extends ComponentBase {
     this.settings.set(`album-state-${id}`, state);
     var label = this.dom.parent(element, ".check-state");
     this.dom.setData(label, "state", state);
+    this.showAlbumCount();
     FilterChangeEvent.emit();
   }
 

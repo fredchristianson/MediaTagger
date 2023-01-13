@@ -587,13 +587,14 @@ label.check-state[data-state=unchecked]::after {
   height: 100%;
   overflow: hidden;
   display: grid;
-  grid-template-areas: "tags" "sizer" "properties";
+  grid-template-areas: "tag-album" "sizer" "properties";
   grid-template-rows: auto auto 1fr;
 }
-#media-details > div #tag-details {
-  grid-area: tags;
-  overflow: auto;
-  padding: 4px;
+#media-details > div #tag-album-details {
+  grid-area: tag-album;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 0px;
 }
 #media-details > div .grid-sizer {
   grid-area: sizer;
@@ -622,6 +623,26 @@ label.check-state[data-state=unchecked]::after {
   max-width: 100%;
 }
 
+#tag-album-details {
+  max-height: 100%;
+  width: 100%;
+  overflow: auto;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+#tag-album-details > div {
+  flex: 1 0 auto;
+  vertical-align: top;
+  min-width: 45%;
+  width: auto;
+  margin-bottom: 2rem;
+  display: inline-block;
+}
+#tag-album-details > div h1 {
+  background-color: #ccc;
+}
 .album-filter-filter h1 {
   position: relative;
 }
