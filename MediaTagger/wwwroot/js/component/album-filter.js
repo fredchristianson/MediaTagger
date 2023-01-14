@@ -60,6 +60,8 @@ export class AlbumFilterComponent extends ComponentBase {
     super(selector, htmlName);
     this.listeners = new Listeners();
     this.media = media;
+    this.filterAllowAll = true;
+    this.selectedAlbumIds = [];
   }
 
   async onHtmlInserted(elements) {
@@ -106,6 +108,10 @@ export class AlbumFilterComponent extends ComponentBase {
     const totalCount = checks.length;
     const msg = `(${selCount} of ${totalCount})`;
     dom.setInnerHTML("#album-filter .selected.count", msg);
+    this.filterAllowAll = selCount == 0;
+    this.selectedAlbumIds = this.dom.find("input:checked").map((c) => {
+      return this.dom.getDataWithParent(c, "id");
+    });
   }
   onAlbumListChange() {
     var albums = media.getAlbums();
@@ -145,11 +151,12 @@ export class AlbumFilterComponent extends ComponentBase {
   }
 
   filterItem(item) {
-    const checks = this.dom.find("input.check");
-    const checked = checks.find((c) => {
-      return c.checked;
+    if (this.filterAllowAll) {
+      return true;
+    }
+    return this.selectedAlbumIds.find((id) => {
+      return item.hasAlbum(id);
     });
-    return checked;
   }
 }
 

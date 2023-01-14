@@ -405,6 +405,9 @@ class Media {
     this.groupFilterItems.filter();
   }
 
+  getTagById(id) {
+    return this.tags.findById(id);
+  }
   getTags() {
     return this.tags;
   }

@@ -5,11 +5,27 @@
 <script type="text/template" id="tags-filter-template">
   <div class='tag'>
     <span class='toggle'></span>
-    <label><label class='check-state'><input class='check' type='checkbox'/></label>
-    <span class='name'></span>
+    <label>
+      <label class='check-state'><input class='check' type='checkbox'/></label>
+      <span class='name'></span>
+      <a  class='add-child'>add</a>
     </label>
-    <a  class='add-child'>add</a>
     <div class='children'></div>
   </div>
 </script>
 
+<script type="text/template" class="new-album-dialog">
+  <div class='dialog'>
+    <h1>Create Tag</h1>
+    <div class='body'>
+      <h2>Parent: <span class='parent'></span></h2>
+      <input type='text' name='name' placeholder="Tag name" required/>
+      <input type='hidden' name='parentId' value='root'/>
+    </div>
+    <div class='messages'></div>
+    <div class='buttons'>
+      <button class='ok'>Create</button>
+      <button class='cancel'>Cancel</button>
+    </div>
+  </div>
+</script>

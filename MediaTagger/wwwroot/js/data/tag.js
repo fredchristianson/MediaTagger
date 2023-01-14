@@ -28,6 +28,10 @@ export class Tag extends MediaEntity {
   getParentId() {
     return this.parentId;
   }
+
+  get ParentId() {
+    return this.parentId;
+  }
 }
 
 export class MediaTag {

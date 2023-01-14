@@ -28,8 +28,8 @@ export async function createTag(parentId, name) {
     url += "?parentId=" + parentId;
   }
   var result = await httpAPI.put(url, null, "json");
-  if (result != null) {
-    return new Tag(result);
+  if (result != null && result.success) {
+    return new Tag(result.data);
   }
   return null;
 }

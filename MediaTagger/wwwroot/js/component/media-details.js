@@ -1,5 +1,5 @@
 import { ComponentBase } from "../../drjs/browser/component.js";
-import { TagDetailsComponent } from "./tags.js";
+import { TagDetailsComponent } from "./tag-details.js";
 import { PropertyDetailsComponent } from "./property-details.js";
 import { BottomGridSizer } from "../modules/drag-drop.js";
 import { AlbumDetailsComponent } from "./album-details-component.js";

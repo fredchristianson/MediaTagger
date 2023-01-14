@@ -49,6 +49,7 @@ class Dialog {
         .build()
     );
     this.dom = new DOM(this.dialogElement);
+    this.dom.setFocus(this.dom.first("input"));
     this.isValid = false;
     this.validate();
   }
@@ -61,6 +62,9 @@ class Dialog {
   }
   cancelDialog() {
     log.debug("cancel");
+    if (this.onCancel) {
+      this.onCancel();
+    }
     dom.remove(this.dialogElement);
     this.listeners.removeAll();
     this.dialogElement = null;

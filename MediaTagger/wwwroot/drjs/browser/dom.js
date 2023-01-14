@@ -202,8 +202,8 @@ export class DOM {
     if (element == null) {
       return null;
     }
-    assert.notNull(element, "setData requires an element");
-    assert.notEmpty(name, "setData requires a name");
+    assert.notNull(element, "getData requires an element");
+    assert.notEmpty(name, "getData requires a name");
     if (!name.startsWith("data-")) {
       name = `data-${name}`;
     }
@@ -478,6 +478,18 @@ export class DOM {
         element.value = val;
       }
     });
+  }
+
+  parent(element) {
+    if (typeof element == "string") {
+      element = this.first(element);
+    }
+    if (element == null) {
+      return null;
+    }
+    var parent = element.parentElement;
+
+    return parent;
   }
 
   closest(element, selector = null) {

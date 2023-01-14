@@ -68,6 +68,12 @@ export class MediaEntity {
     this[name] = newValue;
   }
 
+  get Id() {
+    return this.id;
+  }
+  get Name() {
+    return this.name;
+  }
   getId() {
     return this.id;
   }

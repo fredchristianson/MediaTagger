@@ -49,7 +49,9 @@
 
       .toggle {
         grid-area: toggle;
-        height: 10px;
+        height: 16px;
+        width: 16px;
+        display: inline-block;
         background-color: transparent;
         z-index: 10;
 
@@ -70,35 +72,6 @@
         padding-left: 2px;
       }
 
-      a.add-child {
-        position: absolute;
-        right: 8px;
-        display: none;
-        text-decoration: none;
-
-        &:hover {
-          font-weight: bolder;
-
-        }
-
-        ;
-      }
-
-      &.untagged .add-child {
-        display: none !important;
-        height: 0;
-      }
-
-      &.hover>label {
-        padding: 2px;
-        font-weight: bold;
-        border: 1px dashed #eeeeee;
-      }
-
-      &.hover>.add-child,
-      .add-child:hover {
-        display: inline-block;
-      }
 
       .children {
         grid-area: children;
@@ -172,11 +145,6 @@
   }
 }
 
-.tag-filter .add-child {
-  display: none !important;
-  height: 0;
-}
-
 #tag-details {
   .tag.root {
     display: block;
@@ -187,12 +155,7 @@
 
 
     >label {
-      input[type='checkbox'] {
-        display: none;
-      }
-
-      display: inline-block;
-      width: 100%;
+      display: none;
     }
 
 
@@ -209,10 +172,21 @@
       }
     }
 
-    &.multi-select {}
   }
 
-  .tag.partial>label {
-    color: #ffdddd;
-  }
+}
+
+
+
+.add-child {
+  display: none;
+  position: absolute;
+  right: 4px;
+}
+.tag:not(.untagged)>label:hover>.add-child,
+.add-child:hover {
+  display: inline-block;
+}
+
+.tag .toggle:hover {
 }

@@ -1,6 +1,6 @@
 import { ComponentBase } from "../../drjs/browser/component.js";
 import { PropertyFilterComponent } from "./property-filter.js";
-import { TagFilterComponent } from "./tags.js";
+import { TagFilterComponent } from "./tag-filter.js";
 import { AlbumFilterComponent } from "./album-filter.js";
 
 export class MediaFilterComponent extends ComponentBase {

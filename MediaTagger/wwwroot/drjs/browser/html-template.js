@@ -89,6 +89,17 @@ export class DataValue extends TemplateValue {
   }
 }
 
+export class InputValue extends TemplateValue {
+  constructor(name, value = true) {
+    super(value);
+    this.name = name;
+  }
+
+  set(element) {
+    DOM.setValue(element, this._value);
+  }
+}
+
 export class ReplaceTemplateValue extends TemplateValue {
   constructor(oldValue, newValue) {
     super(null);

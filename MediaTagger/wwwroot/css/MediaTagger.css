@@ -442,7 +442,9 @@ label.check-state[data-state=unchecked]::after {
 #tag-details .tag-tree .tag .toggle,
 .tag-filter .tag-tree .tag .toggle {
   grid-area: toggle;
-  height: 10px;
+  height: 16px;
+  width: 16px;
+  display: inline-block;
   background-color: transparent;
   z-index: 10;
 }
@@ -458,34 +460,6 @@ label.check-state[data-state=unchecked]::after {
 #tag-details .tag-tree .tag .name,
 .tag-filter .tag-tree .tag .name {
   padding-left: 2px;
-}
-#tag-details .tag-tree .tag a.add-child,
-.tag-filter .tag-tree .tag a.add-child {
-  position: absolute;
-  right: 8px;
-  display: none;
-  text-decoration: none;
-}
-#tag-details .tag-tree .tag a.add-child:hover,
-.tag-filter .tag-tree .tag a.add-child:hover {
-  font-weight: bolder;
-}
-#tag-details .tag-tree .tag.untagged .add-child,
-.tag-filter .tag-tree .tag.untagged .add-child {
-  display: none !important;
-  height: 0;
-}
-#tag-details .tag-tree .tag.hover > label,
-.tag-filter .tag-tree .tag.hover > label {
-  padding: 2px;
-  font-weight: bold;
-  border: 1px dashed #eeeeee;
-}
-#tag-details .tag-tree .tag.hover > .add-child,
-#tag-details .tag-tree .tag .add-child:hover,
-.tag-filter .tag-tree .tag.hover > .add-child,
-.tag-filter .tag-tree .tag .add-child:hover {
-  display: inline-block;
 }
 #tag-details .tag-tree .tag .children,
 .tag-filter .tag-tree .tag .children {
@@ -554,11 +528,6 @@ label.check-state[data-state=unchecked]::after {
   display: none;
 }
 
-.tag-filter .add-child {
-  display: none !important;
-  height: 0;
-}
-
 #tag-details .tag.root {
   display: block;
 }
@@ -566,10 +535,6 @@ label.check-state[data-state=unchecked]::after {
   display: none;
 }
 #tag-details .tag.root > label {
-  display: inline-block;
-  width: 100%;
-}
-#tag-details .tag.root > label input[type=checkbox] {
   display: none;
 }
 #tag-details .tag.root::after {
@@ -579,8 +544,16 @@ label.check-state[data-state=unchecked]::after {
 #tag-details .tag-tree.no-select input[type=checkbox] {
   display: none;
 }
-#tag-details .tag.partial > label {
-  color: #ffdddd;
+
+.add-child {
+  display: none;
+  position: absolute;
+  right: 4px;
+}
+
+.tag:not(.untagged) > label:hover > .add-child,
+.add-child:hover {
+  display: inline-block;
 }
 
 #media-details > div {
