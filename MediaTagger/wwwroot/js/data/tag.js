@@ -21,6 +21,15 @@ export class Tag extends MediaEntity {
       this._files.splice(pos, 1);
     }
   }
+
+  hasFile(file) {
+    return this._files.includes(file);
+  }
+
+  get Files() {
+    return this._files;
+  }
+
   update(data) {
     super.update(data);
   }

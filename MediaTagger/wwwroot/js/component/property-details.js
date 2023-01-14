@@ -25,6 +25,7 @@ export class PropertyDetailsComponent extends ComponentBase {
 
   async onHtmlInserted(elements) {
     this.settings = await Settings.load("property-details");
+    this.dom.show(".properties", false);
 
     this.listeners.add(
       // this.selection
@@ -42,11 +43,11 @@ export class PropertyDetailsComponent extends ComponentBase {
     }
     var sel = media.getSelectedItems();
     if (sel.getLength() == 1) {
-      this.dom.setInnerHTML("h1.name", focus.getName());
+      this.dom.setInnerHTML("h1 .name", focus.getName());
     } else {
-      this.dom.show("h1.name");
+      this.dom.show("h1 .name");
       this.dom.setInnerText(
-        "h1.name",
+        "h1 .name",
         `${focus.getName()} (+ ${sel.getLength() - 1})`
       );
     }
@@ -55,6 +56,7 @@ export class PropertyDetailsComponent extends ComponentBase {
       ".resolution",
       `${focus.getWidth()} x ${focus.getHeight()}`
     );
+    this.dom.setInnerHTML(".media-file-id", "ID: " + focus.getId());
     this.dom.setAttribute(".preview img", "src", `/image/${focus.getId()}`);
     this.dom.removeClass(".preview", [`rotate-90`, "rotate-180", "rotate-270"]);
     var preview = this.dom.first(".preview");

@@ -28,6 +28,7 @@ class Navigation {
         .onKey(Key.LeftArrow, this, this.movePrev)
         .onKey(Key.Home, this, this.moveStart)
         .onKey(Key.End, this, this.moveEnd)
+        .onKey(Key.Escape, this, this.clearSelection)
         .onKey("[", this, this.rotate270)
         .onKey("]", this, this.rotate90)
         .onKey("\\", this, this.rotate180)
@@ -37,7 +38,7 @@ class Navigation {
   }
 
   changeIndex(change, extendSelect = false) {
-    var index = media.getFocusIndex();
+    var index = media.getLastFocusIndex();
 
     var newIndex = Math.max(
       0,
@@ -52,6 +53,10 @@ class Navigation {
         media.selectItem(focusItem);
       }
     }
+  }
+
+  clearSelection() {
+    media.clearSelection();
   }
 
   moveUp(key, target, event) {

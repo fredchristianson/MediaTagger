@@ -337,6 +337,11 @@ export class GridLayout extends Layout {
       if (item.RotationDegrees) {
         dom.addClass(html, `rotate-${(item.RotationDegrees + 360) % 360}`);
       }
+      if (item.RotationDegrees == 90 || item.RotationDegrees == 270) {
+        dom.addClass(img, "portrait");
+      } else {
+        dom.addClass(img, "landscape");
+      }
       itemIndex += 1;
       html = this.getItemHtml(itemIndex);
     }
@@ -359,6 +364,19 @@ export class GridLayout extends Layout {
       var bottom = dom.first(view, ".bottom");
       view.replaceChildren(fragment);
       dom.append(view, bottom);
+
+      // position top margin after image has been inserted into the body DOM
+      // before then the <img> has 0 size
+      for (var img of dom.find(view, "img")) {
+        var imgHeight = height;
+        if (dom.hasClass(img, "portrait")) {
+          imgHeight = dom.getWidth(img);
+        } else {
+          imgHeight = dom.getHeight(img);
+        }
+        const margin = (height - imgHeight) / 2;
+        img.style.top = px(margin);
+      }
     }
   }
 }

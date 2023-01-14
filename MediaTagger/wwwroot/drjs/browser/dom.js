@@ -5,6 +5,21 @@ import util, { Util } from "../util.js";
 const log = Logger.create("DOM");
 const NO_SELECTION = "~-NOSEL-~";
 const svgns = "http://www.w3.org/2000/svg";
+
+// this doesn't include everything, but gets the most common properties that require units
+// if a value begins with "*", it includes all names that end with the rest
+// "*width" means "width", "border-width", ...
+const cssUnitRequired = [
+  "*width",
+  "*height",
+  "*left",
+  "*right",
+  "*top",
+  "*bottom",
+  "*radius",
+  "*gap",
+  "*size",
+];
 export class DOM {
   constructor(rootSelector = null) {
     this.rootSelector = rootSelector;
@@ -189,8 +204,8 @@ export class DOM {
   }
 
   getData(element, name) {
-    assert.notNull(element, "setData requires an element");
-    assert.notEmpty(name, "setData requires a name");
+    assert.notNull(element, "getData requires an element");
+    assert.notEmpty(name, "getData requires a name");
     if (!name.startsWith("data-")) {
       name = `data-${name}`;
     }
@@ -261,9 +276,43 @@ export class DOM {
     const styles = this.parseStyles(style);
     this.toElementArray(elements).forEach((element) => {
       styles.forEach((style) => {
-        element.style[style.name] = style.value;
+        element.style[style.name] = this.addPxUnits(style.name, style.value);
       });
     });
+  }
+
+  addPxUnits(name, value) {
+    if (this.needsUnit(name) && !this.hasUnit(value)) {
+      return `${value}px`;
+    }
+    return value;
+  }
+
+  needsUnit(name) {
+    const needs = cssUnitRequired.find((css) => {
+      if (css[0] == "*") {
+        return name.endsWith(css.substring(1));
+      }
+      return name == css;
+    });
+    return needs;
+  }
+  hasUnit(value) {
+    if (value == null || value == "unset" || value == "inherited") {
+      return true;
+    }
+    if (typeof value == "number") {
+      return false;
+    }
+    if (typeof value == "string") {
+      if (value.length == 0) {
+        return false;
+      }
+      // if the last character is numeric, it doesn't end with a unit
+      return isNaN(value[length - 1]);
+    }
+    log.warn("trying to set a css unit on an invalid value ", value);
+    return false;
   }
 
   getStyle(element, name) {
@@ -621,7 +670,9 @@ export class DOM {
 
   removeChildren(selector) {
     this.toElementArray(selector).forEach((element) => {
-      element.innerHTML = "";
+      while (element.firstChild) {
+        element.removeChild(element.firstChild);
+      }
     });
   }
 
@@ -719,7 +770,10 @@ export class DOM {
     };
   }
 
-  getWidth(element) {
+  getWidth(element = null) {
+    if (element === null) {
+      return this.root.offsetWidth;
+    }
     var first = this.first(element);
     return first ? first.offsetWidth : 0;
   }

@@ -8,7 +8,7 @@
     background-color: rgba(255,255,255,0.8);
 }
 .dialog {
-    background-color: #ccc;
+    background-color: var(--dialog-background-color);
     border: 4px inset #444;
     position: absolute;
     min-width: 25%;

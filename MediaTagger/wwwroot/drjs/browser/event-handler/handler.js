@@ -27,6 +27,10 @@ export class EventHandlerBuilder {
     }
     return this;
   }
+  filterAllow(filterFunction) {
+    this.handlerInstance.setFilterAllow(filterFunction    );
+    return this;
+  }
   capture(shouldCapture = true) {
     this.handlerInstance.Capture = shouldCapture;
     return this;
@@ -102,6 +106,7 @@ export class EventHandler {
     this.withAlt = null;
     this.handlerMethod = HandlerMethod.None();
     this.capture = null;
+    this.filterFunction = null;
 
     if (args.length == 0) {
       return;
@@ -131,6 +136,10 @@ export class EventHandler {
       }
     });
     this.handlerMethod = new HandlerMethod(handlerObj, handlerFunc);
+  }
+
+  setFilterAllow(func) {
+    this.filterFunction = func;
   }
 
   set Capture(shouldCapture) {
@@ -283,6 +292,9 @@ export class EventHandler {
       return;
     }
     if (this.withShift && !event.shiftKey) {
+      return;
+    }
+    if (this.filterFunction && !this.filterFunction(event)) {
       return;
     }
     event.hasShift = event.shiftKey;

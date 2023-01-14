@@ -9,14 +9,16 @@ import { LOG_LEVEL, Logger } from "../../drjs/logger.js";
 import {
   Listeners,
   BuildClickHandler,
-  BuildHoverHandler,
+  BuildKeyHandler,
   BuildScrollHandler,
   BuildFocusHandler,
+  EventHandlerReturn,
+  BuildMouseHandler,
 } from "../../drjs/browser/event.js";
 import MediaDetailsComponent from "./media-details.js";
 import DateFilterComponent from "./date-filter.js";
 import MediaFilterComponent from "./media-filter.js";
-import Media, { media } from "../modules/media.js";
+import Media, { FocusChangeEvent, media } from "../modules/media.js";
 import { Navigation } from "../modules/navigation.js";
 import { GridLayout } from "../modules/layout.js";
 import { RightGridSizer, LeftGridSizer } from "../modules/drag-drop.js";
@@ -26,50 +28,36 @@ import UTIL from "../../drjs/util.js";
 import { ZoomEvent } from "../component/view-options.js";
 
 import { ImageLoader } from "../modules/image-loader.js";
+import MediaFileEditorComponent from "./media-file-editor.js";
+import { MouseHandler } from "../../drjs/browser/event-handler/mouse-handler.js";
 
 const log = Logger.create("FileView", LOG_LEVEL.DEBUG);
+const navigationKeys = [
+  "Escape",
+  "ArrowLeft",
+  "ArrowRight",
+  "ArrowUp",
+  "ArrowDown",
+  "F1",
+  "F2",
+  "F3",
+  "F4",
+  "F5",
+  "F6",
+  "F7",
+  "F8",
+  "F9",
+  "End",
+  "Home",
+  "PageUp",
+  "PageDown",
+];
 
 export class FileViewComponent extends ComponentBase {
   constructor(selector, htmlName = "media") {
     super(selector, htmlName);
     this.listeners = new Listeners();
     this.activeItem = null;
-  }
-
-  async onFileHoverStart(data, target) {
-    log.never("file hover start ", data.getName());
-    this.activeItem = data;
-
-    var bodyHeight = window.innerHeight; // document.body.offsetHeight;
-    var offset = this.dom.getPageOffset(target);
-    this.popup.style.left = `${offset.left}px`;
-    if (offset.bottom > (bodyHeight * 3) / 4) {
-      this.popup.style.bottom = `${bodyHeight - offset.top}px`;
-      this.popup.style.top = null;
-    } else {
-      this.popup.style.top = `${offset.bottom}px`;
-      this.popup.style.bottom = null;
-    }
-    this.dom.removeClass(this.popup, "hidden");
-    this.dom.toggleClass(this.popup, "grouped", data.isInGroup());
-  }
-  async onFileHoverEnd(data, target) {
-    this.activeItem = null;
-    log.never("file hover end ", data.getName());
-    this.dom.addClass(this.popup, "hidden");
-  }
-
-  async fillPopup() {
-    this.dom.removeClass(this.popup, "hidden");
-    this.dom.toggleClass(
-      this.popup,
-      "grouped",
-      this.activeItem && this.activeItem.isInGroup()
-    );
-  }
-  async hidePopup() {
-    this.activeItem = null;
-    this.dom.addClass(this.popup, "hidden");
   }
 
   async onHtmlInserted(elements) {
@@ -81,19 +69,19 @@ export class FileViewComponent extends ComponentBase {
     this.filterSizer = new RightGridSizer(".grid-sizer.right", ".media-filter");
     this.detailsSizer = new LeftGridSizer(".grid-sizer.left", ".media-details");
     var allItems = await Media.getVisibleItems();
-    var template = new HtmlTemplate(this.dom.first("#media-item-template"));
+    this.template = new HtmlTemplate(this.dom.first("#media-item-template"));
 
-    this.layout = new GridLayout(".items", allItems, (item) => {
-      var htmlItem = template.fill({
-        ".media-item": [new DataValue("file-id", item.getId())],
-        ".name": item.name,
-        ".thumbnail": [
-          new DataValue("file-id", item.getId()),
-          new AttributeValue("src", `/thumbnail/${item.getId()}?v=7`),
-        ],
-      });
-      return htmlItem;
-    });
+    this.editorElement = this.dom.createElement(
+      "<div id='media-file-editor-container'></div>"
+    );
+    this.dom.hide(this.editorElement);
+    this.dom.append(document.body, this.editorElement);
+    this.editor = new MediaFileEditorComponent(this.editorElement);
+    this.layout = new GridLayout(
+      ".items",
+      allItems,
+      this.createItemElement.bind(this)
+    );
     this.listeners.add(
       BuildClickHandler()
         .listenTo(this.dom, ".media-item")
@@ -124,40 +112,58 @@ export class FileViewComponent extends ComponentBase {
         .selector("button.ungroup")
         .onClick(this, this.ungroupItem)
         .build(),
-      BuildHoverHandler()
-        .listenTo(".media-items")
-        .selector([".media-item"])
-        .include([".popup"])
-        .onStart(this, this.onFileHoverStart)
-        .onEnd(this, this.onFileHoverEnd)
-        .setData((element) => {
-          return Media.getAllFiles().findById(
-            this.dom.getData(element, "file-id")
-          );
-        })
+      BuildMouseHandler().onMouseDown(this, this.checkCancel).build(),
+      BuildKeyHandler()
+        .filterAllow(this.filterKeyEvent)
+        .onKeyDown(this, this.onKeypress)
         .build(),
       ZoomEvent.createListener(this, this.hidePopup),
       BuildScrollHandler()
         .listenTo(".items")
         .onScroll(this, this.hidePopup)
         .build(),
-      BuildFocusHandler()
-        .listenTo(document.body)
-        .onFocusIn(this, this.clearItemFocus)
-        .onBlur(this, this.clearFocus)
-        .build()
+      // BuildFocusHandler()
+      //   .listenTo(document.body)
+      //   .onFocusIn(this, this.clearItemFocus)
+      //   .onBlur(this, this.clearFocus)
+      //   .build(),
+      FocusChangeEvent.createListener(this, this.hidePopup)
     );
 
     this.navigation = new Navigation(this.layout);
+    this.isEditorVisible = false;
+  }
+
+  checkCancel(event) {
+    if (
+      this.isEditorVisible &&
+      !this.dom.contains(this.editorElement, event.target)
+    ) {
+      this.hidePopup();
+    }
+  }
+  filterKeyEvent(event) {
+    const active = document.activeElement;
+    if (active == document.body) {
+      return true;
+    }
+    return this.dom.contains(active);
+  }
+  createItemElement(item) {
+    var htmlItem = this.template.fill({
+      ".media-item": [new DataValue("file-id", item.getId())],
+      ".thumbnail": [
+        new DataValue("file-id", item.getId()),
+        new AttributeValue("src", `/thumbnail/${item.getId()}?v=7`),
+      ],
+    });
+    return htmlItem;
   }
 
   // remove focus from file item if another control (e.g. input) gets focus
   clearItemFocus() {
     media.clearFocus();
-  }
-
-  async viewFile() {
-    window.open(`/image/${this.activeItem.getId()}`, "mt-view");
+    this.hidePopup();
   }
 
   async groupSelectedItems() {
@@ -176,6 +182,9 @@ export class FileViewComponent extends ComponentBase {
     this.imageLoader.stop();
     this.layout.detach();
     this.listeners.removeAll();
+    if (this.editor) {
+      this.editor.detach();
+    }
   }
 
   clickItem(element, data, event, handler) {
@@ -200,6 +209,71 @@ export class FileViewComponent extends ComponentBase {
   middleClick(element, data, event, handler) {
     this.layout.setFocus(data.item);
     Media.toggleSelectItem(data.item);
+  }
+
+  isNavigationKey(key) {
+    return key == null || navigationKeys.includes(key);
+  }
+
+  showPopup() {
+    const focus = this.dom.first(".focus");
+    if (focus == null) {
+      return;
+    }
+    this.item = media.getFocus();
+    const rect = this.dom.getPageOffset(focus);
+    const mediaRect = this.dom.getPageOffset(".media-items");
+    const bodyWidth = document.body.clientWidth;
+
+    var width = this.dom.getWidth();
+    var left = "unset";
+    var right = width - rect.left;
+    var top = mediaRect.top;
+    if (right > rect.left) {
+      left = rect.right;
+      right = "unset";
+    }
+    var style = {
+      left: left,
+      right: right,
+      top: top,
+    };
+    this.editor.setItem(focus);
+    this.dom.setStyle(this.editorElement, style);
+    this.dom.show(this.editorElement);
+    this.isEditorVisible = true;
+  }
+
+  hidePopup() {
+    if (this.item == media.getFocus()) {
+      return;
+    }
+    this.dom.hide(this.editorElement);
+    this.isEditorVisible = false;
+  }
+
+  onKeypress(key, target, event) {
+    if (this.isEditorVisible && key == "Escape") {
+      this.hidePopup();
+      this.navigation.changeIndex(1);
+      return EventHandlerReturn.StopAll;
+    }
+    log.debug("key ", key);
+    if (this.isNavigationKey(key) || media.getFocus() == null) {
+      this.hidePopup();
+      return;
+    }
+    if (!this.isEditorVisible) {
+      this.showPopup();
+    }
+    if (event.hasAlt) {
+      this.editor.altKey(key);
+    } else if (event.hasCtrl) {
+      this.editor.ctrlKey(key);
+    } else {
+      this.editor.searchKey(key, event.hasShift);
+    }
+    return EventHandlerReturn.PreventDefault;
   }
 }
 

@@ -1,13 +1,17 @@
-﻿@use 'common/reset' as *;
-@use 'common/elements' as *;
-@use 'common/dialog' as *;
-@use 'panel/main' as *;
-@use 'panel/media' as *;
-@use 'panel/date-filter' as *;
-@use 'panel/tag-panel' as *;
-@use 'panel/details-panel' as *;
-@use 'panel/album-filter' as *;
-@use 'panel/property-filter-panel' as *;
+﻿@use 'common/reset';
+@use 'common/color';
+@use 'common/size';
+@use 'common/font';
+@use 'common/dialog';
+@use 'common/elements';
+@use 'panel/main';
+@use 'panel/date-filter';
+@use 'panel/media';
+@use 'panel/media-file-editor';
+@use 'panel/tag-panel';
+@use 'panel/details-panel';
+@use 'panel/album-filter';
+@use 'panel/property-filter-panel';
 
 
 .hidden {

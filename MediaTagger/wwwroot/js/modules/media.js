@@ -67,6 +67,7 @@ class Media {
     this.selectedItems = new ObservableView([]);
     this.lastSelect = null; // lastSelect may be toggled off
     this.focus = null;
+    this.previousFocus = null;
 
     this.listeners = new Listeners(
       this.files.updatedEvent.createListener(this, this.updateDatabaseItems),
@@ -79,7 +80,14 @@ class Media {
     return FocusChangeEvent;
   }
 
+  clearSelection() {
+    this.clearFocus();
+    this.selectedItems.clear();
+  }
   clearFocus() {
+    if (this.focus != null) {
+      this.previousFocus = this.focus;
+    }
     this.focus = null;
     this.focusIndex = null;
     FocusChangeEvent.emit(null);
@@ -90,11 +98,22 @@ class Media {
   getFocusIndex() {
     return this.focusIndex;
   }
+  getLastFocusIndex() {
+    return this.focusIndex ?? this.visibleItems.indexOf(this.previousFocus);
+  }
 
   setFocus(item) {
+    if (this.focus != null) {
+      this.previousFocus = this.focus;
+    }
     this.focus = item;
     this.focusIndex = this.visibleItems.indexOf(item);
+    FilterChangeEvent.emit();
     FocusChangeEvent.emit(item);
+  }
+
+  getLastFocus() {
+    return this.focus ?? this.previousFocus;
   }
 
   // updateFocus happens when the item doesn't change, but an attribute does (e.g. rotation)
@@ -112,7 +131,14 @@ class Media {
     log.info("media filter changed");
     this.mediaFilterItems.filter();
   }
+
+  isSelected(item) {
+    return this.selectedItems.findById(item.getId());
+  }
   mediaFilter(item) {
+    if (this.isSelected(item)) {
+      return true;
+    }
     return this.filterIncludeFunctions.every((func) => {
       return func(item);
     });
@@ -436,6 +462,21 @@ class Media {
     return created;
   }
 
+  async tagAddFile(tag, file) {
+    var result = await API.addMediaTag(file.getId(), tag.getId());
+    file.addTag(tag);
+    tag.addFile(file);
+    FocusChangeEvent.emit(this.focus);
+    return result;
+  }
+  async tagRemoveFile(tag, file) {
+    var result = await API.removeMediaTag(file.getId(), tag.getId());
+    file.removeTag(tag);
+    tag.removeFile(file);
+    FocusChangeEvent.emit(this.focus);
+    return result;
+  }
+
   async tagSelected(tagId) {
     var tag = this.tags.findById(tagId);
     if (tag == null) {
@@ -479,6 +520,12 @@ class Media {
       return "";
     }
     var tags = this.getTags();
+    if (typeof tag == "number") {
+      tag = tags.findById(tag);
+    }
+    if (tag == null) {
+      return "--";
+    }
     var path = "/" + tag.getName();
     var parent = tags.findById(tag.getParentId());
     if (parent != null) {
@@ -487,6 +534,9 @@ class Media {
     return path;
   }
 
+  getAlbumById(id) {
+    return this.albums.findById(id);
+  }
   getAlbums() {
     return this.albums;
   }
@@ -497,6 +547,21 @@ class Media {
       this.albums.insertOnce(album);
     }
     return album;
+  }
+
+  async albumAddFile(album, file) {
+    var result = await API.addMediaAlbum(file.getId(), album.getId());
+    file.addAlbum(album);
+    album.addFile(file);
+    FocusChangeEvent.emit(this.focus);
+    return result;
+  }
+  async albumRemoveFile(album, file) {
+    var result = await API.removeMediaAlbum(file.getId(), album.getId());
+    file.removeAlbum(album);
+    album.removeFile(file);
+    FocusChangeEvent.emit(this.focus);
+    return result;
   }
 
   async albumAddSelected(albumId) {

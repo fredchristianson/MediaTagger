@@ -69,7 +69,7 @@ export class PropertyValue extends TemplateValue {
 }
 
 export class ClassValue extends TemplateValue {
-  constructor(value = true) {
+  constructor(value) {
     super(value);
   }
 
@@ -217,7 +217,7 @@ export class HtmlTemplate {
     if (Array.isArray(value)) {
       value.forEach((val) => this.setValue(element, val));
     } else if (typeof value === "string" || typeof value === "number") {
-      element.innerText = value;
+      element.innerHTML = value;
     } else if (value instanceof TemplateValue) {
       value.set(element);
     } else {

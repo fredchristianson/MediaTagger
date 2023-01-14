@@ -13,7 +13,11 @@ import {
   DataValue,
   AttributeValue,
 } from "../../drjs/browser/html-template.js";
-import { media, FilterChangeEvent } from "../modules/media.js";
+import {
+  media,
+  FilterChangeEvent,
+  FocusChangeEvent,
+} from "../modules/media.js";
 import { Settings } from "../modules/settings.js";
 import { LOG_LEVEL, Logger } from "../../drjs/logger.js";
 import { TagComponent } from "./tags.js";
@@ -68,7 +72,8 @@ export class TagDetailsComponent extends TagComponent {
       media
         .getSelectedItems()
         .getUpdatedEvent()
-        .createListener(this, this.selectionChange)
+        .createListener(this, this.selectionChange),
+      FocusChangeEvent.createListener(this, this.selectionChange)
     );
     this.dom.addClass(this.tagTree, "no-select");
   }
@@ -81,7 +86,8 @@ export class TagDetailsComponent extends TagComponent {
     this.dom.removeClass(element, "hover");
   }
 
-  selectionChange(selected) {
+  selectionChange() {
+    const selected = media.getSelectedItems();
     this.ignoreCheckboxChange = true;
     log.debug("selected items change");
     const count = selected.getLength();

@@ -14,7 +14,11 @@ import {
   DataValue,
   AttributeValue,
 } from "../../drjs/browser/html-template.js";
-import { media, FilterChangeEvent } from "../modules/media.js";
+import {
+  media,
+  FilterChangeEvent,
+  FocusChangeEvent,
+} from "../modules/media.js";
 import { Settings } from "../modules/settings.js";
 import { LOG_LEVEL, Logger } from "../../drjs/logger.js";
 import Album from "../data/album.js";
@@ -59,7 +63,8 @@ class AlbumDetailsComponent extends ComponentBase {
       media
         .getSelectedItems()
         .getUpdatedEvent()
-        .createListener(this, this.onSelectionChange)
+        .createListener(this, this.onSelectionChange),
+      FocusChangeEvent.createListener(this, this.onSelectionChange)
     );
     this.onAlbumListChange();
     this.onSelectionChange();

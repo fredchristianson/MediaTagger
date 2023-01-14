@@ -24,6 +24,14 @@ export class Album extends MediaEntity {
   update(data) {
     super.update(data);
   }
+
+  hasFile(file) {
+    return this._files.includes(file);
+  }
+
+  get Files() {
+    return this_files;
+  }
 }
 
 export class MediaAlbum {
