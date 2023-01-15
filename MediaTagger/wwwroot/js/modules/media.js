@@ -90,13 +90,14 @@ class Media {
     }
     this.focus = null;
     this.focusIndex = null;
+
     FocusChangeEvent.emit(null);
   }
   getFocus() {
     return this.focus;
   }
   getFocusIndex() {
-    return this.focusIndex;
+    return this.focus == null ? 0 : this.visibleItems.indexOf(this.focus); //this.focusIndex;
   }
   getLastFocusIndex() {
     return this.focusIndex ?? this.visibleItems.indexOf(this.previousFocus);

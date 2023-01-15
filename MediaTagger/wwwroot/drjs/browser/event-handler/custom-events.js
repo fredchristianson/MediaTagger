@@ -86,6 +86,7 @@ class AsyncEventDispatcher {
 
 const asyncDispatcher = new AsyncEventDispatcher();
 
+
 export class EventEmitter {
   constructor(type, object) {
     this.type = type;

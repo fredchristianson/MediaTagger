@@ -19,7 +19,7 @@ builder.Services.AddDbContext<MediaTaggerContext>(options =>
 
 builder.Services.AddSession();
 //builder.Services.AddHostedService<FileSystemService>();
-//builder.WebHost.UseUrls("https://localhost:7094", "http://192.168.10.128:8094");
+builder.WebHost.UseUrls("https://localhost:7094", "http://192.168.10.129:8094");
 var app = builder.Build();
 
 

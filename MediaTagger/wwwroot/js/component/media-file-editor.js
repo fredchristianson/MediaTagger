@@ -11,6 +11,8 @@ import {
   EventHandlerReturn,
 } from "../../drjs/browser/event.js";
 
+var recentTags = [];
+
 import Media, { media } from "../modules/media.js";
 import HtmlTemplate, {
   ClassValue,
@@ -33,13 +35,14 @@ function lengthComparison(a, b) {
 }
 
 class Option {
-  constructor(id, label, item) {
+  constructor(type, id, label, item) {
     this.item = item;
     this.id = id;
     this.label = label;
     this.lowerCaseLabel = this.label.toLowerCase();
     this.score = 0;
     this.html = label;
+    this.type = type;
   }
 
   get Label() {
@@ -61,9 +64,9 @@ class Option {
       }
     });
     this.score =
-      found.length * 10 +
+      found.length * 100 +
       found.reduce((sum, w) => {
-        sum += w.length;
+        sum += w.length * 10;
         return sum;
       }, 0);
 
@@ -81,6 +84,29 @@ class Option {
       }
     });
     this.html += rest;
+    this.score += this.getTypeScore();
+  }
+  getTypeScore() {
+    return 0;
+  }
+}
+
+class TagOption extends Option {
+  constructor(id, label, item) {
+    super("tag", id, label, item);
+  }
+  getTypeScore() {
+    var pos = recentTags.indexOf(this.id);
+    if (pos > 0) {
+      return pos;
+    }
+    return 0;
+  }
+}
+
+class AlbumOption extends Option {
+  constructor(id, label, item) {
+    super("tag", id, label, item);
   }
 }
 
@@ -124,12 +150,12 @@ export class MediaFileEditorComponent extends ComponentBase {
 
   getTagOptions() {
     return [...media.getTags()].map((tag) => {
-      return new Option(tag.getId(), media.getTagPath(tag), tag);
+      return new TagOption(tag.getId(), media.getTagPath(tag), tag);
     });
   }
   getAlbumOptions() {
     return [...media.getAlbums()].map((album) => {
-      return new Option(album.getId(), album.getName(), album);
+      return new AlbumOption(album.getId(), album.getName(), album);
     });
   }
 
@@ -208,6 +234,7 @@ export class MediaFileEditorComponent extends ComponentBase {
       } else {
         await this.toggleHighlightedTag();
       }
+      this.search = "";
     } else if (key.length == 1) {
       if ((key >= "a" && key <= "z") || (key >= "A" && key <= "Z")) {
         this.search += key;
@@ -294,6 +321,12 @@ export class MediaFileEditorComponent extends ComponentBase {
     const parent = media.getTagById(tag.ParentId);
     await this.selectTag(parent);
     this.tagOptions = this.getTagOptions();
+
+    recentTags = recentTags.filter((t) => {
+      return t != tag.id;
+    });
+    recentTags.push(tag.id);
+
     this.fillMatches();
   }
   async unselectTag(tag) {

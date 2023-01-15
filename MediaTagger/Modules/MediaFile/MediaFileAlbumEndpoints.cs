@@ -12,7 +12,7 @@ namespace MediaTagger.Modules.MediaFile
         {
 
 
-            routes.MapGet(V1_URL_PREFIX + "/MediaAlbums", async (MediaTaggerContext db, AppSettingsService settingsService, int? start, int? count) =>
+            routes.MapGet(V1_URL_PREFIX + "/MediaAlbums", async (ILogger<MediaFileModule> logger, MediaTaggerContext db, AppSettingsService settingsService, int? start, int? count) =>
                        {
                            var files = await db.MediaFiles
                            .Where(f => !f.Hidden)
@@ -38,7 +38,7 @@ namespace MediaTagger.Modules.MediaFile
                            };
                        });
 
-            routes.MapPut(V1_URL_PREFIX + "/MediaAlbum", async (MediaTaggerContext db, AppSettingsService settingsService, int? mediaFileId, int? albumId) =>
+            routes.MapPut(V1_URL_PREFIX + "/MediaAlbum", async (ILogger<MediaFileModule> logger, MediaTaggerContext db, AppSettingsService settingsService, int? mediaFileId, int? albumId) =>
                     {
                         var file = await db.MediaFiles
                            .Where(f => !f.Hidden & f.Id == mediaFileId)
@@ -60,6 +60,8 @@ namespace MediaTagger.Modules.MediaFile
                                     albumId = albumId
                                 }
                             };
+                            logger.LogInformation($"Added album {albumId} from file {mediaFileId}");
+
                         }
                         else
                         {
@@ -68,11 +70,12 @@ namespace MediaTagger.Modules.MediaFile
                                 success = false,
                                 message = "file not found",
                             };
+                            logger.LogError("file not found adding album to file");
                         }
                         return response;
                     });
 
-            routes.MapDelete(V1_URL_PREFIX + "/MediaAlbum", async (MediaTaggerContext db, AppSettingsService settingsService, int? mediaFileId, int? albumId) =>
+            routes.MapDelete(V1_URL_PREFIX + "/MediaAlbum", async (ILogger<MediaFileModule> logger, MediaTaggerContext db, AppSettingsService settingsService, int? mediaFileId, int? albumId) =>
                     {
                         var file = await db.MediaFiles
                            .Where(f => !f.Hidden & f.Id == mediaFileId)
@@ -94,6 +97,7 @@ namespace MediaTagger.Modules.MediaFile
                                     albumId = albumId
                                 }
                             };
+                            logger.LogInformation($"Removed album {albumId} from file {mediaFileId}");
                         }
                         else
                         {

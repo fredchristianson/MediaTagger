@@ -18,7 +18,11 @@ import {
 import MediaDetailsComponent from "./media-details.js";
 import DateFilterComponent from "./date-filter.js";
 import MediaFilterComponent from "./media-filter.js";
-import Media, { FocusChangeEvent, media } from "../modules/media.js";
+import Media, {
+  FilterChangeEvent,
+  FocusChangeEvent,
+  media,
+} from "../modules/media.js";
 import { Navigation } from "../modules/navigation.js";
 import { GridLayout } from "../modules/layout.js";
 import { RightGridSizer, LeftGridSizer } from "../modules/drag-drop.js";
@@ -114,7 +118,7 @@ export class FileViewComponent extends ComponentBase {
         .build(),
       BuildMouseHandler().onMouseDown(this, this.checkCancel).build(),
       BuildKeyHandler()
-        .filterAllow(this.filterKeyEvent)
+        .filterAllow(this.filterKeyEvent.bind(this))
         .onKeyDown(this, this.onKeypress)
         .build(),
       ZoomEvent.createListener(this, this.hidePopup),
@@ -134,18 +138,23 @@ export class FileViewComponent extends ComponentBase {
     this.isEditorVisible = false;
   }
 
-  checkCancel(event) {
+  checkCancel(position, target, event) {
     if (
       this.isEditorVisible &&
       !this.dom.contains(this.editorElement, event.target)
     ) {
-      this.hidePopup();
+      this.dom.hide(this.editorElement);
+      this.isEditorVisible = false;
     }
   }
   filterKeyEvent(event) {
     const active = document.activeElement;
     if (active == document.body) {
       return true;
+    }
+    if (this.dom == null) {
+      alert("something is wrong");
+      return;
     }
     return this.dom.contains(active);
   }
@@ -253,8 +262,21 @@ export class FileViewComponent extends ComponentBase {
   }
 
   onKeypress(key, target, event) {
+    log.debug("focusIndex ", media.getFocusIndex());
     if (this.isEditorVisible && key == "Escape") {
       this.hidePopup();
+      media.clearSelection();
+      media.clearFocus();
+      const focusIndex = media.getFocusIndex();
+
+      FilterChangeEvent.emit();
+      // FilterChangeEvent.createListener(() => {
+      //   log.debug("update index ", focusIndex);
+      //   media.getLastFocusIndex(focusIndex);
+      // }).Once = true;
+      setTimeout(() => {
+        media.getLastFocusIndex(focusIndex);
+      }, 100);
       this.navigation.changeIndex(1);
       return EventHandlerReturn.StopAll;
     }

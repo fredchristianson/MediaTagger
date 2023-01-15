@@ -95,14 +95,20 @@ export async function getMediaTags(startPos, count) {
 
 export async function addMediaTag(mediaFileId, tagId) {
   var url = `MediaTag?mediaFileId=${mediaFileId}&tagId=${tagId}`;
-
   var result = await httpAPI.put(url, null, "json");
+  if (result == null || !result.success) {
+    log.error("failed to add media tag to file");
+  }
   return result != null && result.success;
 }
 export async function removeMediaTag(mediaFileId, tagId) {
   var url = `MediaTag?mediaFileId=${mediaFileId}&tagId=${tagId}`;
 
   var result = await httpAPI.delete(url, null, "json");
+  if (result == null || !result.success) {
+    log.error("failed to remove media tag from file");
+  }
+
   return result != null && result.success;
 }
 
@@ -118,12 +124,20 @@ export async function addMediaAlbum(mediaFileId, albumId) {
   var url = `MediaAlbum?mediaFileId=${mediaFileId}&albumId=${albumId}`;
 
   var result = await httpAPI.put(url, null, "json");
+  if (result == null || !result.success) {
+    log.error("failed to add album  to file");
+  }
+
   return result != null && result.success;
 }
 export async function removeMediaAlbum(mediaFileId, albumId) {
   var url = `MediaAlbum?mediaFileId=${mediaFileId}&albumId=${albumId}`;
 
   var result = await httpAPI.delete(url, null, "json");
+  if (result == null || !result.success) {
+    log.error("failed to add album to file");
+  }
+
   return result != null && result.success;
 }
 

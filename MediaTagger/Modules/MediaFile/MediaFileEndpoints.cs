@@ -119,7 +119,7 @@ namespace MediaTagger.Modules.MediaFile
                            };
                        });
 
-            routes.MapPut(V1_URL_PREFIX + "/MediaTag", async (MediaTaggerContext db, AppSettingsService settingsService, int? mediaFileId, int? tagId) =>
+            routes.MapPut(V1_URL_PREFIX + "/MediaTag", async (ILogger<MediaFileModule> logger, MediaTaggerContext db, AppSettingsService settingsService, int? mediaFileId, int? tagId) =>
                     {
                         var file = await db.MediaFiles
                            .Where(f => !f.Hidden & f.Id == mediaFileId)
@@ -141,9 +141,12 @@ namespace MediaTagger.Modules.MediaFile
                                     tagId = tagId
                                 }
                             };
+                            logger.LogInformation($"Added tag {tagId} to file {mediaFileId}");
                         }
                         else
                         {
+                            logger.LogError("file not found adding tag to file");
+
                             response = new
                             {
                                 success = false,
@@ -153,7 +156,7 @@ namespace MediaTagger.Modules.MediaFile
                         return response;
                     });
 
-            routes.MapDelete(V1_URL_PREFIX + "/MediaTag", async (MediaTaggerContext db, AppSettingsService settingsService, int? mediaFileId, int? tagId) =>
+            routes.MapDelete(V1_URL_PREFIX + "/MediaTag", async (ILogger<MediaFileModule> logger, MediaTaggerContext db, AppSettingsService settingsService, int? mediaFileId, int? tagId) =>
                     {
                         var file = await db.MediaFiles
                            .Where(f => !f.Hidden & f.Id == mediaFileId)
@@ -175,9 +178,12 @@ namespace MediaTagger.Modules.MediaFile
                                     tagId = tagId
                                 }
                             };
+                            logger.LogInformation($"Reemoved tag {tagId} from file {mediaFileId}");
+
                         }
                         else
                         {
+                            logger.LogError("file not found adding tag to file");
                             response = new
                             {
                                 success = false,

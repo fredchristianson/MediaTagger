@@ -28,7 +28,7 @@ export class EventHandlerBuilder {
     return this;
   }
   filterAllow(filterFunction) {
-    this.handlerInstance.setFilterAllow(filterFunction    );
+    this.handlerInstance.setFilterAllow(filterFunction);
     return this;
   }
   capture(shouldCapture = true) {
@@ -83,6 +83,9 @@ export class EventHandlerBuilder {
     this.handlerInstance.setDebounceMSecs(msecs);
     return this;
   }
+  setOnce() {
+    this.handlerInstance.Once = true;
+  }
   build() {
     this.handlerInstance.listen();
     return this.handlerInstance;
@@ -107,6 +110,7 @@ export class EventHandler {
     this.handlerMethod = HandlerMethod.None();
     this.capture = null;
     this.filterFunction = null;
+    this.once = false;
 
     if (args.length == 0) {
       return;
@@ -138,6 +142,9 @@ export class EventHandler {
     this.handlerMethod = new HandlerMethod(handlerObj, handlerFunc);
   }
 
+  set Once(once) {
+    this.once = once;
+  }
   setFilterAllow(func) {
     this.filterFunction = func;
   }
@@ -216,6 +223,7 @@ export class EventHandler {
     const options = {
       passive: this.isPassive(),
       capture: this.isCapture(),
+      once: this.once,
     };
     this.typeNames.forEach((typeName) => {
       if (this.listenElement != null) {
@@ -314,6 +322,10 @@ export class EventHandler {
     log.never(
       `done eventHandler ${target.id}:${target.className} - ${event.type}`
     );
+    if (this.once) {
+      // in case the option wasn't set until after listening
+      this.remove();
+    }
   }
 
   invokeHandler(event) {
