@@ -1,0 +1,102 @@
+#tag-manager {
+    width: 800px;
+    margin: auto auto;
+    border-right: 1px solid #aaa;
+    border-left: 1px solid #aaa;
+    height: 100%;
+
+    display: flex;
+    flex-flow: column;
+    align-items: stretch;
+    height: 100%;
+
+    h1 {
+        flex: 0 0 auto;
+        width: 100%;
+        padding: 8px;
+        display: block;
+        background-color: #aaf;
+        text-align: center;
+    }
+
+    .tag-tree {
+        flex: 1 1 auto;
+        overflow: auto;
+        padding-left: 4px;
+        padding-top: 4px;
+        position: relative;
+        &>.tag:last-child {
+                margin-bottom: 4rem;
+            }
+    }
+
+    .children {
+        position: relative;
+        padding-left: 4rem;
+
+    }
+
+    .tag {
+        position: relative;
+
+        .on-hover {
+            display: none;
+        }
+
+        .buttons {
+            display: block;
+
+            &.on-hover {
+                display: none;
+            }
+        }
+
+        button {
+            margin-left: 8px;
+            border: 0px;
+            text-decoration: underline;
+            background-color: transparent;
+        }
+
+        .self:hover .on-hover {
+            display: inline-block;
+
+            &.block {
+                display: block;
+            }
+        }
+
+        &.root .edit {
+            display: none !important;
+        }
+    }
+
+    .tag .self {
+        background-color: transparent;
+        transition: background-color 1s;
+    }
+    .tag.new .self {
+        background-color: yellow;
+        transition: background-color 1s ;
+    }
+
+    .tag.dragging {
+        background-color: aqua;
+        .button {
+            display:none !important;
+        }
+
+        .children {
+            display: none;
+        }
+    }
+
+    .tag.drag-over:not(.dragging) >.self{
+        padding-bottom: 2em;
+        background-color: yellow;
+        border: 1px dashed #aaa;
+    }
+
+
+
+}

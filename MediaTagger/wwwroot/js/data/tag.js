@@ -6,6 +6,7 @@ export class Tag extends MediaEntity {
   constructor(data = {}) {
     super(data);
     this.parentId = data.parentId;
+    this.hidden = data.hidden;
     this._files = [];
   }
 
@@ -40,6 +41,13 @@ export class Tag extends MediaEntity {
 
   get ParentId() {
     return this.parentId;
+  }
+
+  getHidden() {
+    return this.hidden;
+  }
+  get Hidden() {
+    return this.hidden;
   }
 }
 

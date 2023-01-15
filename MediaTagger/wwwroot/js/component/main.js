@@ -3,7 +3,7 @@ import { watcher as settingsWatcher } from "../modules/setting-watcher.js";
 import ViewOptionsComponent from "./view-options.js";
 import StatusBarComponent from "./status-bar.js";
 import FileViewComponent from "./file-view.js";
-import FindGroupsComponent from "./find-groups.js";
+import { TagManagerComponent } from "./tag-manager-component.js";
 import SettingsComponent from "./settings.js";
 import { getAppSettings } from "../modules/mt-api.js";
 import { DOMWatcher, toggleClass } from "../modules/dom-watcher.js";
@@ -43,8 +43,8 @@ export class MainComponent extends ComponentBase {
     this.contentView = new FileViewComponent("#content-view");
   }
 
-  findGroups() {
-    this.contentView = new FindGroupsComponent("#content-view");
+  showTagManager() {
+    this.contentView = new TagManagerComponent("#content-view");
   }
 }
 

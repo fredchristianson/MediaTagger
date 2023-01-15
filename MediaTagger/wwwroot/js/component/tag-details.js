@@ -117,13 +117,11 @@ export class TagDetailsComponent extends TagComponent {
         this.dom.toggleClass(tagElement, "partial", st.count < count);
       }
     });
-    // don't hide unchecked tags. need to be visible to user
-    // to check them.  may add a toggle to hide/unhide all
-    // var tags = this.dom.find(".tag");
-    // tags.forEach((tag) => {
-    //   var hasCheck = this.dom.first(tag, ":checked");
-    //   this.dom.show(tag, hasCheck);
-    // });
+    var tags = this.dom.find(".tag");
+    tags.forEach((tag) => {
+      var hasCheck = this.dom.first(tag, ":checked");
+      this.dom.show(tag, hasCheck);
+    });
     log.debug("change done");
     this.ignoreCheckboxChange = false;
 

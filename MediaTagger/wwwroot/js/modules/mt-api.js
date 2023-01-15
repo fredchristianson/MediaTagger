@@ -23,9 +23,9 @@ export async function getTags(startPos, count) {
 }
 
 export async function createTag(parentId, name) {
-  var url = "Tag/" + name;
+  var url = "Tag/?name=" + name;
   if (parentId != null) {
-    url += "?parentId=" + parentId;
+    url += "&parentId=" + parentId;
   }
   var result = await httpAPI.put(url, null, "json");
   if (result != null && result.success) {
@@ -34,18 +34,15 @@ export async function createTag(parentId, name) {
   return null;
 }
 
-export async function updateTag(parentId, tag) {
+export async function updateTag(tag) {
   var url = "Tag";
-  if (parentId != null) {
-    url += "?parentId=" + parentId;
-  }
   var data = {
     id: tag.getId(),
     name: tag.getName(),
     hidden: tag.getHidden(),
-    parentId: tag.getParentId,
+    parentId: tag.ParentId,
   };
-  var result = await httpAPI.put(url, data, "json");
+  var result = await httpAPI.post(url, data, "json");
   if (result != null) {
     return new Tag(result);
   }

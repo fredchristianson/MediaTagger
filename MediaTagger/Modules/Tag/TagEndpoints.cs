@@ -41,7 +41,7 @@ namespace MediaTagger.Modules.Tag
 
 
 
-            routes.MapPut(V1_URL_PREFIX + "/Tag/{name}", async (MediaTaggerContext db, string name, int? parentId) =>
+            routes.MapPut(V1_URL_PREFIX + "/Tag", async (MediaTaggerContext db, string name, int? parentId) =>
           {
               var tag = new TagModel
               {
@@ -68,7 +68,7 @@ namespace MediaTagger.Modules.Tag
               };
           });
 
-            routes.MapPost(V1_URL_PREFIX + "/Tag/{name}", async (MediaTaggerContext db, TagModel tag) =>
+            routes.MapPost(V1_URL_PREFIX + "/Tag", async (MediaTaggerContext db, TagModel tag) =>
             {
                 var oldtag = await db.Tags.FindAsync(tag.Id);
                 dynamic response = null!;

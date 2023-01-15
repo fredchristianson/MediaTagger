@@ -48,6 +48,10 @@ export class ViewOptionsComponent extends ComponentBase {
         .handler(this, this.showMedia)
         .build(),
       BuildClickHandler()
+        .selector(".show-tag-manager")
+        .handler(this, this.showTagManager)
+        .build(),
+      BuildClickHandler()
         .selector(".find-groups")
         .handler(this, this.findGroups)
         .build(),
@@ -169,6 +173,10 @@ export class ViewOptionsComponent extends ComponentBase {
 
   showMedia(target, event) {
     main.instance.showFiles();
+  }
+
+  showTagManager() {
+    main.instance.showTagManager();
   }
 
   findGroups(target, event) {

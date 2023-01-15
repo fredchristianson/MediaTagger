@@ -316,8 +316,16 @@ class Media {
 
   setSearchText(text) {
     var lcText = text.toLowerCase();
+    var num = Number.parseInt(lcText);
     this.searchFilterItems.setKeepFunction((item) => {
-      return item.getName().toLowerCase().includes(lcText);
+      var nameMatch = item.getName().toLowerCase().includes(lcText);
+      if (nameMatch) {
+        return true;
+      }
+      var idMatch = id.Id == num;
+      if (idMatch) {
+        return true;
+      }
     });
   }
 
@@ -447,7 +455,7 @@ class Media {
     var parts = newTag.split("/").map((n) => {
       return n.trim();
     });
-    var leaf = parts.splice(-1); // remove last element (leaf tag name)
+    var leaf = parts.splice(-1)[0]; // remove last element (leaf tag name)
     var walk = null;
     for (var next of parts) {
       var child = this.tags.getChildByName(parentId, next);
@@ -461,6 +469,19 @@ class Media {
     var created = await API.createTag(parentId, leaf);
     this.tags.insert(created);
     return created;
+  }
+
+  async updateTag(id, name, parentId) {
+    var tag = this.tags.findById(id);
+    if (tag == null) {
+      log.error("cannot find tag ", id);
+      return null;
+    }
+    tag.name = name;
+    tag.parentId = parentId;
+    var updated = await API.updateTag(tag);
+    FilterChangeEvent.emit();
+    return updated;
   }
 
   async tagAddFile(tag, file) {

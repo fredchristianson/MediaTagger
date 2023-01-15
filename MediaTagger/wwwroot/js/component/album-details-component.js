@@ -96,6 +96,7 @@ class AlbumDetailsComponent extends ComponentBase {
       var id = this.dom.getDataWithParent(check, "id");
       var st = selectedAlbums[id];
       var tagElement = this.dom.closest(check, "label");
+      this.dom.show(tagElement, st != null);
       if (st == null) {
         this.dom.uncheck(check);
         this.dom.removeClass(tagElement, "partial");

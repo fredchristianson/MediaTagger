@@ -227,7 +227,7 @@ export class MediaFileEditorComponent extends ComponentBase {
     if (key == "Backspace") {
       this.search = this.search.substring(0, this.search.length - 1);
     } else if (key == "Tab") {
-      this.highlightIndex = (this.highlightIndex + 1) % 20;
+      this.highlightIndex = (this.highlightIndex + (shift ? -1 : 1)) % 20;
     } else if (key == "Enter") {
       if (shift) {
         await this.toggleHighlightedAlbum();

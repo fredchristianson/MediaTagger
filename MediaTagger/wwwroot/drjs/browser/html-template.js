@@ -90,9 +90,8 @@ export class DataValue extends TemplateValue {
 }
 
 export class InputValue extends TemplateValue {
-  constructor(name, value = true) {
+  constructor(value) {
     super(value);
-    this.name = name;
   }
 
   set(element) {
@@ -217,7 +216,11 @@ export class HtmlTemplate {
     if (Array.isArray(value)) {
       value.forEach((val) => this.setValue(element, val));
     } else if (typeof value === "string" || typeof value === "number") {
-      element.innerHTML = value;
+      if (element.value != null) {
+        element.value = value;
+      } else {
+        element.innerHTML = value;
+      }
     } else if (value instanceof TemplateValue) {
       value.set(element);
     } else {

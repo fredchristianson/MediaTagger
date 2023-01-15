@@ -8,7 +8,7 @@ import {
 } from "./common.js";
 export * from "./common.js";
 
-const log = Logger.create("EventHandler", LOG_LEVEL.WARN);
+const log = Logger.create("EventHandler", LOG_LEVEL.DEBUG);
 
 export class EventHandlerBuilder {
   constructor(eventHandlerClass) {
