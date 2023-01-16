@@ -106,7 +106,7 @@ namespace MediaTagger.Modules.MediaFile
                                id = f.Id,
                                tags = f.Tags.Select(t => t.Id)
                            }).ToListAsync();
-                           var total = await db.MediaFiles.CountAsync();
+                           var total = await db.MediaFiles.Where(f => !f.Hidden).CountAsync();
                            return new
                            {
                                success = true,

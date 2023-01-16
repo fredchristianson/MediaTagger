@@ -105,7 +105,8 @@ export function dataLoader(source, dataUpdater, batchSize = 1000) {
         done =
           response == null ||
           response.totalCount == null ||
-          response.totalCount <= pos;
+          response.totalCount <= pos ||
+          response.resultCount == 0;
         if (!done) {
           dataUpdater(response.data);
           pos = pos + response.resultCount;

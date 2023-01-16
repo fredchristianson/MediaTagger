@@ -368,16 +368,24 @@ export class GridLayout extends Layout {
       // position top margin after image has been inserted into the body DOM
       // before then the <img> has 0 size
       for (var img of dom.find(view, "img")) {
-        var imgHeight = height;
-        if (dom.hasClass(img, "portrait")) {
-          imgHeight = dom.getWidth(img);
+        if (!img.complete) {
+          img.addEventListener("load", () => this.positionImage.bind(this));
         } else {
-          imgHeight = dom.getHeight(img);
+          this.positionImage(img);
         }
-        const margin = (height - imgHeight) / 2;
-        img.style.top = px(margin);
       }
     }
+  }
+  positionImage(img) {
+    const height = this.layoutDetails.ItemHeight;
+    var imgHeight = height;
+    if (dom.hasClass(img, "portrait")) {
+      imgHeight = dom.getWidth(img);
+    } else {
+      imgHeight = dom.getHeight(img);
+    }
+    const margin = (height - imgHeight) / 2;
+    img.style.top = px(margin);
   }
 }
 export default GridLayout;

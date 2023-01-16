@@ -147,6 +147,8 @@ export class AlbumFilterComponent extends ComponentBase {
     var label = this.dom.closest(element, ".check-state");
     this.dom.setData(label, "state", state);
     this.showAlbumCount();
+    media.clearFocus();
+    media.clearSelection();
     FilterChangeEvent.emit();
   }
 

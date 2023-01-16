@@ -140,12 +140,25 @@ export class MediaFileEditorComponent extends ComponentBase {
         .setData((target) => {
           return media.getAlbumById(this.dom.getData(target, "id"));
         })
-        .build()
+        .build(),
+      media.getTags().getUpdatedEvent().createListener(this, this.onTagChange),
+      media
+        .getAlbums()
+        .getUpdatedEvent()
+        .createListener(this, this.onAlbumChange)
     );
     this.optionTemplate = new HtmlTemplate(
       this.dom.first(".editor-option-template")
     );
     this.search = "";
+  }
+
+  onTagChange() {
+    this.fillMatches();
+  }
+
+  onAlbumChange() {
+    this.fillMatches();
   }
 
   getTagOptions() {
@@ -196,6 +209,9 @@ export class MediaFileEditorComponent extends ComponentBase {
     list.sort(matchScoreComparison);
   }
   fillMatches() {
+    this.tagOptions = this.getTagOptions();
+    this.albumOptions = this.getAlbumOptions();
+
     this.sortMatches(this.tagOptions, this.tagCounts);
     this.sortMatches(this.albumOptions, this.albumCounts);
     this.dom.removeChildren(".tags ul");

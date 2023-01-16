@@ -25,9 +25,10 @@
         padding-left: 4px;
         padding-top: 4px;
         position: relative;
+
         &>.tag:last-child {
-                margin-bottom: 4rem;
-            }
+            margin-bottom: 4rem;
+        }
     }
 
     .children {
@@ -44,11 +45,11 @@
         }
 
         .buttons {
-            display: block;
-
-            &.on-hover {
-                display: none;
-            }
+            display: none;
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            height: 2.5em;
         }
 
         button {
@@ -58,10 +59,11 @@
             background-color: transparent;
         }
 
-        .self:hover .on-hover {
-            display: inline-block;
 
-            &.block {
+        .self:hover {
+            border: 1px dashed #aaa;
+            height: 3em;
+            .on-hover {
                 display: block;
             }
         }
@@ -75,15 +77,17 @@
         background-color: transparent;
         transition: background-color 1s;
     }
+
     .tag.new .self {
         background-color: yellow;
-        transition: background-color 1s ;
+        transition: background-color 1s;
     }
 
     .tag.dragging {
         background-color: aqua;
+
         .button {
-            display:none !important;
+            display: none !important;
         }
 
         .children {
@@ -91,7 +95,7 @@
         }
     }
 
-    .tag.drag-over:not(.dragging) >.self{
+    .tag.drag-over:not(.dragging)>.self {
         padding-bottom: 2em;
         background-color: yellow;
         border: 1px dashed #aaa;

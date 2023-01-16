@@ -36,6 +36,7 @@ class Media {
   constructor() {
     this.files = new ObservableArray();
     this.tags = new ObservableTree();
+
     this.albums = new ObservableArray();
     this.groups = new ObservableArray();
     this.properties = new ObservableArray();
@@ -471,15 +472,19 @@ class Media {
     return created;
   }
 
-  async updateTag(id, name, parentId) {
+  async updateTag(id, name, parentId, hidden = false) {
     var tag = this.tags.findById(id);
     if (tag == null) {
       log.error("cannot find tag ", id);
       return null;
     }
-    tag.name = name;
-    tag.parentId = parentId;
+    tag.Name = name;
+    tag.ParentId = parentId;
+    tag.Hidden = hidden;
     var updated = await API.updateTag(tag);
+    if (tag.hidden) {
+      this.tags.remove(tag);
+    }
     FilterChangeEvent.emit();
     return updated;
   }

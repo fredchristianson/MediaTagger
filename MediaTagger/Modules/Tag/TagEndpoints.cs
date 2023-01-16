@@ -28,7 +28,7 @@ namespace MediaTagger.Modules.Tag
                           parentId = f.ParentId
 
                       }).ToListAsync();
-                      var total = await db.Tags.CountAsync();
+                      var total = await db.Tags.Where(f=>!f.Hidden).CountAsync();
                       return new
                       {
                           start = start,

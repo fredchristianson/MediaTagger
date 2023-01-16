@@ -74,6 +74,9 @@ export class MediaEntity {
   get Name() {
     return this.name;
   }
+  set Name(name) {
+    this.name = name;
+  }
   getId() {
     return this.id;
   }

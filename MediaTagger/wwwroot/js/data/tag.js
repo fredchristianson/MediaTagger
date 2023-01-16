@@ -43,11 +43,17 @@ export class Tag extends MediaEntity {
     return this.parentId;
   }
 
+  set ParentId(id) {
+    this.parentId = id;
+  }
   getHidden() {
     return this.hidden;
   }
   get Hidden() {
     return this.hidden;
+  }
+  set Hidden(hide) {
+    this.hidden = hide;
   }
 }
 

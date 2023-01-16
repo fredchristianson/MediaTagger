@@ -730,10 +730,11 @@ label.check-state[data-state=unchecked]::after {
   display: none;
 }
 #tag-manager .tag .buttons {
-  display: block;
-}
-#tag-manager .tag .buttons.on-hover {
   display: none;
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  height: 2.5em;
 }
 #tag-manager .tag button {
   margin-left: 8px;
@@ -741,10 +742,11 @@ label.check-state[data-state=unchecked]::after {
   text-decoration: underline;
   background-color: transparent;
 }
-#tag-manager .tag .self:hover .on-hover {
-  display: inline-block;
+#tag-manager .tag .self:hover {
+  border: 1px dashed #aaa;
+  height: 3em;
 }
-#tag-manager .tag .self:hover .on-hover.block {
+#tag-manager .tag .self:hover .on-hover {
   display: block;
 }
 #tag-manager .tag.root .edit {

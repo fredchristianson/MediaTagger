@@ -77,6 +77,9 @@ export class ComponentBase {
 
   detach(parent) {
     log.debug("detaching");
+    if (this.parent == null) {
+      return;
+    }
     var component = this.parent.componentImplementation;
     if (component && component.onDetach) {
       component.onDetach();

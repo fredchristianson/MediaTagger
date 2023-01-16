@@ -71,12 +71,21 @@ export class TagManagerComponent extends ComponentBase {
           return media.getTagById(this.dom.getDataWithParent(target, "id"));
         })
         .onClick(this, this.onAdd)
+        .build(),
+      BuildClickHandler()
+        .listenTo(this.dom, "button.hide")
+        .setData((target) => {
+          return media.getTagById(this.dom.getDataWithParent(target, "id"));
+        })
+        .onClick(this, this.onHide)
         .build()
     );
     this.createTags();
   }
 
   createTags() {
+    this.tags = media.getTags();
+
     const scroll = this.dom.first(".tag-tree");
     const scrollTop = scroll.scrollTop;
     const top = this.tags.search((tag) => {
@@ -147,6 +156,12 @@ export class TagManagerComponent extends ComponentBase {
       return true;
     });
     dialog.show();
+  }
+
+  async onHide(tag) {
+    log.debug("hide tag ", tag.Id, tag.Name);
+    await media.updateTag(tag.Id, tag.Name, tag.ParentId, true);
+    this.createTags();
   }
 
   onDragStart(target, event) {

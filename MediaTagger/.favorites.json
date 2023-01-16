@@ -1,0 +1,19 @@
+[
+    {
+        "type": "Group",
+        "name": "Server",
+        "parent_id": null,
+        "workspaceRoot": null,
+        "workspacePath": null,
+        "id": "8Rsz1rFTyf2OYXjA"
+    },
+    {
+        "type": "Directory",
+        "name": "d:\\dev\\media\\MediaTagger\\MediaTagger\\Modules\\Tag",
+        "parent_id": "8Rsz1rFTyf2OYXjA",
+        "fsPath": "d:\\dev\\media\\MediaTagger\\MediaTagger\\Modules\\Tag",
+        "workspaceRoot": null,
+        "workspacePath": null,
+        "id": "eA6WsjwLB518XVFt"
+    }
+]
