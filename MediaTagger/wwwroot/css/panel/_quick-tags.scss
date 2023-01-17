@@ -1,0 +1,87 @@
+#quick-tags {
+    --border-color: #000;
+    --background-color: #ccc;
+    --padding: 8px;
+
+    height: 100%;
+    background-color: var(--background-color);
+    display: grid;
+    grid-template-areas: "media select tree";
+    grid-template-columns: 320px auto 1fr;
+    .media, .quick-select, .tag-tree {
+        padding: 2px;
+        border-right: 1px solid var(--border-color);
+        height: 100%;
+        overflow: auto;
+    }
+
+    .media {
+        grid-area: media;
+    }
+        .quick-select {
+            grid-area: select;
+            min-width: 200px;
+            padding: var(--padding);
+        }
+                .tag-tree {
+                    grid-area: tree;
+                    border-right: 0;
+                    padding: var(--padding);
+                }
+
+    .small {
+        margin: 1em 4px;
+
+        &>div {
+            display: inline-block;
+            width: 90px;
+            height: 90px;
+            margin-right: 4px;
+            border: 1px solid var(--border-color);
+        }
+    }
+
+    .focus {
+        display: block;
+        border: 1px solid white;
+        background-color: white;
+        width: 300px;
+        height: 300px;
+    }
+    .images{
+        margin: auto auto;
+        width: fit-content;
+    }
+
+    .tag.node {
+        .hotkey {
+            font-weight: lighter;
+            font-size: var(--small-font-size);
+            input {
+                width: 20px;
+                display: inline-block;
+            }
+        }
+        .self {
+            position: relative;
+           .on-hover {
+                display: none;
+                position: absolute;
+                top: var(--padding);
+                right: var(--padding);
+            }
+
+
+            &:hover {
+                background-color: #ffa;
+                height: 2em;
+                .on-hover {
+                    display:inline-block;
+                }
+            }
+        }
+        .children {
+            margin-left: 4em;
+        }
+    }
+}

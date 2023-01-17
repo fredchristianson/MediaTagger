@@ -4,7 +4,7 @@ import {
   ObjectEventType,
   Listeners,
   BuildClickHandler,
-  EventHandlerReturn,
+  Continuation,
 } from "../../drjs/browser/event.js";
 import { media } from "./media.js";
 import UTIL from "../../drjs/util.js";

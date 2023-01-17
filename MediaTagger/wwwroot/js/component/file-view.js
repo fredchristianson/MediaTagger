@@ -12,8 +12,9 @@ import {
   BuildKeyHandler,
   BuildScrollHandler,
   BuildFocusHandler,
-  EventHandlerReturn,
+  Continuation,
   BuildMouseHandler,
+  BuildCustomEventHandler,
 } from "../../drjs/browser/event.js";
 import MediaDetailsComponent from "./media-details.js";
 import DateFilterComponent from "./date-filter.js";
@@ -55,6 +56,9 @@ const navigationKeys = [
   "Home",
   "PageUp",
   "PageDown",
+  "[",
+  "]",
+  "\\",
 ];
 
 export class FileViewComponent extends ComponentBase {
@@ -121,7 +125,9 @@ export class FileViewComponent extends ComponentBase {
         .filterAllow(this.filterKeyEvent.bind(this))
         .onKeyDown(this, this.onKeypress)
         .build(),
-      ZoomEvent.createListener(this, this.hidePopup),
+      BuildCustomEventHandler()
+        .emitter(ZoomEvent)
+        .onEvent(this, this.hidePopup).build(),
       BuildScrollHandler()
         .listenTo(".items")
         .onScroll(this, this.hidePopup)
@@ -131,7 +137,7 @@ export class FileViewComponent extends ComponentBase {
       //   .onFocusIn(this, this.clearItemFocus)
       //   .onBlur(this, this.clearFocus)
       //   .build(),
-      FocusChangeEvent.createListener(this, this.hidePopup)
+      BuildCustomEventHandler().emitter(FocusChangeEvent).onEvent(this, this.hidePopup).build()
     );
 
     this.navigation = new Navigation(this.layout);
@@ -196,12 +202,12 @@ export class FileViewComponent extends ComponentBase {
     }
   }
 
-  clickItem(element, data, event, handler) {
+  clickItem(data, element, event, handler) {
     if (document.activeElement) {
       document.activeElement.blur();
     }
   }
-  leftClick(element, data, event, handler) {
+  leftClick(data, element, event, handler) {
     log.debug("leftClick element ");
     if (event.hasShift) {
       Media.selectToItem(data.item);
@@ -211,11 +217,11 @@ export class FileViewComponent extends ComponentBase {
       Media.selectItem(data.item);
     }
   }
-  rightClick(element, data, event, handler) {
+  rightClick(data, element, event, handler) {
     this.layout.setFocus(data.item);
     Media.selectToItem(data.item);
   }
-  middleClick(element, data, event, handler) {
+  middleClick(data, element, event, handler) {
     this.layout.setFocus(data.item);
     Media.toggleSelectItem(data.item);
   }
@@ -270,15 +276,12 @@ export class FileViewComponent extends ComponentBase {
       const focusIndex = media.getFocusIndex();
 
       FilterChangeEvent.emit();
-      // FilterChangeEvent.createListener(() => {
-      //   log.debug("update index ", focusIndex);
-      //   media.getLastFocusIndex(focusIndex);
-      // }).Once = true;
+
       setTimeout(() => {
         media.getLastFocusIndex(focusIndex);
       }, 100);
       this.navigation.changeIndex(1);
-      return EventHandlerReturn.StopAll;
+      return Continuation.StopAll;
     }
     log.debug("key ", key);
     if (this.isNavigationKey(key) || media.getFocus() == null) {
@@ -295,7 +298,7 @@ export class FileViewComponent extends ComponentBase {
     } else {
       this.editor.searchKey(key, event.hasShift);
     }
-    return EventHandlerReturn.PreventDefault;
+    return Continuation.PreventDefault;
   }
 }
 

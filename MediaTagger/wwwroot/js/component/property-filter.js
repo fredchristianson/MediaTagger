@@ -3,8 +3,9 @@ import { ComponentBase } from "../../drjs/browser/component.js";
 import {
   BuildCheckboxHandler,
   BuildClickHandler,
+  BuildCustomEventHandler,
   Listeners,
-  EventHandlerReturn,
+  Continuation,
 } from "../../drjs/browser/event.js";
 import {
   HtmlTemplate,
@@ -115,21 +116,24 @@ export class PropertyFilterComponent extends ComponentBase {
 
     this.files = media.getAllFiles();
     this.listeners.add(
-      this.files.getUpdatedEvent().createListener(this, this.onFilesChanged),
+      BuildCustomEventHandler()
+        .emitter(this.files.getUpdatedEvent())
+        .onEvent(this, this.onFilesChanged)
+        .build(),
       BuildCheckboxHandler()
         .listenTo(this.dom, "input[type='checkbox']")
         .onChange(this, this.checkChange)
         .build(),
       BuildClickHandler()
         .listenTo(this.dom, "[href='#all']")
-        .setDefaultResponse(EventHandlerReturn.StopAll)
+        .setDefaultContinuation(Continuation.StopAll)
         .onClick(this, this.checkAll)
 
         .build(),
       BuildClickHandler()
         .listenTo(this.dom, "[href='#none']")
         .onClick(this, this.checkNone)
-        .setDefaultResponse(EventHandlerReturn.StopAll)
+        .setDefaultContinuation(Continuation.StopAll)
         .build()
     );
     this.onFilesChanged();

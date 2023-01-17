@@ -1,11 +1,11 @@
 import { ComponentBase } from "../../drjs/browser/component.js";
 import {
   BuildCheckboxHandler,
+  BuildCustomEventHandler,
   BuildHoverHandler,
   BuildInputHandler,
-  EventHandlerReturn,
+  Continuation,
   Listeners,
-  StopAllHandlerReturn,
 } from "../../drjs/browser/event.js";
 import { BuildClickHandler } from "../../drjs/browser/event.js";
 import {
@@ -80,14 +80,14 @@ export class AlbumFilterComponent extends ComponentBase {
         .build(),
       BuildClickHandler()
         .listenTo("#album-filter", ".add-album")
-        .setDefaultResponse(EventHandlerReturn.StopAll)
+        .setDefaultContinuation(Continuation.StopAll)
         .capture()
         .onClick(this, this.addAlbum)
         .build(),
-      media
-        .getAlbums()
-        .getUpdatedEvent()
-        .createListener(this, this.onAlbumListChange)
+      BuildCustomEventHandler()
+        .emitter(media.getAlbums().getUpdatedEvent())
+        .onEvent(this, this.onAlbumListChange)
+        .build()
     );
     this.onAlbumListChange();
     media.addFilter(this.filterItem.bind(this));

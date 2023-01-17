@@ -29,7 +29,21 @@ namespace MediaTagger.Modules.Image
                     return Results.NotFound();
                 }
                 var path = service.GetFilePath(file);
-                return Results.File(path, service.GetFileMimeType(file));
+                if (file.RotationDegrees == 0)
+                {
+                    return Results.File(path, service.GetFileMimeType(file));
+                }
+                else
+                {
+                    using (var img = new MagickImage(path))
+                    {
+                        img.Rotate(file.RotationDegrees);
+                        MemoryStream stream = new MemoryStream();
+                        img.Write(stream, MagickFormat.Jpeg);
+                        stream.Seek(0, SeekOrigin.Begin);
+                        return Results.Stream(stream, "image/jpeg");
+                    }
+                }
 
             });
 

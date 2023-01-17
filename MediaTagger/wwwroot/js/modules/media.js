@@ -21,7 +21,11 @@ import {
 import * as API from "./mt-api.js";
 import { dbGetMediaFiles, dbSaveMediaFiles } from "../data/database.js";
 import { Listeners } from "../../drjs/browser/event.js";
-import { ObjectEventType, EventEmitter } from "../../drjs/browser/event.js";
+import {
+  BuildCustomEventHandler,
+  EventEmitter,
+  ObjectEventType,
+} from "../../drjs/browser/event.js";
 import FileGroup from "../data/file-group.js";
 
 const log = Logger.create("Media", LOG_LEVEL.WARN);
@@ -71,8 +75,15 @@ class Media {
     this.previousFocus = null;
 
     this.listeners = new Listeners(
-      this.files.updatedEvent.createListener(this, this.updateDatabaseItems),
-      FilterChangeEvent.createListener(this, this.onFilterChanged)
+      BuildCustomEventHandler()
+        .emitter(this.files.updatedEvent)
+        .onEvent(this, this.updateDatabaseItems)
+        .build(),
+
+      BuildCustomEventHandler()
+        .emitter(FilterChangeEvent)
+        .onEvent(this, this.onFilterChanged)
+        .build()
     );
     this.filterIncludeFunctions = [];
   }
@@ -119,9 +130,14 @@ class Media {
   }
 
   // updateFocus happens when the item doesn't change, but an attribute does (e.g. rotation)
-  updateFocus() {
-    this.updateDatabaseItems();
+  async updateFocus() {
+    await this.updateDatabaseItems();
     FocusChangeEvent.emit(this.focus);
+  }
+
+  clearFilter(func) {
+    this.filterIncludeFunctions = [];
+    FilterChangeEvent.emit();
   }
 
   addFilter(func) {
@@ -407,17 +423,17 @@ class Media {
     this.setFocus(item);
   }
 
-  ungroup(file, saveChange = true) {
+  async ungroup(file, saveChange = true) {
     if (file.getGroup()) {
       file.getGroup().removeFile(file);
     }
     if (saveChange) {
-      this.updateDatabaseItems();
+      await this.updateDatabaseItems();
       this.groupFilterItems.filter();
     }
   }
 
-  groupSelectedItems(primary) {
+  async groupSelectedItems(primary) {
     var groupFiles = new ObservableArray([...this.selectedItems]);
     for (var old of this.selectedItems) {
       if (old.isInGroup()) {
@@ -436,7 +452,7 @@ class Media {
     this.groups.removeMatch((group) => {
       return group.getFiles().getLength() == 0;
     });
-    this.updateDatabaseItems();
+    await this.updateDatabaseItems();
     // todo: send to server with API
     this.groupFilterItems.filter();
   }

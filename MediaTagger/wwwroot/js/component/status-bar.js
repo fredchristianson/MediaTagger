@@ -1,25 +1,31 @@
 import { ComponentBase } from "../../drjs/browser/component.js";
+import {
+  BuildCustomEventHandler,
+  Listeners,
+} from "../../drjs/browser/event.js";
 import Media from "../modules/media.js";
 
 export class StatusBarComponent extends ComponentBase {
   constructor(selector, htmlName = "status-bar") {
     super(selector, htmlName);
+    this.listeners = new Listeners();
   }
 
   onHtmlInserted(parent) {
     this.totalItems = this.dom.first(".totalItems");
     this.selectedItems = this.dom.first(".selectedItems");
-    Media.getVisibleItems()
-      .getUpdatedEvent()
-      .createListener(this, this.onItemsUpdated);
+    this.listeners.add(
+      BuildCustomEventHandler()
+        .emitter(Media.getVisibleItems().getUpdatedEvent())
+        .onEvent(this, this.onItemsUpdated)
+        .build(),
+      BuildCustomEventHandler()
+        .emitter(Media.getSelectedItems().getUpdatedEvent())
+        .onEvent(this, this.onSelectionUpdate)
+        .build()
+    );
     this.setTotalCount(Media.getVisibleItems().getLength());
     this.setSelectedCount(0);
-    Media.getVisibleItems()
-      .getUpdatedEvent()
-      .createListener(this, "onItemsUpdated");
-    Media.getSelectedItems()
-      .getUpdatedEvent()
-      .createListener(this, "onSelectionUpdate");
   }
 
   onItemsUpdated(list) {

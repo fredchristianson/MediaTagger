@@ -1,7 +1,7 @@
 import { LOG_LEVEL, Logger } from "../../logger.js";
 import { default as dom } from "../dom.js";
-import { EventHandlerBuilder, EventHandler } from "./handler.js";
-import { HandlerMethod, EventHandlerReturn } from "./common.js";
+import { EventHandlerBuilder, EventListener } from "./handler.js";
+import { HandlerMethod, Continuation } from "./common.js";
 const log = Logger.create("ScrollHandler", LOG_LEVEL.WARN);
 
 export function BuildScrollHandler() {
@@ -19,10 +19,10 @@ export class ScrollHandlerBuilder extends EventHandlerBuilder {
   }
 }
 
-export class ScrollHandler extends EventHandler {
+export class ScrollHandler extends EventListener {
   constructor(...args) {
     super("scroll", ...args);
-    this.defaultResponse = EventHandlerReturn.Continue;
+    this.defaultResponse = Continuation.Continue;
     this.onScroll = HandlerMethod.None();
   }
 
@@ -34,12 +34,9 @@ export class ScrollHandler extends EventHandler {
     this.onScroll = handler;
   }
 
-  callHandler(method, event) {
+  callHandlers(event) {
     try {
-      if (method != null) {
-        method.call(event.currentTarget, this.data, event, this);
-      }
-      var response = EventHandlerReturn.Continue;
+      var response = Continuation.Continue;
       if (this.onScroll != null) {
         response.replace(
           this.onScroll.call(

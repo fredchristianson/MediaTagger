@@ -2,10 +2,10 @@ import { LOG_LEVEL, Logger } from "../../logger.js";
 import { default as dom } from "../dom.js";
 import {
   EventHandlerBuilder,
-  EventHandler,
+  EventListener,
   HandlerMethod,
   DoNothing,
-  EventHandlerReturn,
+  Continuation,
 } from "./handler.js";
 
 const log = Logger.create("ClickHandler", LOG_LEVEL.WARN);
@@ -37,7 +37,7 @@ export class ClickHandlerBuilder extends EventHandlerBuilder {
   }
 }
 
-export class ClickHandler extends EventHandler {
+export class ClickHandler extends EventListener {
   constructor(...args) {
     super(...args);
     this.setTypeName([
@@ -67,7 +67,7 @@ export class ClickHandler extends EventHandler {
     this.onMiddleClick = handler;
   }
 
-  callHandler(method, event) {
+  callHandlers(event) {
     try {
       var response = this.defaultResponse.clone();
 
@@ -88,47 +88,19 @@ export class ClickHandler extends EventHandler {
           event.preventDefault(); // don't scroll if middle click handler exists
         }
       }
-      if (method != null) {
-        response.combine(
-          method.call(event.currentTarget, this.data, event, this)
-        );
-      }
+
       if (event.type == "click" && this.onClick != null) {
-        this.onClick.setData(this.dataSource, this.data);
-        response.combine(
-          this.onClick.call(this.getEventTarget(event), this.data, event, this)
-        );
+        response.combine(this.onClick.call(this, event));
       }
       if (event.type == "mouseup") {
         if (event.button == 0) {
-          response.combine(
-            this.onLeftClick.call(
-              this.getEventTarget(event),
-              this.data,
-              this.onLeftClick,
-              "onLeftClick"
-            )
-          );
+          response.combine(this.onLeftClick.call(this, event));
         }
         if (event.button == 1) {
-          response.combine(
-            this.onMiddleClick.call(
-              this.getEventTarget(event),
-              this.data,
-              this.onMiddleClick,
-              "onMiddleClick"
-            )
-          );
+          response.combine(this.onMiddleClick.call(this, event));
         }
         if (event.button == 2) {
-          response.combine(
-            this.onRightClick.call(
-              this.getEventTarget(event),
-              this.data,
-              this.onRightClick,
-              "onRightClick"
-            )
-          );
+          response.combine(this.onRightClick.call(this, event));
         }
       }
       return response;

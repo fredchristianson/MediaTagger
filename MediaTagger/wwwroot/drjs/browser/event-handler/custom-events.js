@@ -1,48 +1,109 @@
 import { LOG_LEVEL, Logger } from "../../logger.js";
 import { default as dom } from "../dom.js";
-import { EventHandler, EventHandlerBuilder } from "./handler.js";
-import {
-  ObjectEventType,
-  HandlerMethod,
-  EventHandlerReturn,
-} from "./common.js";
+import { EventListener, EventHandlerBuilder } from "./handler.js";
+import { ObjectEventType, HandlerMethod, Continuation } from "./common.js";
 import { OnNextLoop } from "../timer.js";
 export * from "./common.js";
 
 const log = Logger.create("CustomEvents", LOG_LEVEL.WARN);
 
-export class EventListener extends EventHandler {
-  constructor(objectEventType, ...args) {
-    super(objectEventType, dom.getBody(), ...args);
-    this.defaultResponse = EventHandlerReturn.Continue;
-    this.listen();
+function BuildCustomEventHandler() {
+  return new CustomEventHandlerBuilder();
+}
+
+class CustomEventHandlerBuilder extends EventHandlerBuilder {
+  constructor() {
+    super(CustomEventHandler);
   }
 
-  callHandler(method, event) {
-    const detail = event.detail;
-    method.call(detail.data, detail.object, detail.type);
+  // set the type (string) of event to listen to or list of types
+  setEventType(type) {
+    this.handlerInstance.setEventType(type);
+    return this;
+  }
+  // only listen to events from specific sender or list of senders
+  setSender(object) {
+    this.handlerInstance.setSender(object);
+    return this;
+  }
+
+  emitter(emit) {
+    this.handlerInstance.setType(emit.Type);
+    this.handlerInstance.setSender(emit.Sender);
+    return this;
+  }
+
+  onEvent(...args) {
+    this.handlerInstance.addOnEvent(...args);
+    return this;
   }
 }
 
-export class ObjectListener extends EventHandler {
-  constructor(obj, objectEventType, ...args) {
-    super(objectEventType, dom.getBody(), ...args);
-    this.target = obj;
-    this.listen();
+class CustomEventHandler extends EventListener {
+  constructor() {
+    super();
+    this.sender = null;
+    this.type = null;
+    this.onEvent = [];
   }
 
-  callHandler(method, event) {
-    const detail = event.detail;
-    var response = EventHandlerReturn.Continue;
-    if (
-      (this.target == null || this.target == detail.object) &&
-      (this.typeName == null ||
-        this.typeName == "*" ||
-        this.typeName == detail.typeName)
-    ) {
-      response.combine(method.call(detail.object, detail.data, detail.type));
+  setSender(sender) {
+    this.sender = sender;
+  }
+
+  setType(type) {
+    this.type = type;
+    if (type instanceof ObjectEventType) {
+      this.typeName = type.Name;
+    } else {
+      this.typeName = type;
     }
-    return response;
+  }
+
+  addOnEvent(...args) {
+    this.onEvent.push(HandlerMethod.Of(...args));
+  }
+
+  async callHandlers(event) {
+    const detail = event.detail;
+    var continuation = this.DefaultContinuation;
+    if (this.matchSender(detail) && this.matchType(detail)) {
+      for (var onEventHandler of this.onEvent) {
+        continuation.combine(
+          onEventHandler.call(
+            this,
+            event,
+            detail.data,
+            detail.sender,
+            detail.type
+          )
+        );
+        if (
+          continuation.StopPropagation &&
+          continuation.StopPropagationImmediate
+        ) {
+          break;
+        }
+      }
+    }
+  }
+
+  matchSender(detail) {
+    if (this.sender == null) {
+      return true;
+    } else if (Array.isArray(this.sender)) {
+      return this.sender.includes(detail.sender);
+    }
+    return this.sender == detail.sender;
+  }
+
+  matchType(detail) {
+    if (this.type == null) {
+      return true;
+    } else if (Array.isArray(this.type)) {
+      return this.type.includes(detail.type);
+    }
+    return this.typeName == detail.typeName;
   }
 }
 
@@ -86,34 +147,32 @@ class AsyncEventDispatcher {
 
 const asyncDispatcher = new AsyncEventDispatcher();
 
+class EventEmitter {
+  constructor(typeName, sender = null) {
+    this.type = typeName;
+    this.typeName =
+      typeName instanceof ObjectEventType ? typeName.Name : typeName;
 
-export class EventEmitter {
-  constructor(type, object) {
-    this.type = type;
-    if (type instanceof ObjectEventType) {
-      this.typeName = type.getName();
-    } else {
-      this.typeName = type;
-    }
-    this.object = object;
-    // todo: handle removing listeners and listener count
-    this.hasListener = false;
+    this.sender = sender;
   }
 
-  createListener(handlerObject, handlerMethod) {
-    log.debug(`EventEmitter.createListener ${this.typeName}`);
-    var listener = new ObjectListener(this.object, this.type);
-    listener.setHandler(new HandlerMethod(handlerObject, handlerMethod));
-    this.hasListener = true;
-    return listener;
+  get Type() {
+    return this.type;
   }
 
+  get TypeName() {
+    return this.typeName;
+  }
+  get Sender() {
+    return this.sender;
+  }
+  // events are emitted at the next javascript loop, and only one event is
+  // dispatched for any data.
+  //
+  // Use emitNow() to send immediately
   emit(data) {
-    // if (!this.hasListener) {
-    //   return;
-    // }
     const detail = {
-      object: this.object,
+      sender: this.sender,
       data: data,
       typeName: this.typeName,
       type: this.type,
@@ -129,11 +188,8 @@ export class EventEmitter {
   }
 
   emitNow(data) {
-    // if (!this.hasListener) {
-    //   return;
-    // }
     const detail = {
-      object: this.object,
+      sender: this.sender,
       data: data,
       typeName: this.typeName,
       type: this.type,
@@ -143,4 +199,10 @@ export class EventEmitter {
   }
 }
 
-export default { EventEmitter, EventListener, ObjectListener };
+export {
+  EventEmitter,
+  EventListener,
+  BuildCustomEventHandler,
+  CustomEventHandler,
+  CustomEventHandlerBuilder,
+};

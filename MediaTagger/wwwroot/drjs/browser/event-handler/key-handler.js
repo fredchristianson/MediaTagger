@@ -3,8 +3,8 @@ import { LOG_LEVEL, Logger } from "../../logger.js";
 import { default as dom } from "../dom.js";
 import {
   EventHandlerBuilder,
-  EventHandler,
-  EventHandlerReturn,
+  EventListener,
+  Continuation,
   HandlerMethod,
 } from "./handler.js";
 
@@ -53,7 +53,7 @@ class KeyMatch {
     this.withControl = false;
     this.withAlt = false;
     // response if handled and handler doesn't have a response
-    this.defaultResponse = EventHandlerReturn.StopAll;
+    this.defaultResponse = Continuation.StopAll;
   }
 
   isMatch(event) {
@@ -165,25 +165,18 @@ class KeyMatchHandler {
   }
   handleEvent(event, keyHandler) {
     if (this.keyMatch.isMatch(event)) {
-      this.handlerMethod.setData(keyHandler.dataSource, keyHandler.data);
       var response = this.keyMatch.defaultResponse.clone();
-      response.replace(
-        this.handlerMethod.call(
-          event.key,
-          keyHandler.getEventTarget(event),
-          event
-        )
-      );
+      response.replace(this.handlerMethod.call(keyHandler, event, event.key));
       return response;
     }
   }
 }
 
-class KeyHandler extends EventHandler {
+class KeyHandler extends EventListener {
   constructor(...args) {
     super(...args);
     this.setTypeName(["keydown", "keyup"]);
-    this.setDefaultResponse(EventHandlerReturn.Continue);
+    this.setDefaultContinuation(Continuation.Continue);
     this.onKeyDown = HandlerMethod.None();
     this.onKeyUp = HandlerMethod.None();
     this.keyHandlers = [];
@@ -204,7 +197,7 @@ class KeyHandler extends EventHandler {
     this.keyHandlers.push(new KeyMatchHandler(key, handler));
   }
 
-  callHandler(method, event) {
+  callHandlers(event) {
     try {
       if (
         this.requireActiveElement &&
@@ -212,17 +205,15 @@ class KeyHandler extends EventHandler {
       ) {
         return;
       }
-      var response = EventHandlerReturn.Continue;
+      var response = Continuation.Continue;
       var target = this.getEventTarget(event);
       if (event.type == "keydown") {
-        this.onKeyDown.setData(this.dataSource, this.data);
-        response.replace(this.onKeyDown.call(event.key, target, event));
+        response.replace(this.onKeyDown.call(this, event, event.key));
         this.keyHandlers.forEach((kh) => {
           response.combine(kh.handleEvent(event, this));
         });
       } else if (event.type == "keyup") {
-        this.onKeyUp.setData(this.dataSource, this.data);
-        response.replace(this.onKeyUp.call(event.key, target, event));
+        response.replace(this.onKeyUp.call(this, event, event.key));
       }
 
       return response;

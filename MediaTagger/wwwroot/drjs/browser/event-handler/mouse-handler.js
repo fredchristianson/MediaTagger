@@ -2,7 +2,7 @@ import { LOG_LEVEL, Logger } from "../../logger.js";
 import { default as dom } from "../dom.js";
 import {
   EventHandlerBuilder,
-  EventHandler,
+  EventListener,
   MousePosition,
   HandlerMethod,
 } from "./handler.js";
@@ -61,7 +61,7 @@ export class MouseHandlerBuilder extends EventHandlerBuilder {
   }
 }
 
-export class MouseHandler extends EventHandler {
+export class MouseHandler extends EventListener {
   constructor(...args) {
     super(...args);
     this.setTypeName(["mousedown", "mouseup", "mousemove"]);
@@ -115,56 +115,30 @@ export class MouseHandler extends EventHandler {
     this.onMouseMove = handler;
   }
 
-  callHandler(method, event) {
+  callHandlers(event) {
     this.mousePosition.update(event);
     var target = this.getEventTarget(event);
     log.never(`mouse ${target.id}:${target.className} - ${event.type}`);
 
     try {
       if (event.type == "mousemove") {
-        this.onMouseMove.call(
-          this.mousePosition,
-          this.getEventTarget(event),
-          event,
-          this.data,
-          this
-        );
+        this.onMouseMove.call(this, event, this.mousePosition);
       } else if (event.type == "mousedown") {
-        this.onMouseDown.call(
-          this.mousePosition,
-          this.getEventTarget(event),
-          event,
-          this.data,
-          this
-        );
+        this.onMouseDown.call(this, event, this.mousePosition);
         if (event.button >= 0 && event.button <= 2) {
           [this.onLeftDown, this.onMiddleDown, this.onRightDown][
             event.button
-          ].call(
-            this.mousePosition,
-            this.getEventTarget(event),
-            event,
-            this.data,
-            this
-          );
+          ].call(this, event, this.mousePosition);
         } else {
           log.error("unknown button ", event.button);
         }
       } else if (event.type == "mouseup") {
-        this.onMouseDown.call(
-          this.mousePosition,
-          this.getEventTarget(event),
-          event,
-          this.data,
-          this
-        );
+        this.onMouseDown.call(this, event, this.mousePosition);
         if (event.button >= 0 && event.button <= 2) {
           [this.onLeftUp, this.onMiddleUp, this.onRightUp][event.button].call(
-            this.mousePosition,
-            this.getEventTarget(event),
+            this,
             event,
-            this.data,
-            this
+            this.mousePosition
           );
         } else {
           log.error("unknown button ", event.button);

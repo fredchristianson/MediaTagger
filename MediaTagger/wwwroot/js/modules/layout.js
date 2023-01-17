@@ -1,17 +1,11 @@
 import { LOG_LEVEL, Logger } from "../../drjs/logger.js";
 import { dom } from "../../drjs/browser/dom.js";
 import { ZoomEvent } from "../component/view-options.js";
-import {
-  Listeners,
-  EventListener,
-  ObjectListener,
-  EventEmitter,
-  BuildScrollHandler,
-} from "../../drjs/browser/event.js";
+import { Listeners, BuildScrollHandler } from "../../drjs/browser/event.js";
 import Media, { media } from "./media.js";
 import { OnNextLoop } from "./timer.js";
 import { Assert } from "../../drjs/assert.js";
-
+import { BuildCustomEventHandler } from "../../drjs/browser/event.js";
 const log = Logger.create("Layout", LOG_LEVEL.INFO);
 
 /*
@@ -134,13 +128,26 @@ export class Layout {
     this.resizeObserver = new ResizeObserver(this.onContainerResize.bind(this));
     this.resizeObserver.observe(this.container);
     this.listeners = new Listeners(
-      ZoomEvent.createListener(this, this.onZoomChange),
+      BuildCustomEventHandler()
+        .emitter(ZoomEvent)
+        .onEvent(this, this.onZoomChange)
+        .build(),
       BuildScrollHandler().listenTo(this.layoutScroll).onScroll(this).build(),
-      this.list.getUpdatedEvent().createListener(this, this.onListUpdated),
-      Media.getSelectedItems()
-        .getUpdatedEvent()
-        .createListener(this, this.onSelectionChanged),
-      Media.getFocusChangeEvent().createListener(this, this.setFocus)
+
+      BuildCustomEventHandler()
+        .emitter(this.list.getUpdatedEvent())
+        .onEvent(this, this.onListUpdated)
+        .build(),
+
+      BuildCustomEventHandler()
+        .emitter(Media.getSelectedItems().getUpdatedEvent())
+        .onEvent(this, this.onSelectionChanged)
+        .build(),
+
+      BuildCustomEventHandler()
+        .emitter(Media.getFocusChangeEvent())
+        .onEvent(this, this.setFocus)
+        .build()
     );
 
     OnNextLoop(() => {
@@ -159,7 +166,7 @@ export class Layout {
     return this.layoutDetails.Columns;
   }
 
-  setFocus(sender, item) {
+  setFocus(item) {
     var oldFocus = dom.first(".focus");
     dom.removeClass(oldFocus, "focus");
     var focusItem = item;

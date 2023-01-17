@@ -59,6 +59,9 @@ export class MediaFile extends MediaEntity {
     }
   }
 
+  get Tags() {
+    return this._tags;
+  }
   hasTag(tag) {
     if (tag == null) {
       return true;

@@ -4,6 +4,7 @@ import ViewOptionsComponent from "./view-options.js";
 import StatusBarComponent from "./status-bar.js";
 import FileViewComponent from "./file-view.js";
 import { TagManagerComponent } from "./tag-manager-component.js";
+import { QuickTagsComponent } from "./quick-tags-component.js";
 import SettingsComponent from "./settings.js";
 import { getAppSettings } from "../modules/mt-api.js";
 import { DOMWatcher, toggleClass } from "../modules/dom-watcher.js";
@@ -30,7 +31,11 @@ export class MainComponent extends ComponentBase {
       appSettings.mediaDirectories != null &&
       appSettings.mediaDirectories.length > 0
     ) {
-      this.showFiles();
+      if (location.hash == "#quick-tags") {
+        this.showQuickTags();
+      } else {
+        this.showFiles();
+      }
     } else {
       this.showSettings();
     }
@@ -40,11 +45,17 @@ export class MainComponent extends ComponentBase {
   }
 
   showFiles() {
+    location.hash = "#file-view";
     this.contentView = new FileViewComponent("#content-view");
   }
 
   showTagManager() {
     this.contentView = new TagManagerComponent("#content-view");
+  }
+
+  showQuickTags() {
+    location.hash = "#quick-tags";
+    this.contentView = new QuickTagsComponent("#content-view");
   }
 }
 

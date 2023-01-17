@@ -6,7 +6,10 @@ import {
   AttributeValue,
 } from "../../drjs/browser/html-template.js";
 import { LOG_LEVEL, Logger } from "../../drjs/logger.js";
-import { Listeners } from "../../drjs/browser/event.js";
+import {
+  BuildCustomEventHandler,
+  Listeners,
+} from "../../drjs/browser/event.js";
 import Media from "../modules/media.js";
 import { ObservableArray } from "../modules/collections.js";
 import { BackgroundTask } from "../../drjs/browser/task.js";
@@ -33,7 +36,10 @@ export class FindGroupsComponent extends ComponentBase {
     this.matchTemplate = new HtmlTemplate(this.dom.first("#group-match"));
     this.matches = dom.first(".matches");
     this.listeners.add(
-      this.groups.updatedEvent.createListener(this, this.onGroupsUpdated)
+      BuildCustomEventHandler()
+        .emitter(this.groups.updatedEvent)
+        .onEvent(this, this.onGroupsUpdated)
+        .build()
     );
     this.allFiles = await Media.getAllFiles();
     this.unattached = [...this.allFiles].filter((f) => {

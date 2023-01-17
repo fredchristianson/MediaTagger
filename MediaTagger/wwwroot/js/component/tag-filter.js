@@ -1,6 +1,6 @@
 import {
   BuildCheckboxHandler,
-  EventHandlerReturn,
+  Continuation,
 } from "../../drjs/browser/event.js";
 import { Dialog } from "../controls/dialog.js";
 import { BuildClickHandler } from "../../drjs/browser/event.js";
@@ -10,6 +10,7 @@ import { TagComponent } from "./tags.js";
 import { media, FilterChangeEvent } from "../modules/media.js";
 import { Settings } from "../modules/settings.js";
 import { LOG_LEVEL, Logger } from "../../drjs/logger.js";
+import { dom as rootDom } from "../../drjs/browser/dom.js";
 
 const log = Logger.create("TagComponent", LOG_LEVEL.DEBUG);
 
@@ -18,6 +19,7 @@ export class TagFilterComponent extends TagComponent {
     super(selector, htmlName);
     media.addFilter(this.filterItem.bind(this));
     this.ignoreCheckboxChange = false;
+    this.isAny = true;
   }
 
   async onHtmlInserted(elements) {
@@ -37,24 +39,44 @@ export class TagFilterComponent extends TagComponent {
         })
         .build(),
       BuildClickHandler()
+        .listenTo(".filter-op")
+        .onClick(this, this.toggleFilterOp)
+        .setDefaultContinuation(Continuation.StopAll)
+        .build(),
+
+      BuildClickHandler()
         .listenTo("#expand-all-filter-tags")
         .onClick(this, this.expandAll)
-        .setDefaultResponse(EventHandlerReturn.StopAll)
+        .setDefaultContinuation(Continuation.StopAll)
         .build(),
       BuildClickHandler()
         .listenTo("#collapse-all-filter-tags")
         .onClick(this, this.collapseAll)
-        .setDefaultResponse(EventHandlerReturn.StopAll)
+        .setDefaultContinuation(Continuation.StopAll)
         .build(),
       BuildClickHandler()
         .listenTo(this.dom, ".add-child")
         .capture()
         .onClick(this, this.addTag)
-        .setDefaultResponse(EventHandlerReturn.StopAll)
+        .setDefaultContinuation(Continuation.StopAll)
         .build()
     );
+    this.isAny = this.settings.get("filter-op-isAny");
+    this.setFilterOp(this.isAny);
   }
 
+  toggleFilterOp(target) {
+    const isAny = this.dom.hasClass(target, "any");
+    this.setFilterOp(!isAny);
+  }
+  setFilterOp(isAny) {
+    this.isAny = isAny;
+    const target = rootDom.first("button.filter-op");
+    this.dom.toggleClass(target, "any", this.isAny);
+    this.dom.toggleClass(target, "all", !this.isAny);
+    this.settings.set("filter-op-isAny", this.isAny);
+    FilterChangeEvent.emit();
+  }
   getTemplateElement() {
     return this.dom.first("#tags-filter-template");
   }
@@ -94,7 +116,8 @@ export class TagFilterComponent extends TagComponent {
       }
     }
     this.updateParent(tagElement);
-
+    media.clearFocus();
+    media.clearSelection();
     this.updateSettings();
     FilterChangeEvent.emit();
   }
@@ -116,7 +139,12 @@ export class TagFilterComponent extends TagComponent {
         const state = this.dom.getData(child, "state");
         return state != "unchecked";
       });
-      const checked = this.dom.getData(parent, "state") != "unchecked";
+      //const checked = this.dom.getData(parent, "state") != "unchecked";
+      var parentState = this.dom.getData(
+        this.dom.first(parent, "label label"),
+        "state"
+      );
+      const checked = parentState.startsWith("checked");
       var newState = "unchecked";
       if (checked && !childChecked) {
         newState = "checked-no-children";
@@ -170,11 +198,34 @@ export class TagFilterComponent extends TagComponent {
         var untagged = this.settings.get("state-untagged");
         keep = untagged == null || untagged.startsWith("checked");
       } else {
-        const found = itemTags.find((tag) => {
-          var state = this.settings.get(`state-${tag.getId()}`);
-          return state != null && state.startsWith("checked");
-        });
-        keep = found != null;
+        if (this.isAny) {
+          const found = itemTags.find((tag) => {
+            var state = this.settings.get(`state-${tag.getId()}`);
+            return state != null && state.startsWith("checked");
+          });
+          keep = found != null;
+        } else {
+          const selected = this.dom.find(
+            'label.check-state[data-state^="check"]'
+          );
+          const selectedIds = selected
+            .map((label) => {
+              return this.dom.getDataWithParent(label, "id");
+            })
+            .filter((sel) => {
+              return sel != "root";
+            });
+
+          // if nothing is selected, every() returns true but it's not a match
+          const every =
+            selectedIds.length > 0 &&
+            selectedIds.every((selId) => {
+              return itemTags.find((t) => {
+                return t.Id == selId;
+              });
+            });
+          keep = every;
+        }
       }
     }
     return keep;

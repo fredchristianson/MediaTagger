@@ -2,8 +2,8 @@ import { LOG_LEVEL, Logger } from "../../logger.js";
 import { default as dom } from "../dom.js";
 import {
   EventHandlerBuilder,
-  EventHandler,
-  EventHandlerReturn,
+  EventListener,
+  Continuation,
   HandlerMethod,
 } from "./handler.js";
 
@@ -66,7 +66,7 @@ class InputHandlerBuilder extends EventHandlerBuilder {
   }
 }
 
-class InputHandler extends EventHandler {
+class InputHandler extends EventListener {
   constructor(...args) {
     super(...args);
     this.setTypeName([
@@ -78,7 +78,7 @@ class InputHandler extends EventHandler {
       "focusout",
       "keydown",
     ]);
-    this.setDefaultResponse(EventHandlerReturn.Continue);
+    this.setDefaultContinuation(Continuation.Continue);
     this.onChange = HandlerMethod.None();
     this.onInput = HandlerMethod.None();
     this.onFocus = HandlerMethod.None();
@@ -121,12 +121,12 @@ class InputHandler extends EventHandler {
     );
   }
 
-  callHandler(method, event) {
+  callHandlers(event) {
     try {
       var method = null;
       var target = this.getEventTarget(event);
       var value = this.getValue(target);
-      var response = EventHandlerReturn.Continue;
+      var response = Continuation.Continue;
       if (event.type == "input") {
         method = this.onInput;
       } else if (event.type == "change") {
@@ -147,8 +147,7 @@ class InputHandler extends EventHandler {
         }
       }
       if (method != null) {
-        method.setData(this.dataSource, this.data);
-        response.combine(method.call(value, target, event));
+        response.combine(method.call(this, event, value));
       }
       return response;
     } catch (ex) {

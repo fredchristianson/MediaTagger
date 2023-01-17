@@ -1,10 +1,5 @@
 import { ComponentBase } from "../../drjs/browser/component.js";
-import {
-  getAppSettings,
-  postAppSettings,
-  getTopFolders,
-  getFolders,
-} from "../modules/mt-api.js";
+import { Settings } from "../modules/settings.js";
 import { Tree, TreeDataProvider, TreeItem } from "../controls/tree.js";
 import { media } from "../modules/media.js";
 import {
@@ -12,6 +7,7 @@ import {
   BuildInputHandler,
   BuildClickHandler,
   Continuation,
+  BuildCheckboxHandler,
 } from "../../drjs/browser/event.js";
 import { LOG_LEVEL, Logger } from "../../drjs/logger.js";
 import {
@@ -27,8 +23,8 @@ import {
 import { Dialog } from "../controls/dialog.js";
 const log = Logger.create("TagManager", LOG_LEVEL.DEBUG);
 
-export class TagManagerComponent extends ComponentBase {
-  constructor(selector, htmlName = "tag-manager") {
+export class QuickTagsComponent extends ComponentBase {
+  constructor(selector, htmlName = "quick-tags") {
     super(selector, htmlName);
     this.listeners = new Listeners();
     this.dropHandler = null;
@@ -39,48 +35,61 @@ export class TagManagerComponent extends ComponentBase {
   }
 
   async onHtmlInserted(parent) {
+    this.settings = await Settings.load("quick-tags");
     this.tags = media.getTags();
-    this.template = new HtmlTemplate(
-      this.dom.first("#tag-manager-tag-template")
+    this.nodeTemplate = new HtmlTemplate(
+      this.dom.first(".quick-tag-tree-node-template")
     );
-    this.addTemplate = new HtmlTemplate(
-      this.dom.first(this.dom.first(".new-tag-dialog"))
-    );
-    this.editTemplate = new HtmlTemplate(
-      this.dom.first(this.dom.first(".edit-tag-dialog"))
+    this.keyTemplate = new HtmlTemplate(
+      this.dom.first(this.dom.first(".quick-tag-key-template"))
     );
 
+    this.dom.check('[name="untagged"]');
+    this.untaggedOnly = true;
+    media.clearFilter();
+    media.addFilter(this.filterItem.bind(this));
     this.listeners.add(
-      BuildDragHandler()
-        .listenTo(this.dom.first(".tag-tree"), ".tag")
-        .setDefaultContinuation(Continuation.Continue)
-        .onStart(this, this.onDragStart)
-        .onEnd(this, this.onDragEnd)
-        .onDrag(this, this.onDrag)
+      BuildCheckboxHandler()
+        .listenTo(this.dom, "[name='untagged']")
+        .setData(this, this.getNodeTag)
+        .onChecked(this, this.untaggedOnly)
+        .onUnchecked(this, this.allFiles)
         .build(),
-      BuildClickHandler()
-        .listenTo(this.dom, "button.edit")
-        .setData((target) => {
-          return media.getTagById(this.dom.getDataWithParent(target, "id"));
-        })
-        .onClick(this, this.onEdit)
-        .build(),
-      BuildClickHandler()
-        .listenTo(this.dom, "button.add")
-        .setData((target) => {
-          return media.getTagById(this.dom.getDataWithParent(target, "id"));
-        })
-        .onClick(this, this.onAdd)
-        .build(),
-      BuildClickHandler()
-        .listenTo(this.dom, "button.hide")
-        .setData((target) => {
-          return media.getTagById(this.dom.getDataWithParent(target, "id"));
-        })
-        .onClick(this, this.onHide)
+      BuildInputHandler()
+        .listenTo(this.dom, ".hotkey input")
+        .setData(this, this.getNodeTag)
+        .onInput(this, this.onHotkeyChange)
         .build()
     );
     this.createTags();
+  }
+
+  getNodeTag(event) {
+    const id = this.dom.getDataWithParent(event.target, "id");
+    return media.getTagById(id);
+  }
+  allFiles() {
+    media.clearFilter();
+  }
+
+  untaggedOnly() {
+    media.clearFilter();
+    media.addFilter(this.filterItem.bind(this));
+  }
+  filterItem(item) {
+    if (!this.untaggedOnly) {
+      return true;
+    }
+    return item.Tags.Length == 0;
+  }
+
+  onHotkeyChange(tag, key, target) {
+    key = key.toLowerCase();
+    if (key >= "a" && key <= "z") {
+      target.value = key;
+      this.settings.set(`hotkey-${tag.id}`, key);
+    }
+    return Continuation.StopAll;
   }
 
   createTags() {
@@ -91,13 +100,9 @@ export class TagManagerComponent extends ComponentBase {
     const top = this.tags.search((tag) => {
       return tag.ParentId == null;
     });
-    const parent = this.dom.first(".tag-tree");
+    const parent = this.dom.first(".tag-tree .tags");
     this.dom.removeChildren(parent);
-    const element = this.template.fill({
-      ".tag": [new DataValue("id", "root"), new ClassValue("root")],
-      ".name": "/",
-    });
-    this.dom.append(parent, element);
+
     this.insertTags(parent, top);
     scroll.scrollTo(0, scrollTop);
   }
@@ -107,9 +112,10 @@ export class TagManagerComponent extends ComponentBase {
       return a.Name.localeCompare(b.Name);
     });
     for (var tag of tags) {
-      const element = this.template.fill({
+      const element = this.nodeTemplate.fill({
         ".tag": new DataValue("id", tag.id),
         ".name": tag.name,
+        ".hotkey input": this.settings.get(`hotkey-${tag.id}`),
       });
       this.dom.append(parent, element);
       const childTags = this.tags.search((child) => {

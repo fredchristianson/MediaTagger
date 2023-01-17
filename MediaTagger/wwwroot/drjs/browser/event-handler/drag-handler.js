@@ -1,6 +1,6 @@
 import { LOG_LEVEL, Logger } from "../../logger.js";
-import { EventHandlerBuilder, EventHandler } from "./handler.js";
-import { EventHandlerReturn, MousePosition, HandlerMethod } from "./common.js";
+import { EventHandlerBuilder, EventListener } from "./handler.js";
+import { Continuation, MousePosition, HandlerMethod } from "./common.js";
 import dom from "../dom.js";
 import util from "../../util.js";
 import { CancelToken, Task } from "../task.js";
@@ -48,20 +48,20 @@ export class DropHandlerBuilder extends EventHandlerBuilder {
   }
 }
 
-export class DragHandler extends EventHandler {
+export class DragHandler extends EventListener {
   constructor(...args) {
     super(...args);
     this.setTypeName(["dragstart", "drag", "dragend"]);
-    this.setDefaultResponse(EventHandlerReturn.Continue);
+    this.setDefaultContinuation(Continuation.Continue);
 
     this.onStart = HandlerMethod.None();
     this.onEnd = HandlerMethod.None();
     this.onDrag = HandlerMethod.None();
   }
 
-  callHandler(method, event) {
+  callHandlers(event) {
     try {
-      var response = EventHandlerReturn.Continue;
+      var response = Continuation.Continue;
       var target = this.getEventTarget(event);
       log.debug(`Drag: ${target.className} - ${event.type}`);
       if (event.type == "dragstart") {
@@ -81,11 +81,11 @@ export class DragHandler extends EventHandler {
   }
 }
 
-export class DropHandler extends EventHandler {
+export class DropHandler extends EventListener {
   constructor(...args) {
     super(...args);
     this.setTypeName(["dragenter", "dragover", "dragleave", "drop"]);
-    this.setDefaultResponse = EventHandlerReturn.Continue;
+    this.setDefaultContinuation(Continuation.Continue);
 
     this.onEnter = HandlerMethod.None();
     this.onOver = HandlerMethod.None();
@@ -94,11 +94,11 @@ export class DropHandler extends EventHandler {
     this.mousePosition = new MousePosition();
   }
 
-  callHandler(method, event) {
+  callHandlers(event) {
     try {
       var target = this.getEventTarget(event);
       log.debug(`Drag: ${target.className} - ${event.type}`);
-      var response = EventHandlerReturn.Continue;
+      var response = Continuation.Continue;
       if (event.type == "dragenter") {
         log.debug("drag: ", event.type);
         response.combineOrStop(this.onEnter.call(target, event));

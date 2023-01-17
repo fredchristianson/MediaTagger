@@ -1,9 +1,10 @@
 import { ComponentBase } from "../../drjs/browser/component.js";
 import {
   BuildCheckboxHandler,
+  BuildCustomEventHandler,
   BuildHoverHandler,
   BuildInputHandler,
-  EventHandlerReturn,
+  Continuation,
   Listeners,
 } from "../../drjs/browser/event.js";
 import { BuildClickHandler } from "../../drjs/browser/event.js";
@@ -52,11 +53,10 @@ export class TagComponent extends ComponentBase {
           return this.dom.getDataWithParent(element, "id");
         })
         .build(),
-
-      media
-        .getTags()
-        .getUpdatedEvent()
-        .createListener(this, this.onTagListChange)
+      BuildCustomEventHandler()
+        .emitter(media.getTags().getUpdatedEvent())
+        .onEvent(this, this.onTagListChange)
+        .build()
     );
     this.onTagListChange();
   }

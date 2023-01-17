@@ -1,14 +1,10 @@
 import { LOG_LEVEL, Logger } from "../../logger.js";
 import Util from "../../util.js";
 import { DOM, default as dom } from "../dom.js";
-import {
-  ObjectEventType,
-  EventHandlerReturn,
-  HandlerMethod,
-} from "./common.js";
+import { Continuation, HandlerMethod, DataHandlerMethod } from "./common.js";
 export * from "./common.js";
 
-const log = Logger.create("EventHandler", LOG_LEVEL.DEBUG);
+const log = Logger.create("EventListener", LOG_LEVEL.DEBUG);
 
 export class EventHandlerBuilder {
   constructor(eventHandlerClass) {
@@ -40,8 +36,8 @@ export class EventHandlerBuilder {
     return this;
   }
 
-  setDefaultResponse(response) {
-    this.handlerInstance.setDefaultResponse(response);
+  setDefaultContinuation(continuation) {
+    this.handlerInstance.setDefaultContinuation(continuation);
     return this;
   }
   withShift(require) {
@@ -56,8 +52,14 @@ export class EventHandlerBuilder {
     this.handlerInstance.setWithCtrl(require);
     return this;
   }
-  setData(data) {
-    this.handlerInstance.setData(data);
+  setData(...data) {
+    var method = null;
+    if (data.length < 2 && typeof data[0] != "function") {
+      method = data[0];
+    } else {
+      method = new DataHandlerMethod(...data);
+    }
+    this.handlerInstance.setData(method);
     return this;
   }
 
@@ -92,9 +94,9 @@ export class EventHandlerBuilder {
   }
 }
 
-export class EventHandler {
-  constructor(...args) {
-    this.defaultResponse = EventHandlerReturn.Continue;
+export class EventListener {
+  constructor(handler = null) {
+    this._defaultContinuation = Continuation.Continue;
     this.eventProcessor = this.eventProcessorMethod.bind(this);
     this.listenElement = null;
     this.typeName = null;
@@ -107,39 +109,10 @@ export class EventHandler {
     this.withShift = null;
     this.withCtrl = null;
     this.withAlt = null;
-    this.handlerMethod = HandlerMethod.None();
+    this.handlerMethod = handler;
     this.capture = null;
     this.filterFunction = null;
     this.once = false;
-
-    if (args.length == 0) {
-      return;
-    }
-    if (args.length == 1 && typeof args[0] == "string") {
-      this.setTypeName(args[0]);
-      return;
-    }
-
-    var handlerObj = null;
-    var handlerFunc = null;
-    args.forEach((arg) => {
-      if (arg instanceof HTMLElement) {
-        this.setListenElement(arg);
-      } else if (arg instanceof ObjectEventType) {
-        this.setTypeName(arg.name);
-      } else if (typeof arg === "object") {
-        handlerObj = arg;
-      } else if (typeof arg === "function") {
-        handlerFunc = arg;
-      } else if (typeof arg === "string") {
-        if (this.typeName == null) {
-          this.setTypeName(arg);
-        } else if (this.selector == null) {
-          this.setSelector(arg);
-        }
-      }
-    });
-    this.handlerMethod = new HandlerMethod(handlerObj, handlerFunc);
   }
 
   set Once(once) {
@@ -191,8 +164,8 @@ export class EventHandler {
     return this;
   }
 
-  setDefaultResponse(response) {
-    this.defaultResponse = response;
+  setDefaultContinuation(response) {
+    this._defaultContinuation = response;
   }
 
   setDebounceMSecs(msecs) {
@@ -214,10 +187,7 @@ export class EventHandler {
     if (this.listenElement == null) {
       this.listenElement = document.body;
     }
-    if (this.typeName == null) {
-      log.error("EventHandler requires an event type name (e.g. 'click'");
-      return;
-    }
+
     this.typeNames = Util.toArray(this.getEventType());
 
     const options = {
@@ -242,7 +212,7 @@ export class EventHandler {
           options
         );
       } else {
-        log.error("EventHandler needs an element or selector");
+        log.error("EventListener needs an element or selector");
       }
     });
     return this;
@@ -280,6 +250,10 @@ export class EventHandler {
     );
   }
 
+  get DefaultContinuation() {
+    return this._defaultContinuation.clone();
+  }
+
   eventProcessorMethod(event) {
     var target = event.target;
     log.never(`eventHandler ${target.id}:${target.className} - ${event.type}`);
@@ -305,6 +279,7 @@ export class EventHandler {
     if (this.filterFunction && !this.filterFunction(event)) {
       return;
     }
+    this.defaultResponse = this._defaultContinuation.clone();
     event.hasShift = event.shiftKey;
     event.hasAlt = event.altKey;
     event.hasCtrl = event.ctrlKey;
@@ -328,31 +303,25 @@ export class EventHandler {
     }
   }
 
-  invokeHandler(event) {
+  async invokeHandler(event) {
     var result = this.defaultResponse.clone();
-    var target = this.getEventTarget(event);
-    if (this.dataSource) {
-      if (typeof this.dataSource == "function") {
-        this.data = this.dataSource(this.getEventTarget(event));
-      } else {
-        this.data = this.dataSource;
+
+    // if there is a handlerMethod, call it.
+    // in most cases, this is null and the derived class overrides callHandlers()
+    if (this.handlerMethod != null) {
+      try {
+        await this.handlerMethod.call(this, event);
+      } catch (ex) {
+        log.error(ex, "default handler method failed");
       }
     }
-    result.replace(this.callHandler(this.handlerMethod, event));
+    result.replace(this.callHandlers(event));
     result.finishEvent(event);
   }
 
-  // allow derived classed to just override this.
+  // allow derived classes to call handlers.
   // they can change values or parse the event and pass additional args
-  callHandler(method, event) {
-    try {
-      if (method != null) {
-        method.call(event, this.data);
-      }
-    } catch (ex) {
-      log.error(ex, "event handler for ", this.typeName, " failed");
-    }
-  }
+  callHandlers(event) {}
 
   exclude(selector) {
     this.excludeSelector = selector;
@@ -360,4 +329,4 @@ export class EventHandler {
   }
 }
 
-export default { EventHandlerBuilder, EventHandler };
+export default { EventHandlerBuilder, EventListener };

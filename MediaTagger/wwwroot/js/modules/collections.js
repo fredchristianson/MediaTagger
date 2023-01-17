@@ -3,6 +3,7 @@ import {
   EventEmitter,
   ObjectEventType,
   Listeners,
+  BuildCustomEventHandler,
 } from "../../drjs/browser/event.js";
 import UTIL from "../../drjs/util.js";
 const log = Logger.create("Collections", LOG_LEVEL.INFO);
@@ -13,11 +14,14 @@ var itemsAddedEvent = new ObjectEventType("__collection-itemsAdded");
 var itemsRemovedEvent = new ObjectEventType("__collection-itemsRemoved");
 var updatedEvent = new ObjectEventType("__collection-updated");
 
+var nextID = 1;
 /*
  * all items in a collection should have a getId() method
  */
 class ObservableCollection {
   constructor() {
+    this._id = nextID++;
+    log.info("Create collection ", this._id, this.constructor.name);
     this.sortedEvent = new EventEmitter(sortedEvent, this);
     this.filteredEvent = new EventEmitter(filteredEvent, this);
     this.itemsAddedEvent = new EventEmitter(itemsAddedEvent, this);
@@ -293,17 +297,26 @@ class ObservableView extends ObservableCollection {
       this.listeners.removeAll();
     }
     this.listeners = new Listeners(
-      this.collectionIn.getSortedEvent().createListener(this, "onBaseSorted"),
-      this.collectionIn
-        .getFilteredEvent()
-        .createListener(this, "onBaseFiltered"),
-      this.collectionIn
-        .getItemsAddedEvent()
-        .createListener(this, "onBaseItemsAdded"),
-      this.collectionIn
-        .getItemsRemovedEvent()
-        .createListener(this, "onBaseItemsRemoved"),
-      this.collectionIn.getUpdatedEvent().createListener(this, "onBaseUpdated")
+      BuildCustomEventHandler()
+        .emitter(this.collectionIn.getSortedEvent())
+        .onEvent(this, "onBaseSorted")
+        .build(),
+      BuildCustomEventHandler()
+        .emitter(this.collectionIn.getFilteredEvent())
+        .onEvent(this, "onBaseFiltered")
+        .build(),
+      BuildCustomEventHandler()
+        .emitter(this.collectionIn.getItemsAddedEvent())
+        .onEvent(this, "onBaseItemsAdded")
+        .build(),
+      BuildCustomEventHandler()
+        .emitter(this.collectionIn.getItemsRemovedEvent())
+        .onEvent(this, "onBaseItemsRemoved")
+        .build(),
+      BuildCustomEventHandler()
+        .emitter(this.collectionIn.getUpdatedEvent())
+        .onEvent(this, "onBaseUpdated")
+        .build()
     );
     this.updatedEvent.emit(this);
   }

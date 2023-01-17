@@ -15,6 +15,10 @@ body {
   --gap-size: 10px;
 }
 
+:root {
+  --small-font-size: 12px;
+}
+
 .mt-modal {
   z-index: 9998;
   position: absolute;
@@ -451,14 +455,40 @@ label.check-state[data-state=unchecked]::after {
 .tag-filter h1 {
   position: relative;
 }
-.tag-filter h1 .buttons {
+.tag-filter h1 .filter-op {
+  display: block;
+  width: auto;
+  height: 14px;
+  width: 24px;
+  top: 10px;
+  right: 50px;
+  position: absolute;
+}
+.tag-filter h1 .filter-op button {
+  position: absolute;
+  width: 100%;
+  border: 0;
+  height: 100%;
+  left: 0;
+  top: 0;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-color: transparent;
+}
+.tag-filter h1 .filter-op button.any {
+  background-image: url(../image/any.png);
+}
+.tag-filter h1 .filter-op button.all {
+  background-image: url(../image/all.png);
+}
+.tag-filter h1 .buttons.on-hover {
   position: absolute;
   top: 10px;
   right: 2px;
   white-space: nowrap;
-  display: none;
+  visibility: hidden;
 }
-.tag-filter h1 .buttons button {
+.tag-filter h1 .buttons.on-hover button {
   background-color: transparent;
   display: inline-block;
   border: 0px;
@@ -468,7 +498,7 @@ label.check-state[data-state=unchecked]::after {
   background-size: cover;
 }
 .tag-filter h1:hover .buttons {
-  display: inline-block;
+  visibility: visible;
 }
 
 #tag-details .tag-tree,
@@ -773,6 +803,86 @@ label.check-state[data-state=unchecked]::after {
   padding-bottom: 2em;
   background-color: yellow;
   border: 1px dashed #aaa;
+}
+
+#quick-tags {
+  --border-color: #000;
+  --background-color: #ccc;
+  --padding: 8px;
+  height: 100%;
+  background-color: var(--background-color);
+  display: grid;
+  grid-template-areas: "media select tree";
+  grid-template-columns: 320px auto 1fr;
+}
+#quick-tags .media, #quick-tags .quick-select, #quick-tags .tag-tree {
+  padding: 2px;
+  border-right: 1px solid var(--border-color);
+  height: 100%;
+  overflow: auto;
+}
+#quick-tags .media {
+  grid-area: media;
+}
+#quick-tags .quick-select {
+  grid-area: select;
+  min-width: 200px;
+  padding: var(--padding);
+}
+#quick-tags .tag-tree {
+  grid-area: tree;
+  border-right: 0;
+  padding: var(--padding);
+}
+#quick-tags .small {
+  margin: 1em 4px;
+}
+#quick-tags .small > div {
+  display: inline-block;
+  width: 90px;
+  height: 90px;
+  margin-right: 4px;
+  border: 1px solid var(--border-color);
+}
+#quick-tags .focus {
+  display: block;
+  border: 1px solid white;
+  background-color: white;
+  width: 300px;
+  height: 300px;
+}
+#quick-tags .images {
+  margin: auto auto;
+  width: -webkit-fit-content;
+  width: -moz-fit-content;
+  width: fit-content;
+}
+#quick-tags .tag.node .hotkey {
+  font-weight: lighter;
+  font-size: var(--small-font-size);
+}
+#quick-tags .tag.node .hotkey input {
+  width: 20px;
+  display: inline-block;
+}
+#quick-tags .tag.node .self {
+  position: relative;
+}
+#quick-tags .tag.node .self .on-hover {
+  display: none;
+  position: absolute;
+  top: var(--padding);
+  right: var(--padding);
+}
+#quick-tags .tag.node .self:hover {
+  background-color: #ffa;
+  height: 2em;
+}
+#quick-tags .tag.node .self:hover .on-hover {
+  display: inline-block;
+}
+#quick-tags .tag.node .children {
+  margin-left: 4em;
 }
 
 .hidden {

@@ -7,6 +7,7 @@ import {
   BuildMouseOverHandler,
   BuildMouseHandler,
   Listeners,
+  BuildCustomEventHandler,
 } from "../../drjs/browser/event.js";
 
 export class DateFilterComponent extends ComponentBase {
@@ -20,9 +21,10 @@ export class DateFilterComponent extends ComponentBase {
     this.svg = this.dom.first("svg");
     this.popup = this.dom.first(".popup-details");
     this.listeners = new Listeners(
-      Media.getVisibleItems()
-        .getUpdatedEvent()
-        .createListener(this, this.onItemsUpdated),
+      BuildCustomEventHandler()
+        .emitter(Media.getVisibleItems().getUpdatedEvent())
+        .onEvent(this, this.onItemsUpdated)
+        .build(),
       BuildMouseOverHandler()
         .listenTo(this.dom.first(".svg-container"))
         .onOver(this, this.startHover)

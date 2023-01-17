@@ -15,5 +15,21 @@
         "workspaceRoot": null,
         "workspacePath": null,
         "id": "eA6WsjwLB518XVFt"
+    },
+    {
+        "type": "Group",
+        "name": "Components",
+        "workspaceRoot": null,
+        "workspacePath": null,
+        "id": "hF593DoKCwNmjl0e"
+    },
+    {
+        "type": "Directory",
+        "name": "d:\\dev\\media\\MediaTagger\\MediaTagger\\wwwroot\\component",
+        "parent_id": "hF593DoKCwNmjl0e",
+        "fsPath": "d:\\dev\\media\\MediaTagger\\MediaTagger\\wwwroot\\component",
+        "workspaceRoot": null,
+        "workspacePath": null,
+        "id": "nXiwtATydapO7xuv"
     }
 ]

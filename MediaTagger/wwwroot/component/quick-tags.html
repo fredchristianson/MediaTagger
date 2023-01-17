@@ -1,0 +1,61 @@
+<div id="quick-tags">
+  <div class="media">
+    <div><label><input name="untagged" type='checkbox'>Untagged Only</label></div>
+    <div class="images">
+    <div class="prev small">
+      <div class="prev-3"></div>
+      <div class="prev-2"></div>
+      <div class="prev-1"></div>
+      </div>
+      <div class="focus"></div>
+      <div class="next small">
+        <div class="next-3"></div>
+        <div class="next-2"></div>
+        <div class="next-1"></div>
+      </div>
+      </div>
+    </div>
+    <div class="quick-select">
+
+    </div>
+        <div class="tag-tree">
+          <span><input name="tag" placeholder="find"/></span>
+          <div class="tags"></div>
+        </div>
+
+  </div>
+
+
+</div>
+
+<script type="text/template" class="quick-tag-tree-node-template">
+  <div class='tag node' draggable="true">
+    <div class='self'>
+      <label>
+        <input type='checkbox' class='selected' name='selected'><span class='name'></span>
+      </label>
+      <div class='buttons on-hover'>
+        <span class='hotkey'>CTRL-<input name='hotkey'/></span>
+        <button class='edit'>edit</button> <button class='hide'>delete</button>
+      </div>
+      
+    </div>
+    <div class='children'></div>
+  </div>
+</script>
+
+<script type="text/template" class="quick-tag-key-template">
+  <div class='tag key'>
+    <div class='self'>
+      <span class='name'></span>
+      <div class='buttons on-hover'>
+        <div><button class='edit'>edit</button> <button class='hide'>delete</button></div>
+        <div><button class='add'>add</button></div>
+      </div>
+      
+    </div>
+    <div class='children'></div>
+  </div>
+</script>
+
+

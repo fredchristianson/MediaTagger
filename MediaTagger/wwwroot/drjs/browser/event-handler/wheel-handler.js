@@ -2,8 +2,8 @@ import { LOG_LEVEL, Logger } from "../../logger.js";
 import { default as dom } from "../dom.js";
 import {
   EventHandlerBuilder,
-  EventHandler,
-  EventHandlerReturn,
+  EventListener,
+  Continuation,
   HandlerMethod,
 } from "./handler.js";
 
@@ -24,12 +24,12 @@ export class WheelHandlerBuilder extends EventHandlerBuilder {
   }
 }
 
-export class WheelHandler extends EventHandler {
+export class WheelHandler extends EventListener {
   constructor(...args) {
     super(...args);
     this.setTypeName("wheel");
     // passive handlers can't stop default
-    this.setDefaultResponse(EventHandlerReturn.Continue);
+    this.setDefaultContinuation(Continuation.Continue);
     this.setListenElement(dom.getBody());
 
     this.onChange = HandlerMethod.None;
@@ -43,15 +43,11 @@ export class WheelHandler extends EventHandler {
     this.onChange = handler;
   }
 
-  callHandler(method, event) {
+  callHandlers(event) {
     try {
       log.debug("wheel event ", event.wheelDelta);
-      var response = EventHandlerReturn.Continue;
-      if (method) {
-        response.replace(
-          method.call(event.currentTarget, this.data, event, this)
-        );
-      }
+      var response = Continuation.Continue;
+
       response.replace(
         this.onChange.call(event.wheelDelta, event.target, event, this)
       );

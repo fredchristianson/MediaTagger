@@ -1,11 +1,8 @@
 import { ComponentBase } from "../../drjs/browser/component.js";
 import {
   BuildCheckboxHandler,
-  BuildHoverHandler,
-  BuildInputHandler,
-  EventHandlerReturn,
+  BuildCustomEventHandler,
   Listeners,
-  StopAllHandlerReturn,
 } from "../../drjs/browser/event.js";
 import { BuildClickHandler } from "../../drjs/browser/event.js";
 import {
@@ -56,15 +53,18 @@ class AlbumDetailsComponent extends ComponentBase {
           return this.dom.getDataWithParent(element, "id");
         })
         .build(),
-      media
-        .getAlbums()
-        .getUpdatedEvent()
-        .createListener(this, this.onAlbumListChange),
-      media
-        .getSelectedItems()
-        .getUpdatedEvent()
-        .createListener(this, this.onSelectionChange),
-      FocusChangeEvent.createListener(this, this.onSelectionChange)
+      BuildCustomEventHandler()
+        .emitter(media.getAlbums().getUpdatedEvent())
+        .onEvent(this, this.onAlbumListChange)
+        .build(),
+      BuildCustomEventHandler()
+        .emitter(media.getSelectedItems().getUpdatedEvent())
+        .onEvent(this, this.onSelectionChange())
+        .build(),
+      BuildCustomEventHandler()
+        .emitter(FocusChangeEvent)
+        .onEvent(this, this.onSelectionChange())
+        .build()
     );
     this.onAlbumListChange();
     this.onSelectionChange();

@@ -2,9 +2,7 @@
 import Application from "../drjs/browser/application.js";
 import {
   Listeners,
-  EventListener,
-  ObjectListener,
-  EventEmitter,
+  EventListener
 } from "../drjs/browser/event.js";
 import { ComponentLoadedEvent } from "../drjs/browser/component.js";
 //import { DomLogWriter } from '../drjs/browser/log-writer-dom.js';

@@ -8,7 +8,8 @@ import {
   BuildScrollHandler,
   BuildFocusHandler,
   BuildCheckboxHandler,
-  EventHandlerReturn,
+  Continuation,
+  BuildCustomEventHandler,
 } from "../../drjs/browser/event.js";
 
 var recentTags = [];
@@ -123,7 +124,7 @@ export class MediaFileEditorComponent extends ComponentBase {
   async onHtmlInserted(elements) {
     this.listeners.add(
       BuildCheckboxHandler()
-        .setDefaultResponse(EventHandlerReturn.StopAll)
+        .setDefaultContinuation(Continuation.StopAll)
         .capture()
         .listenTo(this.dom, '.tags input[type="checkbox"]')
         .onChecked(this, this.selectTag)
@@ -133,7 +134,7 @@ export class MediaFileEditorComponent extends ComponentBase {
         })
         .build(),
       BuildCheckboxHandler()
-        .setDefaultResponse(EventHandlerReturn.StopAll)
+        .setDefaultContinuation(Continuation.StopAll)
         .listenTo(this.dom, '.albums input[type="checkbox"]')
         .onChecked(this, this.selectAlbum)
         .onUnchecked(this, this.unselectAlbum)
@@ -141,11 +142,14 @@ export class MediaFileEditorComponent extends ComponentBase {
           return media.getAlbumById(this.dom.getData(target, "id"));
         })
         .build(),
-      media.getTags().getUpdatedEvent().createListener(this, this.onTagChange),
-      media
-        .getAlbums()
-        .getUpdatedEvent()
-        .createListener(this, this.onAlbumChange)
+      BuildCustomEventHandler()
+        .emitter(media.getTags().getUpdatedEvent())
+        .onEvent(this, this.onTagChange)
+        .build(),
+      BuildCustomEventHandler()
+        .emitter(media.getAlbums().getUpdatedEvent())
+        .onEvent(this, this.onAlbumChange)
+        .build()
     );
     this.optionTemplate = new HtmlTemplate(
       this.dom.first(".editor-option-template")

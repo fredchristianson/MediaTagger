@@ -1,6 +1,6 @@
 import { LOG_LEVEL, Logger } from "../../logger.js";
-import { EventHandlerBuilder, EventHandler } from "./handler.js";
-import { EventHandlerReturn, MousePosition, HandlerMethod } from "./common.js";
+import { EventHandlerBuilder, EventListener } from "./handler.js";
+import { Continuation, MousePosition, HandlerMethod } from "./common.js";
 import dom from "../dom.js";
 import util from "../../util.js";
 import { CancelToken, Task } from "../task.js";
@@ -51,11 +51,11 @@ export class HoverHandlerBuilder extends EventHandlerBuilder {
   }
 }
 
-export class HoverHandler extends EventHandler {
+export class HoverHandler extends EventListener {
   constructor(...args) {
     super(...args);
     this.setTypeName(["mousemove", "mouseout"]);
-    this.setDefaultResponse = EventHandlerReturn.Continue;
+    this.setDefaultContinuation(Continuation.Continue);
     this.startDelayMSecs = 200;
     this.endDelayMSecs = 200;
     this.onStart = HandlerMethod.None();
@@ -68,19 +68,11 @@ export class HoverHandler extends EventHandler {
     this.currentTarget = null;
   }
 
-  callStart(target, data) {
-    if (this.dataSource) {
-      this.onStart.call(data, target);
-    } else {
-      this.onStart.call(target);
-    }
+  callStart(event, target, data) {
+    this.onStart.call(this, event);
   }
-  callEnd(target, data) {
-    if (this.dataSource) {
-      this.onEnd.call(data, target);
-    } else {
-      this.onEnd.call(target);
-    }
+  callEnd(event, target, data) {
+    this.onEnd.call(this, event);
   }
   start(event, target, data) {
     if (this.inHover) {
@@ -96,7 +88,7 @@ export class HoverHandler extends EventHandler {
     log.debug("start task delayed ", this.startDelayMSecs);
     this.startCancel = Task.Delay(this.startDelayMSecs, () => {
       log.debug("call onStart");
-      this.callStart(target, data);
+      this.callStart(event, target, data);
     });
   }
 
@@ -109,16 +101,16 @@ export class HoverHandler extends EventHandler {
     this.endCancel = Task.Delay(this.endDelayMSecs, () => {
       this.startCancel.cancel();
       this.inHover = false;
-      this.callEnd(target, data);
+      this.callEnd(this, event);
     });
   }
-  callHandler(method, event) {
+  callHandlers(event) {
     this.mousePosition.update(event);
 
     try {
       var target = this.getEventTarget(event);
       log.debug(`hover: ${target.tagName} ${target.className} - ${event.type}`);
-      var response = EventHandlerReturn.Continue;
+      var response = Continuation.Continue;
       if (event.type == "mousemove") {
         if (this.selector == null || dom.matches(target, this.selector)) {
           this.endCancel.cancel();

@@ -12,6 +12,7 @@ import {
   BuildInputHandler,
   BuildWheelHandler,
   BuildCheckboxHandler,
+  BuildCustomEventHandler,
   EventEmitter,
   ObjectEventType,
 } from "../../drjs/browser/event.js";
@@ -52,6 +53,10 @@ export class ViewOptionsComponent extends ComponentBase {
         .handler(this, this.showTagManager)
         .build(),
       BuildClickHandler()
+        .selector(".show-quick-tags")
+        .handler(this, this.showQuickTags)
+        .build(),
+      BuildClickHandler()
         .selector(".find-groups")
         .handler(this, this.findGroups)
         .build(),
@@ -82,9 +87,10 @@ export class ViewOptionsComponent extends ComponentBase {
         .withAlt(true)
         .onChange(this, this.zoomWheel)
         .build(),
-      Media.getSelectedItems()
-        .getUpdatedEvent()
-        .createListener(this, this.selectionInput)
+      BuildCustomEventHandler()
+        .emitter(Media.getSelectedItems().getUpdatedEvent())
+        .onEvent(this, this.selectionInput)
+        .build()
     );
     this.zoomInput = this.dom.first('[name="zoom"]');
     this.zoomSlider = this.dom.first('[name="zoom-slider"]');
@@ -177,6 +183,10 @@ export class ViewOptionsComponent extends ComponentBase {
 
   showTagManager() {
     main.instance.showTagManager();
+  }
+
+  showQuickTags() {
+    main.instance.showQuickTags();
   }
 
   findGroups(target, event) {

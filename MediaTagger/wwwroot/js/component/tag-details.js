@@ -1,9 +1,10 @@
 import { ComponentBase } from "../../drjs/browser/component.js";
 import {
   BuildCheckboxHandler,
+  BuildCustomEventHandler,
   BuildHoverHandler,
   BuildInputHandler,
-  EventHandlerReturn,
+  Continuation,
   Listeners,
 } from "../../drjs/browser/event.js";
 import { BuildClickHandler } from "../../drjs/browser/event.js";
@@ -69,11 +70,14 @@ export class TagDetailsComponent extends TagComponent {
         .onStart(this, this.hoverTag)
         .onEnd(this, this.unhoverTag)
         .build(),
-      media
-        .getSelectedItems()
-        .getUpdatedEvent()
-        .createListener(this, this.selectionChange),
-      FocusChangeEvent.createListener(this, this.selectionChange)
+      BuildCustomEventHandler()
+        .emitter(media.getSelectedItems().getUpdatedEvent())
+        .onEvent(this, this.selectionChange)
+        .build(),
+      BuildCustomEventHandler()
+        .emitter(FocusChangeEvent)
+        .onEvent(this, this.selectionChange)
+        .build()
     );
     this.dom.addClass(this.tagTree, "no-select");
   }
