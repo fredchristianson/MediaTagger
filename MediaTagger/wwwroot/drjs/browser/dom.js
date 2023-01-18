@@ -812,6 +812,9 @@ export class DOM {
     }
   }
 
+  getFocus() {
+    return document.activeElement;
+  }
   blur(...args) {
     var element = this.first(...args);
     if (element) {

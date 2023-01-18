@@ -47,15 +47,10 @@ class Continuation {
     this.immediate = stop;
   }
   combine(other = null) {
-    // if other is an Continuation, use the most restrictive handling
-    if (other == null || !(other instanceof Continuation)) {
-      return;
-    }
-    this.stopEventPropagation =
-      this.stopEventPropagation || other.stopEventPropagation;
-    this.preventEventDefault =
-      this.preventEventDefault || other.preventEventDefault;
-    this.immediate = this.immediate || other.immediate;
+    // initially, the results were the OR of stop.
+    // but that doesn't allow a handler to change
+    // to false, so just replacing if another Continuation is passed
+    this.replace(other);
   }
 
   combineOrStop(other) {

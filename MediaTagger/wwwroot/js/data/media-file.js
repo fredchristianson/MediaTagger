@@ -151,6 +151,9 @@ export class MediaFile extends MediaEntity {
   getImageUrl() {
     return `/image/${this.getId()}?v=1.0`;
   }
+  getImageReloadUrl() {
+    return `/image/${this.getId()}?v=1.0&time=${Date.now()}`;
+  }
 
   getName() {
     return this.name;

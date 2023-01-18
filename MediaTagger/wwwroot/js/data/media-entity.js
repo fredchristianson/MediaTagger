@@ -1,6 +1,12 @@
 import { toDate } from "./helpers.js";
 
 export class MediaEntity {
+  static sort(array) {
+    array.sort((a, b) => {
+      return a.Name.localeCompare(b.Name);
+    });
+    return array;
+  }
   constructor(data = {}) {
     this.id = data.id;
     this.name = data.name;

@@ -1,6 +1,6 @@
 #quick-tags {
     --border-color: #000;
-    --background-color: #ccc;
+    --background-color: #ddd;
     --padding: 8px;
 
     height: 100%;
@@ -28,13 +28,22 @@
         min-width: 200px;
         padding: var(--padding);
         .hotkey {
+            min-height: 50%;
+            border-bottom: 1px solid #444;        }
+        .hotkey, .recent-tags {
+            margin-bottom: 4px;padding-bottom: 4px; 
+            h5 {
+                display: inline-block;
+                margin-left: 8px;
+            }
             h6 {
+                display:inline-block;
                 color: #777;
                 width: 3em;
                 font-variant: small-caps;
             }
-            .keys {
-> .key { display: block;}
+            .keys, .recent {
+                > .key { display: block;}
                 white-space: nowrap;
                 h6 { display: inline-block; color: #000;
                 text-align: center;}
@@ -165,5 +174,11 @@
             }
         }
 
+    }
+
+    .no-items {
+        font-style: italic;
+        display: block;
+        text-align: center;
     }
 }

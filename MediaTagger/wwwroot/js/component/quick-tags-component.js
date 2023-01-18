@@ -29,7 +29,26 @@ import {
 import { Dialog } from "../controls/dialog.js";
 import { OnNextLoop } from "../../drjs/browser/timer.js";
 import { imageWindow } from "../controls/image-window.js";
+import MediaEntity from "../data/media-entity.js";
 const log = Logger.create("TagManager", LOG_LEVEL.DEBUG);
+
+function sortTagPaths(tags) {
+  const paths = tags.map((t) => {
+    return media.getTagPath(t).substring(1).split("/");
+  });
+  const sorted = paths.sort((a, b) => {
+    for (let step = 0; step < a.length && step < b.length; step++) {
+      const diff = a[step].localeCompare(b[step]);
+      if (diff != 0) {
+        return diff;
+      }
+    }
+    return a.length - b.length;
+  });
+  return paths.map((p) => {
+    return "/" + p.join("/");
+  });
+}
 
 function stopBrowserClose(event) {
   // Cancel the event as stated by the standard.
@@ -54,7 +73,7 @@ export class QuickTagsComponent extends ComponentBase {
   }
 
   async onHtmlInserted(parent) {
-    window.addEventListener("beforeunload", stopBrowserClose, true);
+    //window.addEventListener("beforeunload", stopBrowserClose, true);
     this.visibleItems = media.getVisibleItems();
     this.settings = await Settings.load("quick-tags");
     this.tags = media.getTags();
@@ -70,13 +89,14 @@ export class QuickTagsComponent extends ComponentBase {
 
     this.dom.check('[name="untagged"]');
     this.untaggedOnly = true;
+    this.recent = [];
 
     this.listeners.add(
       BuildCheckboxHandler()
         .listenTo(this.dom, "[name='untagged']")
         .setData(this, this.getNodeTag)
-        .onChecked(this, this.untaggedOnly)
-        .onUnchecked(this, this.allFiles)
+        .onChecked(this, this.filterUntaggedOnly)
+        .onUnchecked(this, this.filterAllFiles)
         .build(),
       BuildInputHandler()
         .listenTo(this.dom, ".hotkey input")
@@ -90,14 +110,17 @@ export class QuickTagsComponent extends ComponentBase {
         .build(),
       BuildKeyHandler()
         .setDefaultContinuation(Continuation.StopAll)
-        .filterAllow((event) => {
-          // only handle if an input/select/textarea doesn't have focus
-          return document.activeElement == document.body;
-        })
+        // .filterAllow((event) => {
+        //   // only handle if an input/select/textarea doesn't have focus
+        //   return document.activeElement == document.body;
+        // })
         .onKey("ArrowRight", this, this.nextImage)
         .onKey("ArrowLeft", this, this.previousImage)
         .onKey("[", this, this.rotateCCW)
         .onKey("]", this, this.rotateCW)
+        // .onKey(Key.Escape, () => {
+        //   this.dom.blur(this.dom.getFocus());
+        // })
         .onKey(Key.Tab.withoutShift(), this, this.nextTag)
         .onKey(Key.Tab.withShift(), this, this.prevTag)
         .onKey(Key.Regex(/[0-9]/).withCtrl(), this, this.selectRecent)
@@ -137,8 +160,17 @@ export class QuickTagsComponent extends ComponentBase {
   prevTag() {
     log.debug("prevTag");
   }
-  selectRecent(key) {
+  async selectRecent(key) {
     log.debug("recent ", key);
+    const tag = this.recent[key];
+    if (tag != null) {
+      if (this.currentImage.hasTag(tag)) {
+        await this.unselectTag(tag);
+      } else {
+        await this.selectTag(tag);
+      }
+      this.fillImages();
+    }
   }
   async selectHotkey(key) {
     log.debug("hotkey ", key);
@@ -154,17 +186,29 @@ export class QuickTagsComponent extends ComponentBase {
   }
   keyPress(key) {
     log.debug("press ", key);
+    return Continuation.Continue;
   }
   getTagForElement(element) {
     const id = this.dom.getDataWithParent(element, "id");
     return media.getTagById(id);
   }
 
+  async addRecent(tag) {
+    if (this.recent.includes(tag)) {
+      return;
+    }
+    while (this.recent.length > 10) {
+      this.recent.shift();
+    }
+    this.recent.push(tag);
+    this.fillRecentTags();
+  }
   async selectTag(tag) {
     log.debug("select tag ", tag);
     if (!this.currentImage.hasTag(tag)) {
       await media.tagAddFile(tag, this.currentImage);
       this.fillImageTags(this.currentImage);
+      this.addRecent(tag);
     }
   }
 
@@ -177,11 +221,12 @@ export class QuickTagsComponent extends ComponentBase {
   }
 
   onFileChange() {
+    this.visibleItems = media.getVisibleItems();
     this.fillImages();
   }
 
-  openPreviewWindow() {
-    this.imageWindow.open();
+  async openPreviewWindow() {
+    await this.imageWindow.open();
     this.imageWindow.setImage(this.currentImage);
   }
   nextImage() {
@@ -218,7 +263,7 @@ export class QuickTagsComponent extends ComponentBase {
         this.dom.setAttribute(image, "src", "image/1x1.png");
       } else {
         if (idx == this.focusIndex) {
-          this.dom.setAttribute(image, "src", item.getImageUrl());
+          this.dom.setAttribute(image, "src", item.getImageReloadUrl());
         } else {
           //this.dom.setAttribute(image, "src", item.getThumbnailUrl());
           log.never("set image", image, " to " + item.getThumbnailUrl());
@@ -241,10 +286,8 @@ export class QuickTagsComponent extends ComponentBase {
     this.dom.removeChildren(container);
 
     if (image != null) {
-      for (let tag of image.Tags) {
-        const child = this.dom.createElement(
-          `<div>${media.getTagPath(tag)}</div>`
-        );
+      for (let tag of sortTagPaths(image.Tags)) {
+        const child = this.dom.createElement(`<div>${tag}</div>`);
         this.dom.append(container, child);
       }
     }
@@ -263,16 +306,6 @@ export class QuickTagsComponent extends ComponentBase {
         tagElement.checked = image.hasTag(tag);
       }
     }
-
-    // if (image != null) {
-    //   for (let tag of image.Tags) {
-    //     const check = this.dom.find(
-    //       tree,
-    //       `.tag.node[data-id='${tag.Id}'] > .self input[type='checkbox']`
-    //     );
-    //     check.checked = true;
-    //   }
-    // }
   }
 
   async rotateCW() {
@@ -304,11 +337,11 @@ export class QuickTagsComponent extends ComponentBase {
     const id = this.dom.getDataWithParent(target, "id");
     return media.getTagById(id);
   }
-  allFiles() {
+  filterAllFiles() {
     media.clearFilter();
   }
 
-  untaggedOnly() {
+  filterUntaggedOnly() {
     media.clearFilter();
     media.addFilter(this.filterItem.bind(this));
     this.createTags();
@@ -374,6 +407,26 @@ export class QuickTagsComponent extends ComponentBase {
   fillRecentTags() {
     const recent = this.dom.first(".recent");
     this.dom.removeChildren(recent);
+    if (this.recent.length == 0) {
+      const noItems = this.dom.createElement("div", {
+        "@class": "no-items",
+        html: "no recent items",
+      });
+      this.dom.append(recent, noItems);
+    }
+    for (var idx = 0; idx < 10; idx++) {
+      const tag = this.recent[idx];
+      if (tag != null) {
+        const row = this.keyTemplate.fill({
+          ".ctrl-key": idx,
+          ".tag-name": [
+            new DataValue("id", tag.Id),
+            new HtmlValue(media.getTagPath(tag)),
+          ],
+        });
+        this.dom.append(recent, row);
+      }
+    }
   }
 
   fillHotkeys() {
@@ -393,6 +446,7 @@ export class QuickTagsComponent extends ComponentBase {
       }
     }
   }
+
   fillTree() {
     this.tags = media.getTags();
 

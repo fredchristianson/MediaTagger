@@ -811,7 +811,7 @@ label.check-state[data-state=unchecked]::after {
 
 #quick-tags {
   --border-color: #000;
-  --background-color: #ccc;
+  --background-color: #ddd;
   --padding: 8px;
   height: 100%;
   background-color: var(--background-color);
@@ -836,23 +836,36 @@ label.check-state[data-state=unchecked]::after {
   min-width: 200px;
   padding: var(--padding);
 }
-#quick-tags .quick-select .hotkey h6 {
+#quick-tags .quick-select .hotkey {
+  min-height: 50%;
+  border-bottom: 1px solid #444;
+}
+#quick-tags .quick-select .hotkey, #quick-tags .quick-select .recent-tags {
+  margin-bottom: 4px;
+  padding-bottom: 4px;
+}
+#quick-tags .quick-select .hotkey h5, #quick-tags .quick-select .recent-tags h5 {
+  display: inline-block;
+  margin-left: 8px;
+}
+#quick-tags .quick-select .hotkey h6, #quick-tags .quick-select .recent-tags h6 {
+  display: inline-block;
   color: #777;
   width: 3em;
   font-variant: small-caps;
 }
-#quick-tags .quick-select .hotkey .keys {
+#quick-tags .quick-select .hotkey .keys, #quick-tags .quick-select .hotkey .recent, #quick-tags .quick-select .recent-tags .keys, #quick-tags .quick-select .recent-tags .recent {
   white-space: nowrap;
 }
-#quick-tags .quick-select .hotkey .keys > .key {
+#quick-tags .quick-select .hotkey .keys > .key, #quick-tags .quick-select .hotkey .recent > .key, #quick-tags .quick-select .recent-tags .keys > .key, #quick-tags .quick-select .recent-tags .recent > .key {
   display: block;
 }
-#quick-tags .quick-select .hotkey .keys h6 {
+#quick-tags .quick-select .hotkey .keys h6, #quick-tags .quick-select .hotkey .recent h6, #quick-tags .quick-select .recent-tags .keys h6, #quick-tags .quick-select .recent-tags .recent h6 {
   display: inline-block;
   color: #000;
   text-align: center;
 }
-#quick-tags .quick-select .hotkey .keys div {
+#quick-tags .quick-select .hotkey .keys div, #quick-tags .quick-select .hotkey .recent div, #quick-tags .quick-select .recent-tags .keys div, #quick-tags .quick-select .recent-tags .recent div {
   display: inline-block;
 }
 #quick-tags .tag-tree {
@@ -965,6 +978,11 @@ label.check-state[data-state=unchecked]::after {
   width: 8px;
   height: 1px;
   border-top: 1px dotted #777;
+}
+#quick-tags .no-items {
+  font-style: italic;
+  display: block;
+  text-align: center;
 }
 
 .hidden {
