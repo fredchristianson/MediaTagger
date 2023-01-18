@@ -812,6 +812,13 @@ export class DOM {
     }
   }
 
+  blur(...args) {
+    var element = this.first(...args);
+    if (element) {
+      element.blur();
+    }
+  }
+
   /* simple value collector.  doesn't handle unnamed inputs or
    * multiple inputs with same name
    */

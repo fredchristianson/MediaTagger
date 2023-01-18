@@ -21,7 +21,7 @@ var nextID = 1;
 class ObservableCollection {
   constructor() {
     this._id = nextID++;
-    log.info("Create collection ", this._id, this.constructor.name);
+    log.never("Create collection ", this._id, this.constructor.name);
     this.sortedEvent = new EventEmitter(sortedEvent, this);
     this.filteredEvent = new EventEmitter(filteredEvent, this);
     this.itemsAddedEvent = new EventEmitter(itemsAddedEvent, this);

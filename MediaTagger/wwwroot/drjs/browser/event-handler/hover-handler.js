@@ -68,10 +68,10 @@ export class HoverHandler extends EventListener {
     this.currentTarget = null;
   }
 
-  callStart(event, target, data) {
+  callStart(event) {
     this.onStart.call(this, event);
   }
-  callEnd(event, target, data) {
+  callEnd(event) {
     this.onEnd.call(this, event);
   }
   start(event, target, data) {
@@ -88,11 +88,11 @@ export class HoverHandler extends EventListener {
     log.debug("start task delayed ", this.startDelayMSecs);
     this.startCancel = Task.Delay(this.startDelayMSecs, () => {
       log.debug("call onStart");
-      this.callStart(event, target, data);
+      this.callStart(event);
     });
   }
 
-  end(event, target, data) {
+  end(event) {
     if (!this.inHover) {
       return;
     }
@@ -101,7 +101,7 @@ export class HoverHandler extends EventListener {
     this.endCancel = Task.Delay(this.endDelayMSecs, () => {
       this.startCancel.cancel();
       this.inHover = false;
-      this.callEnd(this, event);
+      this.callEnd(event);
     });
   }
   callHandlers(event) {
@@ -119,7 +119,7 @@ export class HoverHandler extends EventListener {
           }
           if (this.inHover && this.currentTarget != target) {
             log.debug("force end of old hover");
-            this.callEnd(this.currentTarget, this.currentData);
+            this.callEnd(event);
             this.currentTarget = null;
             this.inHover = false;
           }
@@ -136,7 +136,7 @@ export class HoverHandler extends EventListener {
         }
       } else if (event.type == "mouseout") {
         if (!dom.matches(event.toElement, this.selector)) {
-          this.end(event, this.currentTarget, this.currentData);
+          this.end(event);
         } else {
           log.debug("mouse out to included element");
         }

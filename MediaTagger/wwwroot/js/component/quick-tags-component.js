@@ -8,6 +8,7 @@ import {
   BuildClickHandler,
   Continuation,
   BuildCheckboxHandler,
+  BuildHoverHandler,
 } from "../../drjs/browser/event.js";
 import { LOG_LEVEL, Logger } from "../../drjs/logger.js";
 import {
@@ -19,8 +20,10 @@ import {
   ClassValue,
   DataValue,
   InputValue,
+  HtmlValue,
 } from "../../drjs/browser/html-template.js";
 import { Dialog } from "../controls/dialog.js";
+import { OnNextLoop } from "../../drjs/browser/timer.js";
 const log = Logger.create("TagManager", LOG_LEVEL.DEBUG);
 
 export class QuickTagsComponent extends ComponentBase {
@@ -37,6 +40,8 @@ export class QuickTagsComponent extends ComponentBase {
   async onHtmlInserted(parent) {
     this.settings = await Settings.load("quick-tags");
     this.tags = media.getTags();
+    this.hotkeys = this.settings.get("hotkeys", {});
+
     this.nodeTemplate = new HtmlTemplate(
       this.dom.first(".quick-tag-tree-node-template")
     );
@@ -59,13 +64,52 @@ export class QuickTagsComponent extends ComponentBase {
         .listenTo(this.dom, ".hotkey input")
         .setData(this, this.getNodeTag)
         .onInput(this, this.onHotkeyChange)
+        .build(),
+      BuildHoverHandler()
+        .listenTo(this.dom, ".tag-tree .self")
+        .onStart(this, this.hoverStart)
+        .onEnd(this, this.hoverEnd)
         .build()
     );
     this.createTags();
+    this.focusIndex = 0;
+    this.fillImages();
   }
 
-  getNodeTag(event) {
-    const id = this.dom.getDataWithParent(event.target, "id");
+  fillImages() {
+    const images = this.dom.find(".images", "img");
+    const visible = media.getVisibleItems();
+    for (var idx = this.focusIndex - 3; idx <= this.focusIndex + 3; idx++) {
+      var item = visible.getItemAt(idx);
+      const image = images.shift();
+      if (item == null) {
+        this.dom.setAttribute(images, "src", null);
+      } else {
+        if (idx == this.focusIndex) {
+          this.dom.setAttribute(image, "src", item.getImageUrl());
+        } else {
+          this.dom.setAttribute(image, "src", item.getThumbnailUrl());
+          if (item.RotationDegrees) {
+            this.dom.addClass(
+              image,
+              `rotate-${(item.RotationDegrees + 360) % 360}`
+            );
+          }
+        }
+      }
+    }
+  }
+
+  hoverStart(target) {
+    this.dom.setFocus(target, 'input[name="hotkey"]');
+  }
+
+  hoverEnd(target) {
+    this.dom.blur(target, 'input[name="hotkey"]');
+  }
+
+  getNodeTag(target, event) {
+    const id = this.dom.getDataWithParent(target, "id");
     return media.getTagById(id);
   }
   allFiles() {
@@ -83,16 +127,72 @@ export class QuickTagsComponent extends ComponentBase {
     return item.Tags.Length == 0;
   }
 
+  setHotkey(tag, key) {
+    var oldTag = this.getHotkeyForTag(tag);
+    var oldHotkey = this.getTagForHotkey(key);
+    if (oldHotkey != key) {
+      this.hotkeys[key] = tag.Id;
+      this.settings.set("hotkeys", this.hotkeys);
+    }
+  }
+
+  getHotkeyForTag(tag) {
+    for (var key of Object.keys(this.hotkeys)) {
+      var tagId = this.hotkeys[key];
+      if (tagId == tag.Id) {
+        return key;
+      }
+    }
+    return null;
+  }
+
+  getTagForHotkey(key) {
+    const tagId = this.hotkeys[key];
+    if (tagId != null) {
+      return media.getTagById(tagId);
+    }
+    return null;
+  }
+
   onHotkeyChange(tag, key, target) {
     key = key.toLowerCase();
     if (key >= "a" && key <= "z") {
       target.value = key;
-      this.settings.set(`hotkey-${tag.id}`, key);
+      this.setHotkey(tag, key);
+      this.createTags();
+      return Continuation.StopAll;
     }
-    return Continuation.StopAll;
   }
 
   createTags() {
+    this.fillTree();
+    this.fillRecentTags();
+    this.fillHotkeys();
+  }
+
+  fillRecentTags() {
+    const recent = this.dom.first(".recent");
+    this.dom.removeChildren(recent);
+  }
+
+  fillHotkeys() {
+    const hotkeys = this.dom.first(".keys");
+    this.dom.removeChildren(hotkeys);
+    for (var key of Object.keys(this.hotkeys).sort()) {
+      const tag = this.hotkeys[key];
+      if (tag != null) {
+        const row = this.keyTemplate.fill({
+          ".ctrl-key": key,
+          ".tag-name": [
+            new DataValue("id", tag.Id),
+            new HtmlValue(media.getTagPath(tag)),
+          ],
+        });
+        this.dom.append(hotkeys, row);
+      }
+    }
+  }
+  fillTree() {
     this.tags = media.getTags();
 
     const scroll = this.dom.first(".tag-tree");
@@ -104,10 +204,12 @@ export class QuickTagsComponent extends ComponentBase {
     this.dom.removeChildren(parent);
 
     this.insertTags(parent, top);
-    scroll.scrollTo(0, scrollTop);
+    log.debug("scroll to ", scrollTop);
+    OnNextLoop(() => scroll.scrollTo(0, scrollTop));
   }
 
   insertTags(parent, tags) {
+    this.dom.toggleClass(parent, "empty", tags.length == 0);
     tags.sort((a, b) => {
       return a.Name.localeCompare(b.Name);
     });
@@ -115,7 +217,7 @@ export class QuickTagsComponent extends ComponentBase {
       const element = this.nodeTemplate.fill({
         ".tag": new DataValue("id", tag.id),
         ".name": tag.name,
-        ".hotkey input": this.settings.get(`hotkey-${tag.id}`),
+        ".hotkey input": this.getHotkeyForTag(tag),
       });
       this.dom.append(parent, element);
       const childTags = this.tags.search((child) => {

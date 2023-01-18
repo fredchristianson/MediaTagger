@@ -42,23 +42,23 @@ export class ViewOptionsComponent extends ComponentBase {
       // new ClickHandler(".show-settings",this,this.showSettings),
       BuildClickHandler()
         .selector(".show-settings")
-        .handler(this, this.showSettings)
+        .onClick(this, this.showSettings)
         .build(),
       BuildClickHandler()
         .selector(".show-media")
-        .handler(this, this.showMedia)
+        .onClick(this, this.showMedia)
         .build(),
       BuildClickHandler()
         .selector(".show-tag-manager")
-        .handler(this, this.showTagManager)
+        .onClick(this, this.showTagManager)
         .build(),
       BuildClickHandler()
         .selector(".show-quick-tags")
-        .handler(this, this.showQuickTags)
+        .onClick(this, this.showQuickTags)
         .build(),
       BuildClickHandler()
         .selector(".find-groups")
-        .handler(this, this.findGroups)
+        .onClick(this, this.findGroups)
         .build(),
       BuildInputHandler()
         .selector("[name='zoom']")
