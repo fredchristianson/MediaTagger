@@ -45,9 +45,22 @@
     }
 
     .tag-tree {
+        display: flex;
+        flex-flow: column;
+        align-items: stretch;
+        height: 100%;
+        overflow: hidden;
+        
         grid-area: tree;
         border-right: 0;
         padding: var(--padding);
+        >span {
+            flex: 0 0 2rem;
+        }
+        >div {
+            flex: 1 1 auto;
+            overflow: auto;
+        }
     }
 
     .small {

@@ -69,6 +69,7 @@ export class FileViewComponent extends ComponentBase {
   }
 
   async onHtmlInserted(elements) {
+    media.clearFilter();
     this.imageLoader = new ImageLoader(".media-items");
     this.mediaDetails = new MediaDetailsComponent("#media-details");
     this.dateFilter = new DateFilterComponent("#date-filter");
@@ -127,7 +128,8 @@ export class FileViewComponent extends ComponentBase {
         .build(),
       BuildCustomEventHandler()
         .emitter(ZoomEvent)
-        .onEvent(this, this.hidePopup).build(),
+        .onEvent(this, this.hidePopup)
+        .build(),
       BuildScrollHandler()
         .listenTo(".items")
         .onScroll(this, this.hidePopup)
@@ -137,7 +139,10 @@ export class FileViewComponent extends ComponentBase {
       //   .onFocusIn(this, this.clearItemFocus)
       //   .onBlur(this, this.clearFocus)
       //   .build(),
-      BuildCustomEventHandler().emitter(FocusChangeEvent).onEvent(this, this.hidePopup).build()
+      BuildCustomEventHandler()
+        .emitter(FocusChangeEvent)
+        .onEvent(this, this.hidePopup)
+        .build()
     );
 
     this.navigation = new Navigation(this.layout);

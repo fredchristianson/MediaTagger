@@ -35,6 +35,12 @@ class KeyMatch {
   static get DownArrow() {
     return new Key("ArrowDown");
   }
+  static get Tab() {
+    return new Key("Tab");
+  }
+  static get Space() {
+    return new Key(" ");
+  }
 
   static Shift(key) {
     return new Key(key).shift(true);
@@ -48,38 +54,118 @@ class KeyMatch {
 
   constructor(key) {
     Assert.notNull(key, "KeyMatch requires a non-null key");
-    this.key = key.toLowerCase();
-    this.withShift = false;
-    this.withControl = false;
-    this.withAlt = false;
+    if (typeof key == "string") {
+      this.key = key;
+      this.lowerCaseKey = key.toLowerCase();
+    }
+    this.requireShift = false;
+    this.requireControl = false;
+    this.requireAlt = false;
+    this.noShift = false;
+    this.noControl = false;
+    this.noAlt = false;
     // response if handled and handler doesn't have a response
     this.defaultResponse = Continuation.StopAll;
   }
 
   isMatch(event) {
-    if (this.withAlt && !event.hasAlt) {
+    if (this.requireAlt && !event.hasAlt) {
       return false;
     }
-    if (this.withControl && !event.hasCtrl) {
+    if (this.requireControl && !event.hasCtrl) {
       return false;
     }
-    if (this.withAlt && !event.hasAlt) {
+    if (this.requireShift && !event.hasShift) {
       return false;
     }
-    return this.key == event.key.toLowerCase();
+    if (this.noAlt && event.hasAlt) {
+      return false;
+    }
+    if (this.noControl && event.hasCtrl) {
+      return false;
+    }
+    if (this.noShift && event.hasShift) {
+      return false;
+    }
+    return this.matchKey(event.key);
   }
 
-  shift(has = true) {
-    this.withShift = has;
-    return this;
+  matchKey(key) {
+    return this.lowerCaseKey == key.toLowerCase();
   }
-  control(has = true) {
-    this.withControl = has;
-    return this;
+
+  clone() {
+    const copy = new KeyMatch(this.key);
+    copy.requireShift = this.requireShift;
+    copy.requireControl = this.requireControl;
+    copy.requireAlt = this.requireAlt;
+    copy.noShift = this.noShift;
+    copy.noControl = this.noControl;
+    copy.noAlt = this.noAlt;
+    return copy;
   }
-  alt(has = true) {
-    this.withAlt = has;
-    return this;
+
+  withShift(has = true) {
+    var copy = this.clone();
+    copy.requireShift = has;
+    copy.noShift = !has;
+    return copy;
+  }
+  withCtrl(has = true) {
+    var copy = this.clone();
+    copy.requireControl = has;
+    copy.noControl = !has;
+    return copy;
+  }
+  withAlt(has = true) {
+    var copy = this.clone();
+    copy.requireAlt = has;
+    copy.noAlt = !has;
+    return copy;
+  }
+  withoutShift(has = true) {
+    var copy = this.clone();
+    copy.noShift = has;
+    copy.requireShift = !has;
+    return copy;
+  }
+  withoutCtrl(has = true) {
+    var copy = this.clone();
+    copy.noControl = has;
+    copy.requireControl = !has;
+    return copy;
+  }
+  withoutAlt(has = true) {
+    var copy = this.clone();
+    copy.noAlt = has;
+    copy.requireAlt = !has;
+    return copy;
+  }
+}
+
+class RegexKeyMatch extends KeyMatch {
+  constructor(regex) {
+    super(regex);
+    this.regex = regex;
+    // alt and control must be explicitly set
+    this.noAlt = true;
+    this.noControl = true;
+  }
+
+  matchKey(key) {
+    // only match single-letter keys. "Shift", "Arrow...", don't match
+    return key != null && key.length == 1 && this.regex.test(key);
+  }
+
+  clone() {
+    const copy = new RegexKeyMatch(this.regex);
+    copy.requireShift = this.requireShift;
+    copy.requireControl = this.requireControl;
+    copy.requireAlt = this.requireAlt;
+    copy.noShift = this.noShift;
+    copy.noControl = this.noControl;
+    copy.noAlt = this.noAlt;
+    return copy;
   }
 }
 
@@ -94,6 +180,11 @@ Key.LeftArrow = KeyMatch.LeftArrow;
 Key.RightArrow = KeyMatch.RightArrow;
 Key.Home = KeyMatch.Home;
 Key.End = KeyMatch.End;
+Key.Tab = KeyMatch.Tab;
+Key.Space = KeyMatch.Space;
+Key.Regex = function (regex) {
+  return new RegexKeyMatch(regex);
+};
 Key.Shift = function (key) {
   return Key(key).shift(true);
 };
@@ -164,11 +255,14 @@ class KeyMatchHandler {
     this.handlerMethod = handler;
   }
   handleEvent(event, keyHandler) {
-    if (this.keyMatch.isMatch(event)) {
+    if (this.match(event)) {
       var response = this.keyMatch.defaultResponse.clone();
       response.replace(this.handlerMethod.call(keyHandler, event, event.key));
       return response;
     }
+  }
+  match(event) {
+    return this.keyMatch.isMatch(event);
   }
 }
 
@@ -205,18 +299,22 @@ class KeyHandler extends EventListener {
       ) {
         return;
       }
-      var response = Continuation.Continue;
+      // if there are not matches, continue
+      var noMatchResponse = Continuation.Continue;
+      var matchResponse = this.DefaultContinuation;
+      let hasMatch = false;
       var target = this.getEventTarget(event);
       if (event.type == "keydown") {
-        response.replace(this.onKeyDown.call(this, event, event.key));
+        noMatchResponse.replace(this.onKeyDown.call(this, event, event.key));
         this.keyHandlers.forEach((kh) => {
-          response.combine(kh.handleEvent(event, this));
+          hasMatch = hasMatch || kh.match(event);
+          matchResponse.combine(kh.handleEvent(event, this));
         });
       } else if (event.type == "keyup") {
-        response.replace(this.onKeyUp.call(this, event, event.key));
+        noMatchResponse.replace(this.onKeyUp.call(this, event, event.key));
       }
 
-      return response;
+      return hasMatch ? matchResponse : noMatchResponse;
     } catch (ex) {
       log.error(ex, "event handler for ", this.typeName, " failed");
     }

@@ -1,7 +1,7 @@
 import { ComponentBase } from "../../drjs/browser/component.js";
 import { Settings } from "../modules/settings.js";
 import { Tree, TreeDataProvider, TreeItem } from "../controls/tree.js";
-import { media } from "../modules/media.js";
+import { FocusChangeEvent, media } from "../modules/media.js";
 import {
   Listeners,
   BuildInputHandler,
@@ -9,6 +9,10 @@ import {
   Continuation,
   BuildCheckboxHandler,
   BuildHoverHandler,
+  BuildKeyHandler,
+  BuildCustomEventHandler,
+  Key,
+  KeyMatch,
 } from "../../drjs/browser/event.js";
 import { LOG_LEVEL, Logger } from "../../drjs/logger.js";
 import {
@@ -24,20 +28,34 @@ import {
 } from "../../drjs/browser/html-template.js";
 import { Dialog } from "../controls/dialog.js";
 import { OnNextLoop } from "../../drjs/browser/timer.js";
+import { imageWindow } from "../controls/image-window.js";
 const log = Logger.create("TagManager", LOG_LEVEL.DEBUG);
+
+function stopBrowserClose(event) {
+  // Cancel the event as stated by the standard.
+  event.preventDefault();
+  // Chrome requires returnValue to be set.
+  event.returnValue = "";
+}
 
 export class QuickTagsComponent extends ComponentBase {
   constructor(selector, htmlName = "quick-tags") {
     super(selector, htmlName);
     this.listeners = new Listeners();
     this.dropHandler = null;
+
+    media.clearFilter();
+    media.addFilter(this.filterItem.bind(this));
   }
 
   onDetach() {
     this.listeners.removeAll();
+    window.removeEventListener("beforeunload", stopBrowserClose, true);
   }
 
   async onHtmlInserted(parent) {
+    window.addEventListener("beforeunload", stopBrowserClose, true);
+    this.visibleItems = media.getVisibleItems();
     this.settings = await Settings.load("quick-tags");
     this.tags = media.getTags();
     this.hotkeys = this.settings.get("hotkeys", {});
@@ -48,11 +66,11 @@ export class QuickTagsComponent extends ComponentBase {
     this.keyTemplate = new HtmlTemplate(
       this.dom.first(this.dom.first(".quick-tag-key-template"))
     );
+    this.imageWindow = imageWindow;
 
     this.dom.check('[name="untagged"]');
     this.untaggedOnly = true;
-    media.clearFilter();
-    media.addFilter(this.filterItem.bind(this));
+
     this.listeners.add(
       BuildCheckboxHandler()
         .listenTo(this.dom, "[name='untagged']")
@@ -69,6 +87,43 @@ export class QuickTagsComponent extends ComponentBase {
         .listenTo(this.dom, ".tag-tree .self")
         .onStart(this, this.hoverStart)
         .onEnd(this, this.hoverEnd)
+        .build(),
+      BuildKeyHandler()
+        .setDefaultContinuation(Continuation.StopAll)
+        .filterAllow((event) => {
+          // only handle if an input/select/textarea doesn't have focus
+          return document.activeElement == document.body;
+        })
+        .onKey("ArrowRight", this, this.nextImage)
+        .onKey("ArrowLeft", this, this.previousImage)
+        .onKey("[", this, this.rotateCCW)
+        .onKey("]", this, this.rotateCW)
+        .onKey(Key.Tab.withoutShift(), this, this.nextTag)
+        .onKey(Key.Tab.withShift(), this, this.prevTag)
+        .onKey(Key.Regex(/[0-9]/).withCtrl(), this, this.selectRecent)
+        .onKey(Key.Regex(/[a-z]/).withCtrl(), this, this.selectHotkey)
+        .onKey(
+          Key.Regex(/[a-zA-Z0-9\/]/)
+            .withoutAlt()
+            .withoutCtrl(),
+          this,
+          this.keyPress
+        )
+        .build(),
+      BuildClickHandler()
+        .setDefaultContinuation(Continuation.StopAll)
+        .listenTo(this.dom, ".big-view")
+        .onClick(this, this.openPreviewWindow)
+        .build(),
+      BuildCustomEventHandler()
+        .emitter(media.getVisibleItems().getUpdatedEvent())
+        .onEvent(this, this.onFileChange)
+        .build(),
+      BuildCheckboxHandler()
+        .listenTo(".tag-tree", 'input[type="checkbox"]')
+        .setData(this, this.getTagForElement)
+        .onChecked(this, this.selectTag)
+        .onUnchecked(this, this.unselectTag)
         .build()
     );
     this.createTags();
@@ -76,27 +131,164 @@ export class QuickTagsComponent extends ComponentBase {
     this.fillImages();
   }
 
+  nextTag() {
+    log.debug("nextTag");
+  }
+  prevTag() {
+    log.debug("prevTag");
+  }
+  selectRecent(key) {
+    log.debug("recent ", key);
+  }
+  async selectHotkey(key) {
+    log.debug("hotkey ", key);
+    const tag = this.getTagForHotkey(key);
+    if (tag != null) {
+      if (this.currentImage.hasTag(tag)) {
+        await this.unselectTag(tag);
+      } else {
+        await this.selectTag(tag);
+      }
+      this.fillImages();
+    }
+  }
+  keyPress(key) {
+    log.debug("press ", key);
+  }
+  getTagForElement(element) {
+    const id = this.dom.getDataWithParent(element, "id");
+    return media.getTagById(id);
+  }
+
+  async selectTag(tag) {
+    log.debug("select tag ", tag);
+    if (!this.currentImage.hasTag(tag)) {
+      await media.tagAddFile(tag, this.currentImage);
+      this.fillImageTags(this.currentImage);
+    }
+  }
+
+  async unselectTag(tag) {
+    log.debug("unselect tag ", tag);
+    if (this.currentImage.hasTag(tag)) {
+      await media.tagRemoveFile(tag, this.currentImage);
+      this.fillImageTags(this.currentImage);
+    }
+  }
+
+  onFileChange() {
+    this.fillImages();
+  }
+
+  openPreviewWindow() {
+    this.imageWindow.open();
+    this.imageWindow.setImage(this.currentImage);
+  }
+  nextImage() {
+    this.focusIndex += 1;
+    this.fillImages();
+  }
+
+  previousImage() {
+    this.focusIndex -= 1;
+    this.fillImages();
+  }
+
   fillImages() {
     const images = this.dom.find(".images", "img");
-    const visible = media.getVisibleItems();
+    //    const visible = media.getVisibleItems();
+    // don't get latest visible items since they may have changed
+    // want to be able to re-untag media
+    const visible = this.visibleItems;
+    if (this.focusIndex < 0) {
+      this.focusIndex = 0;
+    }
+    if (this.focusIndex > visible.Length - 1) {
+      this.focusIndex = visible.Length - 1;
+    }
+    media.getLastFocusIndex(this.focusIndex);
+    this.currentImage = visible.getItemAt(this.focusIndex);
+    this.imageWindow.setImage(this.currentImage);
     for (var idx = this.focusIndex - 3; idx <= this.focusIndex + 3; idx++) {
       var item = visible.getItemAt(idx);
       const image = images.shift();
+      this.dom.removeClass(image, `rotate-270`);
+      this.dom.removeClass(image, `rotate-90`);
       if (item == null) {
-        this.dom.setAttribute(images, "src", null);
+        this.dom.setAttribute(image, "src", "image/1x1.png");
       } else {
         if (idx == this.focusIndex) {
           this.dom.setAttribute(image, "src", item.getImageUrl());
         } else {
-          this.dom.setAttribute(image, "src", item.getThumbnailUrl());
+          //this.dom.setAttribute(image, "src", item.getThumbnailUrl());
+          log.never("set image", image, " to " + item.getThumbnailUrl());
           if (item.RotationDegrees) {
             this.dom.addClass(
               image,
               `rotate-${(item.RotationDegrees + 360) % 360}`
             );
           }
+          image.src = item.getThumbnailUrl() + "&b=" + Date.now();
         }
       }
+    }
+    this.fillImageTags(this.currentImage);
+    this.checkTagTree(this.currentImage);
+  }
+
+  fillImageTags(image) {
+    const container = this.dom.first(".image-tags");
+    this.dom.removeChildren(container);
+
+    if (image != null) {
+      for (let tag of image.Tags) {
+        const child = this.dom.createElement(
+          `<div>${media.getTagPath(tag)}</div>`
+        );
+        this.dom.append(container, child);
+      }
+    }
+  }
+
+  checkTagTree(image) {
+    const tree = this.dom.first(".tag-tree");
+    const tags = this.dom.find(
+      tree,
+      ".tag.node > .self input[type='checkbox']"
+    );
+    for (let tagElement of tags) {
+      const tag = this.getTagForElement(tagElement);
+      if (tag) {
+        // don't use this.dom to check.  it sends event we don't want
+        tagElement.checked = image.hasTag(tag);
+      }
+    }
+
+    // if (image != null) {
+    //   for (let tag of image.Tags) {
+    //     const check = this.dom.find(
+    //       tree,
+    //       `.tag.node[data-id='${tag.Id}'] > .self input[type='checkbox']`
+    //     );
+    //     check.checked = true;
+    //   }
+    // }
+  }
+
+  async rotateCW() {
+    if (this.currentImage) {
+      this.currentImage.rotate(90);
+      await media.updateDatabaseItems();
+      this.fillImages();
+    }
+  }
+
+  async rotateCCW() {
+    if (this.currentImage) {
+      this.currentImage.rotate(-90);
+      await media.updateDatabaseItems();
+
+      this.fillImages();
     }
   }
 
@@ -119,15 +311,24 @@ export class QuickTagsComponent extends ComponentBase {
   untaggedOnly() {
     media.clearFilter();
     media.addFilter(this.filterItem.bind(this));
+    this.createTags();
+    this.focusIndex = 0;
+    this.fillImages();
   }
   filterItem(item) {
     if (!this.untaggedOnly) {
       return true;
     }
-    return item.Tags.Length == 0;
+    return item.Tags.length == 0;
   }
 
   setHotkey(tag, key) {
+    if (key == "w") {
+      alert(
+        "CTRL-w cannot be used as a hotkey. The browser uses it to close the window."
+      );
+      return;
+    }
     var oldTag = this.getHotkeyForTag(tag);
     var oldHotkey = this.getTagForHotkey(key);
     if (oldHotkey != key) {

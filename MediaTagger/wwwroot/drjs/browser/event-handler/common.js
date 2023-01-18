@@ -31,7 +31,7 @@ class Continuation {
   clone() {
     return new Continuation(
       this.stopEventPropagation,
-      this.preventDefault,
+      this.preventEventDefault,
       this.immediate
     );
   }
@@ -53,7 +53,8 @@ class Continuation {
     }
     this.stopEventPropagation =
       this.stopEventPropagation || other.stopEventPropagation;
-    this.preventDefault = this.preventDefault || other.preventDefault;
+    this.preventEventDefault =
+      this.preventEventDefault || other.preventEventDefault;
     this.immediate = this.immediate || other.immediate;
   }
 
@@ -62,7 +63,7 @@ class Continuation {
     // if other is not an EventHandlerResponse, stop & prevent
     if (other == null || !(other instanceof Continuation)) {
       this.stopEventPropagation = true;
-      this.preventDefault = true;
+      this.preventEventDefault = true;
       this.immediate = true;
       return;
     }

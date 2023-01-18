@@ -856,9 +856,21 @@ label.check-state[data-state=unchecked]::after {
   display: inline-block;
 }
 #quick-tags .tag-tree {
+  display: flex;
+  flex-flow: column;
+  align-items: stretch;
+  height: 100%;
+  overflow: hidden;
   grid-area: tree;
   border-right: 0;
   padding: var(--padding);
+}
+#quick-tags .tag-tree > span {
+  flex: 0 0 2rem;
+}
+#quick-tags .tag-tree > div {
+  flex: 1 1 auto;
+  overflow: auto;
 }
 #quick-tags .small {
   margin: 1em 4px;
