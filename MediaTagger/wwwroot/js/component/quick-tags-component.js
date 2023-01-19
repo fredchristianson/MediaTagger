@@ -78,7 +78,8 @@ export class QuickTagsComponent extends ComponentBase {
     this.settings = await Settings.load("quick-tags");
     this.tags = media.getTags();
     this.hotkeys = this.settings.get("hotkeys", {});
-
+    this.searchText = "";
+    this.searchCursorPosition = 0;
     this.nodeTemplate = new HtmlTemplate(
       this.dom.first(".quick-tag-tree-node-template")
     );
@@ -109,11 +110,12 @@ export class QuickTagsComponent extends ComponentBase {
         .onEnd(this, this.hoverEnd)
         .build(),
       BuildKeyHandler()
-        .setDefaultContinuation(Continuation.StopAll)
-        // .filterAllow((event) => {
-        //   // only handle if an input/select/textarea doesn't have focus
-        //   return document.activeElement == document.body;
-        // })
+        .setDefaultContinuation(Continuation.Continue)
+        .filterAllow((event) => {
+          let active = document.activeElement;
+          return active == null || active.tagName != "INPUT";
+        })
+        .onKey("Backspace", this, this.searchBackspace)
         .onKey("ArrowRight", this, this.nextImage)
         .onKey("ArrowLeft", this, this.previousImage)
         .onKey("[", this, this.rotateCCW)
@@ -138,6 +140,11 @@ export class QuickTagsComponent extends ComponentBase {
         .listenTo(this.dom, ".big-view")
         .onClick(this, this.openPreviewWindow)
         .build(),
+      BuildClickHandler()
+        .setDefaultContinuation(Continuation.StopAll)
+        .listenTo(this.dom, ".images img")
+        .onClick(this, this.onSelectImage)
+        .build(),
       BuildCustomEventHandler()
         .emitter(media.getVisibleItems().getUpdatedEvent())
         .onEvent(this, this.onFileChange)
@@ -152,6 +159,14 @@ export class QuickTagsComponent extends ComponentBase {
     this.createTags();
     this.focusIndex = 0;
     this.fillImages();
+  }
+
+  onSelectImage(target, event, handler) {
+    let offset = this.dom.getData(target, "offset");
+    if (offset != 0) {
+      this.focusIndex += offset;
+      this.fillImages();
+    }
   }
 
   nextTag() {
@@ -170,6 +185,7 @@ export class QuickTagsComponent extends ComponentBase {
         await this.selectTag(tag);
       }
       this.fillImages();
+      return Continuation.StopAll;
     }
   }
   async selectHotkey(key) {
@@ -182,12 +198,10 @@ export class QuickTagsComponent extends ComponentBase {
         await this.selectTag(tag);
       }
       this.fillImages();
+      return Continuation.StopAll;
     }
   }
-  keyPress(key) {
-    log.debug("press ", key);
-    return Continuation.Continue;
-  }
+
   getTagForElement(element) {
     const id = this.dom.getDataWithParent(element, "id");
     return media.getTagById(id);
@@ -200,7 +214,7 @@ export class QuickTagsComponent extends ComponentBase {
     while (this.recent.length > 10) {
       this.recent.shift();
     }
-    this.recent.push(tag);
+    this.recent.concat(tag);
     this.fillRecentTags();
   }
   async selectTag(tag) {
@@ -209,6 +223,9 @@ export class QuickTagsComponent extends ComponentBase {
       await media.tagAddFile(tag, this.currentImage);
       this.fillImageTags(this.currentImage);
       this.addRecent(tag);
+      this.searchText = "";
+      this.searchCursorPosition = 0;
+      fillSearch();
     }
   }
 
@@ -217,6 +234,9 @@ export class QuickTagsComponent extends ComponentBase {
     if (this.currentImage.hasTag(tag)) {
       await media.tagRemoveFile(tag, this.currentImage);
       this.fillImageTags(this.currentImage);
+      this.searchText = "";
+      this.searchCursorPosition = 0;
+      fillSearch();
     }
   }
 
@@ -251,32 +271,31 @@ export class QuickTagsComponent extends ComponentBase {
     if (this.focusIndex > visible.Length - 1) {
       this.focusIndex = visible.Length - 1;
     }
-    media.getLastFocusIndex(this.focusIndex);
+
     this.currentImage = visible.getItemAt(this.focusIndex);
-    this.imageWindow.setImage(this.currentImage);
-    for (var idx = this.focusIndex - 3; idx <= this.focusIndex + 3; idx++) {
-      var item = visible.getItemAt(idx);
-      const image = images.shift();
-      this.dom.removeClass(image, `rotate-270`);
-      this.dom.removeClass(image, `rotate-90`);
+    while (images.length > 0) {
+      let img = images.shift();
+      let offset = this.dom.getData(img, "offset");
+      let item = this.visibleItems.getItemAt(offset + this.focusIndex);
       if (item == null) {
-        this.dom.setAttribute(image, "src", "image/1x1.png");
+        this.dom.setAttribute(img, "src", "image/1x1.png");
       } else {
-        if (idx == this.focusIndex) {
-          this.dom.setAttribute(image, "src", item.getImageReloadUrl());
-        } else {
-          //this.dom.setAttribute(image, "src", item.getThumbnailUrl());
-          log.never("set image", image, " to " + item.getThumbnailUrl());
+        if (this.dom.hasClass(img, "thumb")) {
+          this.dom.setAttribute(img, "src", item.getThumbnailUrl());
+          this.dom.removeChildren(img, "rotate-90");
+          this.dom.removeChildren(img, "rotate-360");
           if (item.RotationDegrees) {
             this.dom.addClass(
-              image,
+              img,
               `rotate-${(item.RotationDegrees + 360) % 360}`
             );
           }
-          image.src = item.getThumbnailUrl() + "&b=" + Date.now();
+        } else {
+          this.dom.setAttribute(img, "src", item.getImageReloadUrl());
         }
       }
     }
+
     this.fillImageTags(this.currentImage);
     this.checkTagTree(this.currentImage);
   }
@@ -326,11 +345,23 @@ export class QuickTagsComponent extends ComponentBase {
   }
 
   hoverStart(target) {
+    log.debug(
+      "hover end blur ",
+      target,
+      this.dom.getDataWithParent(target, "id")
+    );
+    log.debug("old focus: ", document.activeElement);
     this.dom.setFocus(target, 'input[name="hotkey"]');
+    log.debug("new focus: ", document.activeElement);
   }
 
   hoverEnd(target) {
-    this.dom.blur(target, 'input[name="hotkey"]');
+    log.debug(
+      "hover end blur ",
+      target,
+      this.dom.getDataWithParent(target, "id")
+    );
+    // this.dom.blur(target, 'input[name="hotkey"]');
   }
 
   getNodeTag(target, event) {
@@ -356,17 +387,27 @@ export class QuickTagsComponent extends ComponentBase {
   }
 
   setHotkey(tag, key) {
+    if (tag == null) {
+      return;
+    }
     if (key == "w") {
       alert(
         "CTRL-w cannot be used as a hotkey. The browser uses it to close the window."
       );
       return;
     }
-    var oldTag = this.getHotkeyForTag(tag);
-    var oldHotkey = this.getTagForHotkey(key);
-    if (oldHotkey != key) {
-      this.hotkeys[key] = tag.Id;
-      this.settings.set("hotkeys", this.hotkeys);
+    for (var oldKey of Object.keys(this.hotkeys)) {
+      let oldTagId = this.hotkeys[oldKey];
+      if (oldTagId == tag.Id) {
+        delete this.hotkeys[oldKey];
+      }
+    }
+    if (key != null) {
+      var oldHotkey = this.getTagForHotkey(key);
+      if (oldHotkey != key) {
+        this.hotkeys[key] = tag.Id;
+        this.settings.set("hotkeys", this.hotkeys);
+      }
     }
   }
 
@@ -388,12 +429,22 @@ export class QuickTagsComponent extends ComponentBase {
     return null;
   }
 
-  onHotkeyChange(tag, key, target) {
-    key = key.toLowerCase();
+  onHotkeyChange(tag, value, target) {
+    log.debug("hotkey change ", value, tag.Name);
+    let key = value.slice(-1).toLowerCase().trim();
+    if (key == "") {
+      this.setHotkey(tag, null);
+      this.fillHotkeys();
+      return Continuation.StopAll;
+    }
     if (key >= "a" && key <= "z") {
+      const old = this.getTagForHotkey(key);
+      this.setHotkey(old, null);
       target.value = key;
       this.setHotkey(tag, key);
-      this.createTags();
+      // createtags rebuilds tree and loses focus
+      //this.createTags();
+      this.fillHotkeys();
       return Continuation.StopAll;
     }
   }
@@ -478,92 +529,33 @@ export class QuickTagsComponent extends ComponentBase {
       const childTags = this.tags.search((child) => {
         return child.ParentId == tag.Id;
       });
+
       const children = this.dom.first(element, ".children");
       this.insertTags(children, childTags);
     }
   }
 
-  async onAdd(parent) {
-    const id = parent == null ? null : parent.Id;
-    log.debug("add tag with parent ", id);
-    const form = this.addTemplate.fill({
-      ".parent": parent == null ? "/" : media.getTagPath(id),
-      "[name='parentId']": id,
-    });
-    const dialog = new Dialog(form, async (values) => {
-      log.debug("add ", values);
-      const tag = await media.createTag(id, values.name);
-      this.createTags();
-      var element = this.dom.first(`.tag[data-id='${tag.Id}']`);
-      this.dom.addClass(element, "new");
-      this.dom.removeClass(element, "new");
-      return true;
-    });
-    dialog.show();
-  }
-
-  async onEdit(tag) {
-    log.debug("add tag ", tag.Id, tag.Name);
-    const form = this.editTemplate.fill({
-      ".parent": media.getTagPath(tag.ParentId),
-      "[name='name']": new InputValue(tag.Name),
-      "[name='tagId']": new InputValue(tag.id),
-    });
-    const dialog = new Dialog(form, async (values) => {
-      log.debug("add ", values);
-      const update = await media.updateTag(tag.Id, values.name, tag.ParentId);
-      this.createTags();
-      var element = this.dom.first(`.tag[data-id='${tag.Id}']`);
-      this.dom.addClass(element, "new");
-      this.dom.removeClass(element, "new");
-      return true;
-    });
-    dialog.show();
-  }
-
-  async onHide(tag) {
-    log.debug("hide tag ", tag.Id, tag.Name);
-    await media.updateTag(tag.Id, tag.Name, tag.ParentId, true);
-    this.createTags();
-  }
-
-  onDragStart(target, event) {
-    this.dragging = target;
-    log.debug("drag start");
-    this.dom.addClass(target, "dragging");
-    this.dropHandler = BuildDropHandler()
-      .listenTo(".tag")
-      .onOver((target) => {
-        this.dom.addClass(target, "drag-over");
-      })
-      .onLeave((target) => {
-        this.dom.removeClass(target, "drag-over");
-      })
-      .onDrop(this, this.drop)
-      .build();
-  }
-  onDragEnd(target, event) {
-    log.debug("drag end");
-    this.dom.removeClass(target, "dragging");
-  }
-  onDrag(target, event) {
-    log.debug("drag ");
-  }
-
-  async drop(target, event) {
-    log.debug("drop");
-    this.dom.removeClass(target, "drag-over");
-    const moveTagId = this.dom.getData(this.dragging, "id");
-    var moveToId = this.dom.getData(target, "id");
-    const tag = media.getTagById(moveTagId);
-    if (moveToId == "root") {
-      moveToId = null;
+  keyPress(key) {
+    log.debug("press ", key);
+    log.debug("input ", document.activeElement);
+    if (document.activeElement != document.body) {
+      // don't do anything if another element has focus
+      log.debug("ignore");
+      return Continuation.Continue;
     }
-    await media.updateTag(tag.Id, tag.Name, moveToId);
-    this.createTags();
-    var element = this.dom.first(`.tag[data-id='${moveTagId}']`);
-    this.dom.addClass(element, "new");
-    this.dom.removeClass(element, "new");
-    log.debug("move ", moveTagId, " to ", moveToId);
+    this.searchText = this.searchText.concat(key);
+    this.searchCursorPosition += 1;
+    this.fillSearch();
+    return Continuation.StopAll;
+  }
+
+  searchBackspace() {
+    this.searchText = this.searchText.slice(0, -1);
+    this.fillSearch();
+    return Continuation.StopAll;
+  }
+  fillSearch() {
+    this.dom.setInnerHTML(".search .start", this.searchText);
+    this.dom.toggleClass(".search", "active", this.searchText.length > 0);
   }
 }

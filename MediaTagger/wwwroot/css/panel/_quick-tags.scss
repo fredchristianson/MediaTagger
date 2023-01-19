@@ -70,6 +70,39 @@
             flex: 1 1 auto;
             overflow: auto;
         }
+
+        .search {
+            height: 2em;
+            line-height: 2em;
+            border: 1px solid black;
+            color: 1px solid #777;
+            background-color: white;
+            display: block;
+            padding: 2px;
+            width: 50em;
+            position: relative;
+            .start:empty::after{
+                content: '  search...';
+                color: #aaa;
+                position: absolute;
+                top: 0px;
+                left: 4px;
+            }
+            .cursor {
+                width: 2px;
+                background-color: #777;
+                height: 80%;
+                top: 10%;
+                display:none;
+                            animation-duration: 0.5s;
+                                animation-name: cursorBlink;
+                                animation-iteration-count: infinite;
+                                animation-direction: alternate;
+            }
+            &.active .cursor {
+                display: inline-block;
+            }
+        }
     }
 
     .small {
@@ -126,7 +159,7 @@
             font-size: var(--small-font-size);
 
             input {
-                width: 20px;
+                width: 40px;
                 display: inline-block;
                 text-align: center;
             }
@@ -181,4 +214,16 @@
         display: block;
         text-align: center;
     }
+
+        @keyframes cursorBlink {
+            from {
+                width: 0px;
+            }
+    
+            to {
+                width: 1px;
+            }
+        }
+    
+    
 }

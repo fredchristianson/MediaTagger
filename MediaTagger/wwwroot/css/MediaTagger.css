@@ -885,6 +885,42 @@ label.check-state[data-state=unchecked]::after {
   flex: 1 1 auto;
   overflow: auto;
 }
+#quick-tags .tag-tree .search {
+  height: 2em;
+  line-height: 2em;
+  border: 1px solid black;
+  color: 1px solid #777;
+  background-color: white;
+  display: block;
+  padding: 2px;
+  width: 50em;
+  position: relative;
+}
+#quick-tags .tag-tree .search .start:empty::after {
+  content: "  search...";
+  color: #aaa;
+  position: absolute;
+  top: 0px;
+  left: 4px;
+}
+#quick-tags .tag-tree .search .cursor {
+  width: 2px;
+  background-color: #777;
+  height: 80%;
+  top: 10%;
+  display: none;
+  -webkit-animation-duration: 0.5s;
+          animation-duration: 0.5s;
+  -webkit-animation-name: cursorBlink;
+          animation-name: cursorBlink;
+  -webkit-animation-iteration-count: infinite;
+          animation-iteration-count: infinite;
+  -webkit-animation-direction: alternate;
+          animation-direction: alternate;
+}
+#quick-tags .tag-tree .search.active .cursor {
+  display: inline-block;
+}
 #quick-tags .small {
   margin: 1em 4px;
 }
@@ -938,7 +974,7 @@ label.check-state[data-state=unchecked]::after {
   font-size: var(--small-font-size);
 }
 #quick-tags .tag.node .hotkey input {
-  width: 20px;
+  width: 40px;
   display: inline-block;
   text-align: center;
 }
@@ -983,6 +1019,22 @@ label.check-state[data-state=unchecked]::after {
   font-style: italic;
   display: block;
   text-align: center;
+}
+@-webkit-keyframes cursorBlink {
+  from {
+    width: 0px;
+  }
+  to {
+    width: 1px;
+  }
+}
+@keyframes cursorBlink {
+  from {
+    width: 0px;
+  }
+  to {
+    width: 1px;
+  }
 }
 
 .hidden {

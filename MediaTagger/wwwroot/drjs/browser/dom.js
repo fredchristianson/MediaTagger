@@ -203,26 +203,33 @@ export class DOM {
     });
   }
 
-  getData(element, name) {
+  getData(element, name, type) {
     assert.notNull(element, "getData requires an element");
     assert.notEmpty(name, "getData requires a name");
     if (!name.startsWith("data-")) {
       name = `data-${name}`;
     }
-    const val = element.getAttribute(name);
+    let val = element.getAttribute(name);
+    if (val != null) {
+      try {
+        if (type == "number" || /^-?[0-9]*\.?[0-9]*$/.test(val)) {
+          val = parseFloat(val);
+        } else if (type == "date") {
+          val = Date.parse(val);
+        }
+      } catch {
+        log.debug("unable to convert data value", val);
+      }
+    }
     return val;
   }
 
-  getDataWithParent(element, name) {
+  getDataWithParent(element, name, type = null) {
     if (element == null) {
       return null;
     }
-    assert.notNull(element, "getData requires an element");
-    assert.notEmpty(name, "getData requires a name");
-    if (!name.startsWith("data-")) {
-      name = `data-${name}`;
-    }
-    const val = element.getAttribute(name);
+
+    const val = this.getData(element, name, type);
     if (val == null) {
       return this.getDataWithParent(element.parentElement, name);
     }
