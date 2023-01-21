@@ -169,12 +169,12 @@ export class TagManagerComponent extends ComponentBase {
     log.debug("drag start");
     this.dom.addClass(target, "dragging");
     this.dropHandler = BuildDropHandler()
-      .listenTo(".tag")
+      .listenTo(".tag .self")
       .onOver((target) => {
-        this.dom.addClass(target, "drag-over");
+        this.dom.addClass(this.dom.closest(target, ".tag"), "drag-over");
       })
       .onLeave((target) => {
-        this.dom.removeClass(target, "drag-over");
+        this.dom.removeClass(this.dom.closest(target, ".tag"), "drag-over");
       })
       .onDrop(this, this.drop)
       .build();
@@ -191,7 +191,7 @@ export class TagManagerComponent extends ComponentBase {
     log.debug("drop");
     this.dom.removeClass(target, "drag-over");
     const moveTagId = this.dom.getData(this.dragging, "id");
-    var moveToId = this.dom.getData(target, "id");
+    var moveToId = this.dom.getDataWithParent(target, "id");
     const tag = media.getTagById(moveTagId);
     if (moveToId == "root") {
       moveToId = null;

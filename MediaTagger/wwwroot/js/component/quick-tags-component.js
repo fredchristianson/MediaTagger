@@ -30,11 +30,18 @@ import { Dialog } from "../controls/dialog.js";
 import { OnNextLoop } from "../../drjs/browser/timer.js";
 import { imageWindow } from "../controls/image-window.js";
 import MediaEntity from "../data/media-entity.js";
-const log = Logger.create("TagManager", LOG_LEVEL.DEBUG);
+import {
+  SearchWord,
+  SearchLevel,
+  SearchPhrase,
+} from "../modules/tag-search.js";
+import { Assert } from "../../drjs/assert.js";
+
+const log = Logger.create("QuickTags", LOG_LEVEL.DEBUG);
 
 function sortTagPaths(tags) {
   const paths = tags.map((t) => {
-    return media.getTagPath(t).substring(1).split("/");
+    return media.getTagPath(t).split("/");
   });
   const sorted = paths.sort((a, b) => {
     for (let step = 0; step < a.length && step < b.length; step++) {
@@ -62,9 +69,6 @@ export class QuickTagsComponent extends ComponentBase {
     super(selector, htmlName);
     this.listeners = new Listeners();
     this.dropHandler = null;
-
-    media.clearFilter();
-    media.addFilter(this.filterItem.bind(this));
   }
 
   onDetach() {
@@ -74,12 +78,12 @@ export class QuickTagsComponent extends ComponentBase {
 
   async onHtmlInserted(parent) {
     //window.addEventListener("beforeunload", stopBrowserClose, true);
-    this.visibleItems = media.getVisibleItems();
     this.settings = await Settings.load("quick-tags");
     this.tags = media.getTags();
     this.hotkeys = this.settings.get("hotkeys", {});
     this.searchText = "";
     this.searchCursorPosition = 0;
+    this.searchPhrase = new SearchPhrase();
     this.nodeTemplate = new HtmlTemplate(
       this.dom.first(".quick-tag-tree-node-template")
     );
@@ -111,24 +115,26 @@ export class QuickTagsComponent extends ComponentBase {
         .build(),
       BuildKeyHandler()
         .setDefaultContinuation(Continuation.Continue)
-        .filterAllow((event) => {
-          let active = document.activeElement;
-          return active == null || active.tagName != "INPUT";
-        })
-        .onKey("Backspace", this, this.searchBackspace)
+        // .filterAllow((event) => {
+        //   let active = document.activeElement;
+        //   log.debug("filter ", active, active?.tagName);
+        //   return active == null || active.tagName != "INPUT";
+        // })
+        .onKey("Backspace", this, this.keyPress)
         .onKey("ArrowRight", this, this.nextImage)
+        .onKey(Key("="), this, this.nextImage)
         .onKey("ArrowLeft", this, this.previousImage)
+        .onKey(Key("-"), this, this.previousImage)
         .onKey("[", this, this.rotateCCW)
         .onKey("]", this, this.rotateCW)
-        // .onKey(Key.Escape, () => {
-        //   this.dom.blur(this.dom.getFocus());
-        // })
+        .onKey(Key.Escape, this, this.resetSearch)
         .onKey(Key.Tab.withoutShift(), this, this.nextTag)
         .onKey(Key.Tab.withShift(), this, this.prevTag)
-        .onKey(Key.Regex(/[0-9]/).withCtrl(), this, this.selectRecent)
-        .onKey(Key.Regex(/[a-z]/).withCtrl(), this, this.selectHotkey)
+        .onKey(Key.Enter, this, this.toggleTagSelect)
+        .onKey(Key.Regex(/[0-9]/).withAlt(), this, this.selectRecent)
+        .onKey(Key.Regex(/[a-z]/).withAlt(), this, this.selectHotkey)
         .onKey(
-          Key.Regex(/[a-zA-Z0-9\/]/)
+          Key.Regex(/[a-zA-Z0-9\/\s]/)
             .withoutAlt()
             .withoutCtrl(),
           this,
@@ -145,6 +151,11 @@ export class QuickTagsComponent extends ComponentBase {
         .listenTo(this.dom, ".images img")
         .onClick(this, this.onSelectImage)
         .build(),
+      BuildClickHandler()
+        .setDefaultContinuation(Continuation.StopAll)
+        .listenTo(this.dom, ".create-tag")
+        .onClick(this, this.onCreateTag)
+        .build(),
       BuildCustomEventHandler()
         .emitter(media.getVisibleItems().getUpdatedEvent())
         .onEvent(this, this.onFileChange)
@@ -156,6 +167,10 @@ export class QuickTagsComponent extends ComponentBase {
         .onUnchecked(this, this.unselectTag)
         .build()
     );
+    media.clearFilter();
+    media.addFilter(this.filterItem.bind(this));
+    this.visibleItems = media.getVisibleItems();
+
     this.createTags();
     this.focusIndex = 0;
     this.fillImages();
@@ -169,12 +184,6 @@ export class QuickTagsComponent extends ComponentBase {
     }
   }
 
-  nextTag() {
-    log.debug("nextTag");
-  }
-  prevTag() {
-    log.debug("prevTag");
-  }
   async selectRecent(key) {
     log.debug("recent ", key);
     const tag = this.recent[key];
@@ -188,7 +197,8 @@ export class QuickTagsComponent extends ComponentBase {
       return Continuation.StopAll;
     }
   }
-  async selectHotkey(key) {
+  async selectHotkey(key, target, event) {
+    event.preventDefault();
     log.debug("hotkey ", key);
     const tag = this.getTagForHotkey(key);
     if (tag != null) {
@@ -214,7 +224,7 @@ export class QuickTagsComponent extends ComponentBase {
     while (this.recent.length > 10) {
       this.recent.shift();
     }
-    this.recent.concat(tag);
+    this.recent.push(tag);
     this.fillRecentTags();
   }
   async selectTag(tag) {
@@ -222,10 +232,8 @@ export class QuickTagsComponent extends ComponentBase {
     if (!this.currentImage.hasTag(tag)) {
       await media.tagAddFile(tag, this.currentImage);
       this.fillImageTags(this.currentImage);
+      this.resetSearch();
       this.addRecent(tag);
-      this.searchText = "";
-      this.searchCursorPosition = 0;
-      fillSearch();
     }
   }
 
@@ -233,10 +241,8 @@ export class QuickTagsComponent extends ComponentBase {
     log.debug("unselect tag ", tag);
     if (this.currentImage.hasTag(tag)) {
       await media.tagRemoveFile(tag, this.currentImage);
+      this.resetSearch();
       this.fillImageTags(this.currentImage);
-      this.searchText = "";
-      this.searchCursorPosition = 0;
-      fillSearch();
     }
   }
 
@@ -252,11 +258,13 @@ export class QuickTagsComponent extends ComponentBase {
   nextImage() {
     this.focusIndex += 1;
     this.fillImages();
+    return Continuation.PreventDefault;
   }
 
   previousImage() {
     this.focusIndex -= 1;
     this.fillImages();
+    return Continuation.PreventDefault;
   }
 
   fillImages() {
@@ -295,6 +303,7 @@ export class QuickTagsComponent extends ComponentBase {
         }
       }
     }
+    this.imageWindow.setImage(this.currentImage);
 
     this.fillImageTags(this.currentImage);
     this.checkTagTree(this.currentImage);
@@ -345,23 +354,11 @@ export class QuickTagsComponent extends ComponentBase {
   }
 
   hoverStart(target) {
-    log.debug(
-      "hover end blur ",
-      target,
-      this.dom.getDataWithParent(target, "id")
-    );
-    log.debug("old focus: ", document.activeElement);
-    this.dom.setFocus(target, 'input[name="hotkey"]');
-    log.debug("new focus: ", document.activeElement);
+    this.hover = target;
   }
 
   hoverEnd(target) {
-    log.debug(
-      "hover end blur ",
-      target,
-      this.dom.getDataWithParent(target, "id")
-    );
-    // this.dom.blur(target, 'input[name="hotkey"]');
+    this.hover = null;
   }
 
   getNodeTag(target, event) {
@@ -390,12 +387,7 @@ export class QuickTagsComponent extends ComponentBase {
     if (tag == null) {
       return;
     }
-    if (key == "w") {
-      alert(
-        "CTRL-w cannot be used as a hotkey. The browser uses it to close the window."
-      );
-      return;
-    }
+
     for (var oldKey of Object.keys(this.hotkeys)) {
       let oldTagId = this.hotkeys[oldKey];
       if (oldTagId == tag.Id) {
@@ -411,10 +403,14 @@ export class QuickTagsComponent extends ComponentBase {
     }
   }
 
-  getHotkeyForTag(tag) {
+  getHotkeyForTag(tagId) {
+    let searchId = tagId;
+    if (typeof tagId == "object") {
+      searchId = tagId.Id;
+    }
     for (var key of Object.keys(this.hotkeys)) {
       var tagId = this.hotkeys[key];
-      if (tagId == tag.Id) {
+      if (tagId == searchId) {
         return key;
       }
     }
@@ -483,7 +479,7 @@ export class QuickTagsComponent extends ComponentBase {
   fillHotkeys() {
     const hotkeys = this.dom.first(".keys");
     this.dom.removeChildren(hotkeys);
-    for (var key of Object.keys(this.hotkeys).sort()) {
+    for (let key of Object.keys(this.hotkeys).sort()) {
       const tag = this.hotkeys[key];
       if (tag != null) {
         const row = this.keyTemplate.fill({
@@ -495,6 +491,13 @@ export class QuickTagsComponent extends ComponentBase {
         });
         this.dom.append(hotkeys, row);
       }
+    }
+
+    let treeKeys = this.dom.find(".tag.node .hotkey .key");
+    for (let key of treeKeys) {
+      const id = this.dom.getDataWithParent(key, "id");
+      const k = this.getHotkeyForTag(id);
+      this.dom.setInnerHTML(key, k);
     }
   }
 
@@ -521,9 +524,13 @@ export class QuickTagsComponent extends ComponentBase {
     });
     for (var tag of tags) {
       const element = this.nodeTemplate.fill({
-        ".tag": new DataValue("id", tag.id),
-        ".name": tag.name,
-        ".hotkey input": this.getHotkeyForTag(tag),
+        ".tag": [
+          new DataValue("id", tag.id),
+          new DataValue("name", tag.name),
+          new DataValue("path", media.getTagPath(tag)),
+        ],
+        ".name": [new HtmlValue(tag.name)],
+        ".hotkey .start.key": this.getHotkeyForTag(tag),
       });
       this.dom.append(parent, element);
       const childTags = this.tags.search((child) => {
@@ -536,15 +543,35 @@ export class QuickTagsComponent extends ComponentBase {
   }
 
   keyPress(key) {
-    log.debug("press ", key);
-    log.debug("input ", document.activeElement);
-    if (document.activeElement != document.body) {
-      // don't do anything if another element has focus
-      log.debug("ignore");
-      return Continuation.Continue;
+    if (this.hover) {
+      return this.hoverKeyPress(key);
+    } else {
+      return this.searchKeyPress(key);
     }
-    this.searchText = this.searchText.concat(key);
-    this.searchCursorPosition += 1;
+  }
+
+  hoverKeyPress(key) {
+    if (this.hover == null) {
+      log.error("hoverKeyPress called with no hover element");
+    }
+    log.debug("hover keypress", key);
+    let tag = this.getTagForElement(this.hover);
+    if (key == "Backspace") {
+      this.setHotkey(tag, null);
+    } else {
+      let lc = key.toLowerCase();
+      if (lc >= "a" && lc <= "z") {
+        this.setHotkey(tag, lc);
+      }
+    }
+    this.fillHotkeys();
+  }
+  searchKeyPress(key) {
+    if (key == "Backspace") {
+      this.searchText = this.searchText.slice(0, -1);
+    } else {
+      this.searchText = this.searchText.concat(key);
+    }
     this.fillSearch();
     return Continuation.StopAll;
   }
@@ -554,8 +581,181 @@ export class QuickTagsComponent extends ComponentBase {
     this.fillSearch();
     return Continuation.StopAll;
   }
+
+  resetSearch() {
+    this.searchText = "";
+    this.searchCursorPosition = 0;
+    this.searchLevels = [];
+    this.dom.setInnerHTML(".search .start", "");
+    this.fillSearch();
+    this.fillTree();
+    this.dom.hide("div.create");
+  }
   fillSearch() {
-    this.dom.setInnerHTML(".search .start", this.searchText);
+    let phrase = new SearchPhrase();
+    let word = new SearchWord();
+    let levelText = this.searchText.split("/");
+    var levels = levelText.map((text) => {
+      return text.split(/\s+/).filter((t) => {
+        return t != "";
+      });
+    });
+    if (levels[0] == "") {
+      levels.shift();
+    }
+    for (let level of levels) {
+      var searchLevel = new SearchLevel();
+      for (let word of level) {
+        let searchWord = new SearchWord(word);
+        searchLevel.add(searchWord);
+      }
+      phrase.addLevel(searchLevel);
+    }
+
+    this.dom.setInnerHTML(".search .start", phrase.format());
     this.dom.toggleClass(".search", "active", this.searchText.length > 0);
+    this.searchNodes(phrase);
+  }
+
+  searchNodes(phrase) {
+    let tags = this.dom.find(".tag-tree .tags .tag");
+    this.dom.hide(".tag-tree div.create");
+    this.dom.remove(".new");
+    let firstMatch = true;
+    for (let tag of tags) {
+      log.never("search ", tag, phrase);
+      let path = this.dom.getData(tag, "path");
+      let match = phrase.match(path);
+      let label = this.dom.first(tag, "span.name");
+      let html = this.formatHtml(path, match);
+      if (match.Success && match.NameMatch && match.Remainder?.length > 0) {
+        this.dom.setData(tag, "can_create", match.Remainder);
+      } else {
+        this.dom.removeData(tag, "can_create");
+      }
+      this.dom.setInnerHTML(label, html);
+      if (match.Success) {
+        log.debug("match ", path, match);
+      }
+      this.dom.toggleClass(tag, "match", match.Success);
+    }
+    let createParent = "/";
+    let createName = this.searchText;
+    for (let checkMatch of tags) {
+      this.dom.removeClass(checkMatch, "selected");
+      const isMatch = this.dom.hasClass(checkMatch, "match");
+      const childMatch = this.dom.first(checkMatch, ".match");
+      if (childMatch || isMatch) {
+        this.dom.show(checkMatch);
+        if (firstMatch && isMatch) {
+          this.dom.addClass(checkMatch, "selected");
+
+          firstMatch = false;
+        }
+        let newChild = this.dom.getData(checkMatch, "can_create");
+        let path = this.dom.getData(checkMatch, "path");
+        if (newChild && path.length > createParent.length) {
+          createParent = path;
+          createName = newChild;
+        }
+      } else {
+        this.dom.show(checkMatch, false);
+      }
+    }
+    this.showCreate(createParent, createName);
+  }
+
+  showCreate(parent, name) {
+    const tag = media.getTags().getPath(`${parent}/${name}`);
+    if (tag != null) {
+      this.dom.hide("div.create");
+    } else {
+      this.dom.show("div.create");
+      this.dom.setInnerHTML("div.create .parent", parent);
+      this.dom.setInnerHTML("div.create .name", name);
+    }
+  }
+  formatHtml(path, match) {
+    if (match.Parts.length == 0) {
+      var idx = path.lastIndexOf("/");
+      return path.slice(idx + 1);
+    }
+    if (match.Parts.lengh == 0) {
+      return path;
+    }
+    let html = "<div>";
+    for (var part of match.Parts) {
+      if (part.isDivider) {
+        html = "<div>";
+      } else if (part.IsSkip) {
+        html += `<div class="word">${part.Text}</div>`;
+      } else {
+        html += `<div class="word"><b>${part.Text}</b></div>`;
+      }
+    }
+    html = html + "</div>";
+    return html;
+  }
+
+  async onCreateTag(target, event, handler) {
+    const tags = media.getTags();
+    const parentPath = this.dom.getInnerHTML("div.create .parent");
+    let parent = tags.getPath(parentPath);
+    const name = this.dom.getInnerHTML("div.create .name");
+    Assert.notNull(name, "createTag doesn't have a name");
+    let parts = name.split("/");
+    for (let part of parts) {
+      let newName = part.trim();
+      if (newName != null && newName != "") {
+        let child = await media.createTag(parent, newName);
+        parent = child;
+      }
+    }
+    this.resetSearch();
+    this.fillTree();
+  }
+
+  async toggleTagSelect() {
+    let node = this.dom.first(".tag.node.selected");
+    let tagId = this.dom.getDataWithParent(node, "id");
+    let tag = media.getTagById(tagId);
+    if (tag != null) {
+      if (this.currentImage.hasTag(tag)) {
+        this.unselectTag(tag);
+      } else {
+        this.selectTag(tag);
+      }
+    }
+  }
+
+  nextTag() {
+    log.debug("nextTag");
+    let sel = this.dom.first(".tag.node.selected");
+    let matches = this.dom.find(".tag.node.match");
+    if (matches.length > 1) {
+      let idx = matches.indexOf(sel);
+      idx = (idx + 1) % matches.length;
+      const next = matches[idx];
+      if (next) {
+        this.dom.removeClass(sel, "selected");
+        this.dom.addClass(next, "selected");
+      }
+    }
+    return Continuation.StopAll;
+  }
+  prevTag() {
+    log.debug("nextTag");
+    let sel = this.dom.first(".tag.node.selected");
+    let matches = this.dom.find(".tag.node.match");
+    if (matches.length > 1) {
+      let idx = matches.indexOf(sel);
+      idx = idx == 0 ? match.lengh - 1 : idx - 1;
+      const next = matches[idx];
+      if (next) {
+        this.dom.removeClass(sel, "selected");
+        this.dom.addClass(next, "selected");
+      }
+    }
+    return Continuation.StopAll;
   }
 }

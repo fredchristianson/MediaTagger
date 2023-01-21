@@ -16,7 +16,7 @@
 
 <body>
   @{
-    IgnoreBody(); 
+    IgnoreBody();
   }
 
 
@@ -30,7 +30,9 @@
     env.load(`../js/env-${location.hostname}.js`);
     import { LOG_LEVEL, Logger } from "/drjs/logger.js";
     import ConsoleLogWriter from "/drjs/log-writer-console.js";
+
     var console = new ConsoleLogWriter(LOG_LEVEL.DEBUG);
+
     var log = new Logger("MediaTagger");
     const { default: MediaTaggerApp } = await import('../js/mt-app.js');
     var app = new MediaTaggerApp();

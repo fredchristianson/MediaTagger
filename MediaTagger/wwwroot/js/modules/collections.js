@@ -6,6 +6,7 @@ import {
   BuildCustomEventHandler,
 } from "../../drjs/browser/event.js";
 import UTIL from "../../drjs/util.js";
+import { Assert } from "../../drjs/assert.js";
 const log = Logger.create("Collections", LOG_LEVEL.INFO);
 
 var filteredEvent = new ObjectEventType("__collection-filtered");
@@ -461,6 +462,31 @@ export class ObservableTree extends ObservableArray {
     return [...this].find((item) => {
       return item.getParentId() == parentId && item.getName() == name;
     });
+  }
+  getPath(path, divider = "/") {
+    Assert.type(path, "string", "getPath() requires a string path");
+    const levels = path.split(divider);
+    let nodes = this.getTopNodes();
+    let found = null;
+    for (let idx = 0; idx < levels.length; idx++) {
+      let level = levels[idx];
+      let name = level.trim();
+      if (nodes != null && name.length > 0) {
+        const next = nodes.find((node) => {
+          return (
+            node.Name.localeCompare(name, undefined, {
+              sensitivity: "accent",
+            }) == 0
+          );
+        });
+        if (next == null) {
+          return null;
+        }
+        found = next;
+        nodes = this.getChildren(next);
+      }
+    }
+    return found;
   }
 }
 

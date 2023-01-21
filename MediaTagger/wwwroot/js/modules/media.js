@@ -569,10 +569,10 @@ class Media {
     if (tag == null) {
       return "--";
     }
-    var path = "/" + tag.getName();
+    var path = tag.getName();
     var parent = tags.findById(tag.getParentId());
     if (parent != null) {
-      path = this.getTagPath(parent) + path;
+      path = this.getTagPath(parent) + "/" + path;
     }
     return path;
   }

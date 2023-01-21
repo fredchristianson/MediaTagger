@@ -82,6 +82,9 @@ class Assert {
   }
 
   type(object, type, message) {
+    if (type == "string" || type == "number" || type == "boolean") {
+      return typeof object == type;
+    }
     if (Array.isArray(type)) {
       const hasOne = type.some((t) => {
         return object instanceof t;

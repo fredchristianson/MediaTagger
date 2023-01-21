@@ -4,7 +4,7 @@
     <div class="images">
       <div class="prev small">
         <div class="prev-3">
-          <img class="thumb" data-offset="-3"/>
+          <img class="thumb" data-offset="-3" />
         </div>
         <div class="prev-2"><img class="thumb" data-offset="-2" /></div>
         <div class="prev-1"><img class="thumb" data-offset="-1" /></div>
@@ -23,20 +23,31 @@
   </div>
   <div class="quick-select">
     <div class="hotkey">
-      <h6>CTRL+</h6><h5> Shortcuts</h5>
+      <h6>ALT+</h6>
+      <h5> Shortcuts</h5>
       <div class="keys">
 
       </div>
     </div>
     <div class="recent-tags">
-      <h6>CTRL+</h6><h5>Recent</h5>
+      <h6>ALT+</h6>
+      <h5>Recent</h5>
       <div class="recent">
-    
+
       </div>
     </div>
   </div>
   <div class="tag-tree">
-    <span class="search"><span class="start"></span><span class="cursor"></span><span class="end"></span></span>
+    <div class="search">
+      <span class="search input">
+        <span class="start"></span><span class="cursor"></span><span class="end"></span>
+      </span>
+    </div>
+    <div class="create" style="display:none">
+      <span class="parent"></span>
+      <span class="name"></span>
+      <button class="create-tag">Create</button>
+    </div>
     <div class="tags"></div>
   </div>
 
@@ -52,7 +63,12 @@
         <input type='checkbox' class='selected' name='selected'><span class='name'></span>
       </label>
       <div class='buttons on-hover'>
-        <span class='hotkey'>CTRL-<input name='hotkey'/></span>
+        <span class='hotkey'>CTRL+
+          <span class="input active">
+            <span class="start key"></span>
+            <span class="cursor"></span>
+          </span>  
+        </span>
         <button class='edit'>edit</button> <button class='hide'>delete</button>
       </div>
       

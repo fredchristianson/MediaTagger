@@ -117,10 +117,14 @@ export class DOM {
     }
   }
 
-  firstSibling(element, selector) {
-    var parent = this.parent(element);
-    if (parent != null) {
-      return this.first(parent, selector);
+  firstSibling(elem, selector) {
+    let element = this.first(elem);
+    while (element != null && element.nextElementSibling != null) {
+      let next = element.nextElementSibling;
+      if (next.matches(selector)) {
+        return next;
+      }
+      element = next;
     }
     return null;
   }
@@ -203,6 +207,12 @@ export class DOM {
     });
   }
 
+  removeData(element, name) {
+    this.toElementArray(element).forEach((elem) => {
+      elem.dataset[name];
+    });
+  }
+
   getData(element, name, type) {
     assert.notNull(element, "getData requires an element");
     assert.notEmpty(name, "getData requires a name");
@@ -225,6 +235,7 @@ export class DOM {
   }
 
   getDataWithParent(element, name, type = null) {
+    element = this.first(element);
     if (element == null) {
       return null;
     }
@@ -427,28 +438,22 @@ export class DOM {
     }
   }
 
-  remove(element) {
-    if (element == null) {
-      return;
-    }
-    if (Array.isArray(element)) {
-      element.forEach(this.remove.bind(this));
-      return;
-    }
-    assert.type(element, HTMLElement, "dom.remove() only works on HTMLElement");
-    const parent = element.parentNode;
-    if (parent != null) {
-      try {
-        parent.removeChild(element);
-      } catch (ex) {
-        log.warn(
-          ex,
-          "failed to remove child.  ok if remove called twice without refresh"
-        );
+  remove(sel) {
+    this.toElementArray(sel).forEach((element) => {
+      const parent = element.parentNode;
+      if (parent != null) {
+        try {
+          parent.removeChild(element);
+        } catch (ex) {
+          log.warn(
+            ex,
+            "failed to remove child.  ok if remove called twice without refresh"
+          );
+        }
+      } else {
+        log.warn("dome.remove called on element that is not in dom");
       }
-    } else {
-      log.warn("dome.remove called on element that is not in dom");
-    }
+    });
   }
 
   append(parent, elements) {
@@ -718,13 +723,29 @@ export class DOM {
 
   setInnerHTML(selector, html) {
     this.toElementArray(selector).forEach((element) => {
-      element.innerHTML = `${html}`;
+      element.innerHTML = `${html ?? ""}`;
     });
   }
   setInnerText(selector, text) {
     this.toElementArray(selector).forEach((element) => {
       element.innerText = `${text}`;
     });
+  }
+
+  getInnerHTML(selector) {
+    let element = this.first(selector);
+    if (element) {
+      return element.innerHTML;
+    }
+    return null;
+  }
+
+  getInnerText(selector) {
+    let element = this.first(selector);
+    if (element) {
+      return element.innerText;
+    }
+    return null;
   }
 
   isElementIn(element, selectors) {
@@ -825,6 +846,7 @@ export class DOM {
   blur(...args) {
     var element = this.first(...args);
     if (element) {
+      //log.always("blur ", element);
       element.blur();
     }
   }

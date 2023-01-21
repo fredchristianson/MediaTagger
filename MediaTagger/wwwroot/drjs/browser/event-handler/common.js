@@ -9,10 +9,10 @@ class Continuation {
     return new Continuation(true, false, false);
   }
   static get StopPropagationImmediate() {
-    return new Continuation(true, true, false);
+    return new Continuation(true, false, true);
   }
   static get PreventDefault() {
-    return new Continuation(false, false, true);
+    return new Continuation(false, true, false);
   }
   static get Continue() {
     return new Continuation(false, false, false);

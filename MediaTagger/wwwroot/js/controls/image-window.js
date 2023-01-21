@@ -50,7 +50,7 @@ class ImageWindow {
       settings.set("top", this.externalWindow.screenTop);
       settings.set("width", this.externalWindow.outerWidth);
       settings.set("height", this.externalWindow.outerHeight);
-      this.externalWindow.location.replace(image.getImageUrl());
+      this.externalWindow.location.replace(image.getImageReloadUrl());
       // may use a cached image.  if .reload() is called before loading
       // finishes, it uses the previous (cached) version.  so wait for load then reload();
       this.externalWindow.addEventListener("load", async (event) => {
