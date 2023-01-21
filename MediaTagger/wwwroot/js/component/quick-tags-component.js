@@ -103,15 +103,16 @@ export class QuickTagsComponent extends ComponentBase {
         .onChecked(this, this.filterUntaggedOnly)
         .onUnchecked(this, this.filterAllFiles)
         .build(),
-      BuildInputHandler()
-        .listenTo(this.dom, ".hotkey input")
-        .setData(this, this.getNodeTag)
-        .onInput(this, this.onHotkeyChange)
-        .build(),
+
       BuildHoverHandler()
         .listenTo(this.dom, ".tag-tree .self")
         .onStart(this, this.hoverStart)
         .onEnd(this, this.hoverEnd)
+        .build(),
+      BuildHoverHandler()
+        .listenTo(this.dom, ".hotkey .input.active")
+        .onStart(this, this.hotkeyHover)
+        .onEnd(this, this.hotkeyHoverEnd)
         .build(),
       BuildKeyHandler()
         .setDefaultContinuation(Continuation.Continue)
@@ -127,6 +128,8 @@ export class QuickTagsComponent extends ComponentBase {
         .onKey(Key("-"), this, this.previousImage)
         .onKey("[", this, this.rotateCCW)
         .onKey("]", this, this.rotateCW)
+        .onKey(Key("c").withCtrl(), this, this.copy)
+        .onKey(Key("v").withCtrl(), this, this.paste)
         .onKey(Key.Escape, this, this.resetSearch)
         .onKey(Key.Tab.withoutShift(), this, this.nextTag)
         .onKey(Key.Tab.withShift(), this, this.prevTag)
@@ -353,14 +356,6 @@ export class QuickTagsComponent extends ComponentBase {
     }
   }
 
-  hoverStart(target) {
-    this.hover = target;
-  }
-
-  hoverEnd(target) {
-    this.hover = null;
-  }
-
   getNodeTag(target, event) {
     const id = this.dom.getDataWithParent(target, "id");
     return media.getTagById(id);
@@ -423,26 +418,6 @@ export class QuickTagsComponent extends ComponentBase {
       return media.getTagById(tagId);
     }
     return null;
-  }
-
-  onHotkeyChange(tag, value, target) {
-    log.debug("hotkey change ", value, tag.Name);
-    let key = value.slice(-1).toLowerCase().trim();
-    if (key == "") {
-      this.setHotkey(tag, null);
-      this.fillHotkeys();
-      return Continuation.StopAll;
-    }
-    if (key >= "a" && key <= "z") {
-      const old = this.getTagForHotkey(key);
-      this.setHotkey(old, null);
-      target.value = key;
-      this.setHotkey(tag, key);
-      // createtags rebuilds tree and loses focus
-      //this.createTags();
-      this.fillHotkeys();
-      return Continuation.StopAll;
-    }
   }
 
   createTags() {
@@ -543,19 +518,27 @@ export class QuickTagsComponent extends ComponentBase {
   }
 
   keyPress(key) {
-    if (this.hover) {
+    if (this.hasHotkeyHover) {
       return this.hoverKeyPress(key);
     } else {
       return this.searchKeyPress(key);
     }
   }
 
+  hotkeyHover(target) {
+    this.hasHotkeyHover = target;
+  }
+
+  hotkeyHoverEnd() {
+    this.hasHotkeyHover = null;
+  }
+
   hoverKeyPress(key) {
-    if (this.hover == null) {
-      log.error("hoverKeyPress called with no hover element");
+    if (!this.hasHotkeyHover) {
+      return;
     }
     log.debug("hover keypress", key);
-    let tag = this.getTagForElement(this.hover);
+    let tag = this.getTagForElement(this.hasHotkeyHover);
     if (key == "Backspace") {
       this.setHotkey(tag, null);
     } else {
@@ -564,7 +547,12 @@ export class QuickTagsComponent extends ComponentBase {
         this.setHotkey(tag, lc);
       }
     }
+
     this.fillHotkeys();
+    if (!this.hasHotkeyHover) {
+      log.debug("lost hotkeyhover");
+    }
+    return Continuation.StopAll;
   }
   searchKeyPress(key) {
     if (key == "Backspace") {
@@ -634,9 +622,7 @@ export class QuickTagsComponent extends ComponentBase {
         this.dom.removeData(tag, "can_create");
       }
       this.dom.setInnerHTML(label, html);
-      if (match.Success) {
-        log.debug("match ", path, match);
-      }
+
       this.dom.toggleClass(tag, "match", match.Success);
     }
     let createParent = "/";
@@ -711,6 +697,7 @@ export class QuickTagsComponent extends ComponentBase {
         parent = child;
       }
     }
+    this.selectTag(parent);
     this.resetSearch();
     this.fillTree();
   }
@@ -757,5 +744,15 @@ export class QuickTagsComponent extends ComponentBase {
       }
     }
     return Continuation.StopAll;
+  }
+  copy() {
+    this.copyTags = [].concat(this.currentImage?.Tags);
+  }
+  paste() {
+    if (this.copyTags && this.currentImage) {
+      this.copyTags.forEach((tag) => {
+        this.selectTag(tag);
+      });
+    }
   }
 }

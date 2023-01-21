@@ -20,10 +20,13 @@ export class ScrollHandlerBuilder extends EventHandlerBuilder {
 }
 
 export class ScrollHandler extends EventListener {
-  constructor(...args) {
-    super("scroll", ...args);
+  constructor() {
+    super();
     this.defaultResponse = Continuation.Continue;
     this.onScroll = HandlerMethod.None();
+  }
+  getEventType() {
+    return ["scroll"];
   }
 
   isPassive() {
@@ -38,15 +41,7 @@ export class ScrollHandler extends EventListener {
     try {
       var response = Continuation.Continue;
       if (this.onScroll != null) {
-        response.replace(
-          this.onScroll.call(
-            event.currentTarget.scrollTop,
-            event.currentTarget,
-            this.data,
-            event,
-            this
-          )
-        );
+        response.replace(this.onScroll.call(this, event));
       }
     } catch (ex) {
       log.error(ex, "event handler for ", this.typeName, " failed");

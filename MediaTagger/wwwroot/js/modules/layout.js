@@ -229,7 +229,8 @@ export class Layout {
     return item.__layout_element;
   }
 
-  onScroll(pos) {
+  onScroll(target, event) {
+    let pos = this.layoutScroll.scrollTop;
     var totalRows =
       Math.floor(media.getVisibleItems().Length / this.layoutDetails.Columns) +
       1;

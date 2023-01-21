@@ -47,6 +47,7 @@ namespace MediaTagger.Modules.MediaFile
                         dynamic response = null!;
                         if (file != null)
                         {
+                            file.ModifiedOn = DateTime.Now;
                             var album = await db.Albums.Where(t => t.Id == albumId).FirstAsync();
                             file.Albums.Add(album);
                             await db.SaveChangesAsync();

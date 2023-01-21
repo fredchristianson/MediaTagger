@@ -128,6 +128,7 @@ namespace MediaTagger.Modules.MediaFile
                         dynamic response = null!;
                         if (file != null)
                         {
+                            file.ModifiedOn = DateTime.Now;
                             var tag = await db.Tags.Where(t => t.Id == tagId).FirstAsync();
                             file.Tags.Add(tag);
                             await db.SaveChangesAsync();
