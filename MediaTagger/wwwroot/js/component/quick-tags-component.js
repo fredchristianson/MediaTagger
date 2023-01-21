@@ -130,6 +130,7 @@ export class QuickTagsComponent extends ComponentBase {
         .onKey("]", this, this.rotateCW)
         .onKey(Key("c").withCtrl(), this, this.copy)
         .onKey(Key("v").withCtrl(), this, this.paste)
+        .onKey(Key("y").withCtrl(), this, this.repeat)
         .onKey(Key.Escape, this, this.resetSearch)
         .onKey(Key.Tab.withoutShift(), this, this.nextTag)
         .onKey(Key.Tab.withShift(), this, this.prevTag)
@@ -224,7 +225,7 @@ export class QuickTagsComponent extends ComponentBase {
     if (this.recent.includes(tag)) {
       return;
     }
-    while (this.recent.length > 10) {
+    while (this.recent.length > 9) {
       this.recent.shift();
     }
     this.recent.push(tag);
@@ -259,6 +260,7 @@ export class QuickTagsComponent extends ComponentBase {
     this.imageWindow.setImage(this.currentImage);
   }
   nextImage() {
+    this.previousTags = this.currentImage?.Tags;
     this.focusIndex += 1;
     this.fillImages();
     return Continuation.PreventDefault;
@@ -506,6 +508,9 @@ export class QuickTagsComponent extends ComponentBase {
         ],
         ".name": [new HtmlValue(tag.name)],
         ".hotkey .start.key": this.getHotkeyForTag(tag),
+        "input[type='checkbox']": new InputValue(
+          tag.hasFile(this.currentImage)
+        ),
       });
       this.dom.append(parent, element);
       const childTags = this.tags.search((child) => {
@@ -751,6 +756,13 @@ export class QuickTagsComponent extends ComponentBase {
   paste() {
     if (this.copyTags && this.currentImage) {
       this.copyTags.forEach((tag) => {
+        this.selectTag(tag);
+      });
+    }
+  }
+  repeat() {
+    if (this.previousTags && this.currentImage) {
+      this.previousTags.forEach((tag) => {
         this.selectTag(tag);
       });
     }

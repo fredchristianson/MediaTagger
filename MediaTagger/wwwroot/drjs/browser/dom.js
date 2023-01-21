@@ -536,7 +536,11 @@ export class DOM {
           this.setProperty(opt, "selected", true);
         }
       } else {
-        element.value = val;
+        if (element.type == "checkbox") {
+          element.checked = val;
+        } else {
+          element.value = val;
+        }
       }
     });
   }
