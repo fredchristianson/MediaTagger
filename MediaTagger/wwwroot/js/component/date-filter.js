@@ -1,54 +1,54 @@
-import { ComponentBase } from "../../drjs/browser/component.js";
-import Media from "../modules/media.js";
-import { LOG_LEVEL, Logger } from "../../drjs/logger.js";
-const log = Logger.create("DateFilter", LOG_LEVEL.DEBUG);
+import { ComponentBase } from '../../drjs/browser/component.js';
+import Media from '../modules/media.js';
+import { LOG_LEVEL, Logger } from '../../drjs/logger.js';
+const log = Logger.create('DateFilter', LOG_LEVEL.DEBUG);
 import {
   BuildClickHandler,
   BuildMouseOverHandler,
   BuildMouseHandler,
   Listeners,
-  BuildCustomEventHandler,
-} from "../../drjs/browser/event.js";
+  BuildCustomEventHandler
+} from '../../drjs/browser/event.js';
 
 export class DateFilterComponent extends ComponentBase {
-  constructor(selector, htmlName = "date-filter") {
+  constructor(selector, htmlName = 'date-filter') {
     super(selector, htmlName);
     this.startDate = null;
     this.endDate = null;
   }
 
   async onHtmlInserted(elements) {
-    this.svg = this.dom.first("svg");
-    this.popup = this.dom.first(".popup-details");
+    this.svg = this.dom.first('svg');
+    this.popup = this.dom.first('.popup-details');
     this.listeners = new Listeners(
       BuildCustomEventHandler()
         .emitter(Media.getVisibleItems().getUpdatedEvent())
         .onEvent(this, this.onItemsUpdated)
         .build(),
       BuildMouseOverHandler()
-        .listenTo(this.dom.first(".svg-container"))
+        .listenTo(this.dom.first('.svg-container'))
         .onOver(this, this.startHover)
         .onOut(this, this.endHover)
         .disableContextMenu(true)
         .build(),
       BuildMouseHandler()
-        .listenTo(this.dom.first(".svg-container"))
+        .listenTo(this.dom.first('.svg-container'))
         .onMouseMove(this)
         .onLeftUp(this, this.setStartDate)
         .onRightUp(this, this.setEndDate)
         .onLeftDown(() => {
-          log.debug("left down");
+          log.debug('left down');
         })
         .onRightDown(this, () => {
-          log.debug("right down ", this.test);
+          log.debug('right down ', this.test);
         })
         .build(),
       BuildClickHandler()
-        .listenTo(".date-select .start")
+        .listenTo('.date-select .start')
         .onClick(this, this.resetStart)
         .build(),
       BuildClickHandler()
-        .listenTo(".date-select .end")
+        .listenTo('.date-select .end')
         .onClick(this, this.resetEnd)
         .onRightClick(this, this.resetEnd)
         .build()
@@ -74,13 +74,13 @@ export class DateFilterComponent extends ComponentBase {
     if (date == null || isNaN(date)) {
       return 0;
     }
-    var dist = date - this.startDate;
-    var total = this.endDate - this.startDate;
+    let dist = date - this.startDate;
+    let total = this.endDate - this.startDate;
     return Math.floor(total == 0 ? 0 : (dist * 100) / total);
   }
   createRect(item) {
-    var rect = this.dom.createElementNS("rect", {
-      "@x": `${this.datePercent(item.getDateTaken())}%`,
+    let rect = this.dom.createElementNS('rect', {
+      '@x': `${this.datePercent(item.getDateTaken())}%`
     });
     //rect.style.left = `${this.datePercent(item.getDateTaken())}%`;
     //rect.style.top = `0%`;
@@ -97,17 +97,17 @@ export class DateFilterComponent extends ComponentBase {
       this.endDate = this.latestDate;
     }
     this.dom.setInnerHTML(
-      ".start",
+      '.start',
       this.dateString(this.startDate || this.earliestDate)
     );
     this.dom.setInnerHTML(
-      ".end",
+      '.end',
       this.dateString(this.endDate || this.latestDate)
     );
 
-    var buckets = [...Media.getVisibleItems()].reduce((bucket, item) => {
-      var date = item.getDateTaken();
-      var pct = this.datePercent(date);
+    let buckets = [...Media.getVisibleItems()].reduce((bucket, item) => {
+      let date = item.getDateTaken();
+      let pct = this.datePercent(date);
       if (bucket[pct] == null) {
         bucket[pct] = {
           count: 1,
@@ -115,7 +115,7 @@ export class DateFilterComponent extends ComponentBase {
           start: date,
           end: date,
           firstItem: item,
-          lastItem: item,
+          lastItem: item
         };
       } else {
         bucket[pct].count += 1;
@@ -133,13 +133,13 @@ export class DateFilterComponent extends ComponentBase {
     }, []);
     this.buckets = buckets;
     this.dom.removeChildren(this.svg);
-    // for (var item of Media.getVisibleItems()) {
+    // for (let item of Media.getVisibleItems()) {
     //   this.dom.append(this.svg, this.createRect(item));
     // }
-    for (var bucket of buckets) {
+    for (let bucket of buckets) {
       if (bucket != null) {
-        var rect = this.dom.createElementNS("rect", {
-          "@x": `${bucket.percent}%`,
+        let rect = this.dom.createElementNS('rect', {
+          '@x': `${bucket.percent}%`
         });
         rect.style.opacity = Math.max(50, Math.min(bucket.count, 100)) / 100;
         this.dom.append(this.svg, rect);
@@ -148,9 +148,9 @@ export class DateFilterComponent extends ComponentBase {
   }
 
   setStartDate(pos) {
-    log.debug("start date", pos.x);
-    var num = pos.xPercent();
-    var bucket = this.buckets[num];
+    log.debug('start date', pos.x);
+    let num = pos.xPercent();
+    let bucket = this.buckets[num];
     while (num >= 0 && bucket == null) {
       num--;
       bucket = this.buckets[num];
@@ -162,9 +162,9 @@ export class DateFilterComponent extends ComponentBase {
     }
   }
   setEndDate(pos) {
-    log.debug("start date", pos.x);
-    var num = pos.xPercent();
-    var bucket = this.buckets[num];
+    log.debug('start date', pos.x);
+    let num = pos.xPercent();
+    let bucket = this.buckets[num];
     while (num < 100 && bucket == null) {
       num++;
       bucket = this.buckets[num];
@@ -176,8 +176,8 @@ export class DateFilterComponent extends ComponentBase {
     }
   }
   startHover() {
-    log.never("start hover");
-    var svgpos = this.dom.getPageOffset(this.svg);
+    log.never('start hover');
+    let svgpos = this.dom.getPageOffset(this.svg);
 
     //this.popup.style.top = `${svgpos.bottom}px`;
     // absolute position relative to date div, not body
@@ -185,37 +185,37 @@ export class DateFilterComponent extends ComponentBase {
   }
 
   endHover() {
-    log.never("end hover");
-    this.dom.removeClass(this.popup, "show");
+    log.never('end hover');
+    this.dom.removeClass(this.popup, 'show');
   }
 
   onMouseMove(pos, target, event, data, handler) {
     log.never(`move: `, event.clientX);
-    var num = Math.floor(pos.pctX * 100);
-    var bucket = this.buckets[num];
-    log.never("show bucket ", num, bucket ? " exists " : "empty");
+    let num = Math.floor(pos.pctX * 100);
+    let bucket = this.buckets[num];
+    log.never('show bucket ', num, bucket ? ' exists ' : 'empty');
     if (bucket && bucket.firstItem) {
-      this.dom.first(this.popup, "img").src =
+      this.dom.first(this.popup, 'img').src =
         bucket.firstItem.getThumbnailUrl();
-      this.dom.first(this.popup, "img.last").src =
+      this.dom.first(this.popup, 'img.last').src =
         bucket.lastItem.getThumbnailUrl();
-      this.dom.first(this.popup, ".date").innerHTML = this.dateString(
+      this.dom.first(this.popup, '.date').innerHTML = this.dateString(
         bucket.firstItem.getDateTaken()
       );
-      this.dom.addClass(this.popup, "show");
+      this.dom.addClass(this.popup, 'show');
       this.popup.style.left = `${event.clientX}px`;
       this.popup.style.transform = `translate(-${pos.xPercent()}%)`;
     } else {
-      this.dom.removeClass(this.popup, "show");
+      this.dom.removeClass(this.popup, 'show');
     }
   }
 
   onItemsUpdated() {
-    var start = null;
-    var end = null;
-    var photosPerDay = {};
-    for (var item of Media.getAllFiles()) {
-      var taken = item.getDateTaken();
+    let start = null;
+    let end = null;
+    let photosPerDay = {};
+    for (let item of Media.getAllFiles()) {
+      let taken = item.getDateTaken();
       if (start == null || start > taken) {
         start = taken;
       }
@@ -229,24 +229,24 @@ export class DateFilterComponent extends ComponentBase {
       }
     }
     this.dom.setInnerHTML(
-      ".start",
+      '.start',
       start
         ? start.toLocaleDateString({
-            year: "numeric",
-            month: "short",
-            day: "numeric",
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
           })
-        : "---"
+        : '---'
     );
     this.dom.setInnerHTML(
-      ".end",
+      '.end',
       end
         ? end.toLocaleDateString({
-            year: "numeric",
-            month: "short",
-            day: "numeric",
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
           })
-        : "---:"
+        : '---:'
     );
     this.earliestDate = start;
     this.latestDate = end;
@@ -256,12 +256,12 @@ export class DateFilterComponent extends ComponentBase {
 
   dateString(date) {
     if (date == null || !(date instanceof Date)) {
-      return "---";
+      return '---';
     }
     return date.toLocaleDateString({
-      year: "numeric",
-      month: "short",
-      day: "numeric",
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
     });
   }
 }

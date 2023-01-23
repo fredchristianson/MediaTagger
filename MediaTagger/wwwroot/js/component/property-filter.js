@@ -1,30 +1,30 @@
-import { LOG_LEVEL, Logger } from "../../drjs/logger.js";
-import { ComponentBase } from "../../drjs/browser/component.js";
+import { LOG_LEVEL, Logger } from '../../drjs/logger.js';
+import { ComponentBase } from '../../drjs/browser/component.js';
 import {
   BuildCheckboxHandler,
   BuildClickHandler,
   BuildCustomEventHandler,
   Listeners,
-  Continuation,
-} from "../../drjs/browser/event.js";
+  Continuation
+} from '../../drjs/browser/event.js';
 import {
   HtmlTemplate,
-  PropertyValue,
-} from "../../drjs/browser/html-template.js";
-import { FilterChangeEvent, media } from "../modules/media.js";
-import Settings from "../modules/settings.js";
+  PropertyValue
+} from '../../drjs/browser/html-template.js';
+import { FilterChangeEvent, media } from '../modules/media.js';
+import { Settings } from '../modules/settings.js';
 
-const log = Logger.create("PropertyFilter", LOG_LEVEL.DEBUG);
+const log = Logger.create('PropertyFilter', LOG_LEVEL.DEBUG);
 
 const fileSizeBuckets = [
-  { size: 1000, label: "<1K" },
-  { size: 10000, label: "<10K" },
-  { size: 10000, label: "10K-100K" },
-  { size: 100000, label: "100K-1M" },
-  { size: 1000000, label: "1M-10M" },
-  { size: 10000000, label: "10M-100M" },
-  { size: 100000000, label: "100M-1G" },
-  { size: null, label: ">1G" },
+  { size: 1000, label: '<1K' },
+  { size: 10000, label: '<10K' },
+  { size: 10000, label: '10K-100K' },
+  { size: 100000, label: '100K-1M' },
+  { size: 1000000, label: '1M-10M' },
+  { size: 10000000, label: '10M-100M' },
+  { size: 100000000, label: '100M-1G' },
+  { size: null, label: '>1G' }
 ];
 
 function labelCompare(a, b) {
@@ -93,7 +93,7 @@ class PropertyOption {
 }
 
 export class PropertyFilterComponent extends ComponentBase {
-  constructor(selector, htmlName = "property-filter") {
+  constructor(selector, htmlName = 'property-filter') {
     super(selector, htmlName);
     this.listeners = new Listeners();
     this.sizes = [];
@@ -102,16 +102,16 @@ export class PropertyFilterComponent extends ComponentBase {
   }
 
   async onHtmlInserted(elements) {
-    this.settings = await Settings.load("property-filter");
+    this.settings = await Settings.load('property-filter');
 
     this.extTemplate = new HtmlTemplate(
-      this.dom.first("#properties--extension-template")
+      this.dom.first('#properties--extension-template')
     );
     this.resolutionTemplate = new HtmlTemplate(
-      this.dom.first("#properties--resolution-template")
+      this.dom.first('#properties--resolution-template')
     );
     this.filesizeTemplate = new HtmlTemplate(
-      this.dom.first("#properties--size-template")
+      this.dom.first('#properties--size-template')
     );
 
     this.files = media.getAllFiles();
@@ -141,38 +141,38 @@ export class PropertyFilterComponent extends ComponentBase {
   }
 
   checkAll(element) {
-    var checkboxes = this.dom.find(
-      this.dom.closest(element, ".list"),
+    let checkboxes = this.dom.find(
+      this.dom.closest(element, '.list'),
       "[type='checkbox']"
     );
     checkboxes.forEach((cb) => {
       //this.dom.check(cb);
       cb.checked = true;
     });
-    this.updateOptions(this.sizes, ".file-size.count");
-    this.updateOptions(this.resolutions, ".resolution.count");
-    this.updateOptions(this.extensions, ".extension.count");
+    this.updateOptions(this.sizes, '.file-size.count');
+    this.updateOptions(this.resolutions, '.resolution.count');
+    this.updateOptions(this.extensions, '.extension.count');
     FilterChangeEvent.emit(this);
   }
 
   checkNone(element) {
-    var checkboxes = this.dom.find(
-      this.dom.closest(element, ".list"),
+    let checkboxes = this.dom.find(
+      this.dom.closest(element, '.list'),
       "[type='checkbox']"
     );
     checkboxes.forEach((cb) => {
       //this.dom.uncheck(cb);
       cb.checked = false;
     });
-    this.updateOptions(this.sizes, ".file-size.count");
-    this.updateOptions(this.resolutions, ".resolution.count");
-    this.updateOptions(this.extensions, ".extension.count");
+    this.updateOptions(this.sizes, '.file-size.count');
+    this.updateOptions(this.resolutions, '.resolution.count');
+    this.updateOptions(this.extensions, '.extension.count');
     FilterChangeEvent.emit(this);
   }
 
   updateOptions(list, countElement) {
-    var selectCount = 0;
-    for (var option of list) {
+    let selectCount = 0;
+    for (let option of list) {
       if (option.checkbox) {
         option.setSelected(option.checkbox.checked);
         this.settings.set(option.getLabel(), option.checkbox.checked);
@@ -184,7 +184,7 @@ export class PropertyFilterComponent extends ComponentBase {
     if (countElement) {
       countElement = this.dom.first(countElement);
       if (selectCount == list.length) {
-        countElement.innerHTML = "(all)";
+        countElement.innerHTML = '(all)';
       } else {
         countElement.innerHTML = `(${selectCount} of ${list.length})`;
       }
@@ -192,9 +192,9 @@ export class PropertyFilterComponent extends ComponentBase {
   }
 
   checkChange(checked, element) {
-    this.updateOptions(this.sizes, ".file-size.count");
-    this.updateOptions(this.resolutions, ".resolution.count");
-    this.updateOptions(this.extensions, ".extension.count");
+    this.updateOptions(this.sizes, '.file-size.count');
+    this.updateOptions(this.resolutions, '.resolution.count');
+    this.updateOptions(this.extensions, '.extension.count');
     FilterChangeEvent.emit(this);
   }
 
@@ -205,12 +205,12 @@ export class PropertyFilterComponent extends ComponentBase {
     if (match) {
       return match.isSelected();
     }
-    // for (var opt of list) {
+    // for (let opt of list) {
     //   if (opt.getLabel() == label) {
     //     return opt.isSelected();
     //   }
     // }
-    log.never("unknown option ", label);
+    log.never('unknown option ', label);
     return true;
   }
 
@@ -239,38 +239,38 @@ export class PropertyFilterComponent extends ComponentBase {
     this.sizes = [];
     this.resolutions = [];
     this.extensions = [];
-    for (var file of this.files) {
-      var ext = file.getExtension();
-      var opt = this.getOption(this.extensions, ext);
+    for (let file of this.files) {
+      let ext = file.getExtension();
+      let opt = this.getOption(this.extensions, ext);
       opt.increaseCount();
 
-      var res = file.getResolution();
+      let res = file.getResolution();
       opt = this.getOption(this.resolutions, res);
       opt.setDetails({ width: file.getWidth(), height: file.getHeight() });
       opt.setCompareFunction(resolutionCompare);
       opt.increaseCount();
 
-      var size = this.getFileSizeBucket(file.getFileSize());
+      let size = this.getFileSizeBucket(file.getFileSize());
       opt = this.getOption(this.sizes, size);
       opt.increaseCount();
     }
     this.fill(
-      this.dom.first(".extension.list"),
+      this.dom.first('.extension.list'),
       this.extensions,
       this.extTemplate,
-      this.dom.first(".extension.count")
+      this.dom.first('.extension.count')
     );
     this.fill(
-      this.dom.first(".resolution.list"),
+      this.dom.first('.resolution.list'),
       this.resolutions,
       this.resolutionTemplate,
-      this.dom.first(".resolution.count")
+      this.dom.first('.resolution.count')
     );
     this.fill(
-      this.dom.first(".file-size.list"),
+      this.dom.first('.file-size.list'),
       this.sizes,
       this.filesizeTemplate,
-      this.dom.first(".file-size.count")
+      this.dom.first('.file-size.count')
     );
     FilterChangeEvent.emit();
   }
@@ -280,26 +280,26 @@ export class PropertyFilterComponent extends ComponentBase {
       return a.compare(b);
     });
     this.dom.removeChildren(selector);
-    var allNone = this.dom.createElement("li", { "@class": "allnone" });
+    let allNone = this.dom.createElement('li', { '@class': 'allnone' });
     this.dom.append(
       allNone,
-      this.dom.createElement("a", { href: "#all", text: "all" })
+      this.dom.createElement('a', { href: '#all', text: 'all' })
     );
     this.dom.append(
       allNone,
-      this.dom.createElement("a", { href: "#none", text: "none" })
+      this.dom.createElement('a', { href: '#none', text: 'none' })
     );
     this.dom.append(selector, allNone);
-    var selectCount = 0;
-    for (var item of list) {
+    let selectCount = 0;
+    for (let item of list) {
       const checked = this.settings.get(item.getLabel());
       item.setSelected(checked);
       if (checked) {
         selectCount += 1;
       }
-      var child = template.fill({
-        ".label": item.getLabel(),
-        "[type='checkbox']": new PropertyValue("checked", checked),
+      let child = template.fill({
+        '.label': item.getLabel(),
+        "[type='checkbox']": new PropertyValue('checked', checked)
       });
       // this.dom.check(this.dom.first(child,, this.settings.get(item.getLabel()));
       item.setCheckbox(this.dom.first(child, "[type='checkbox']"));
@@ -307,7 +307,7 @@ export class PropertyFilterComponent extends ComponentBase {
     }
     if (countElement) {
       if (selectCount == list.length) {
-        countElement.innerHTML = "(all)";
+        countElement.innerHTML = '(all)';
       } else {
         countElement.innerHTML = `(${selectCount} of ${list.length})`;
       }
@@ -315,7 +315,7 @@ export class PropertyFilterComponent extends ComponentBase {
   }
 
   getOption(list, label) {
-    var opt = list.find((o) => {
+    let opt = list.find((o) => {
       return o.getLabel() == label;
     });
     if (opt == null) {
@@ -325,7 +325,7 @@ export class PropertyFilterComponent extends ComponentBase {
     return opt;
   }
   getFileSizeBucket(size) {
-    var bucket = 0;
+    let bucket = 0;
     while (
       fileSizeBuckets[bucket + 1] != null &&
       fileSizeBuckets[bucket + 1].size < size

@@ -1,18 +1,11 @@
-import { LOG_LEVEL, Logger } from "../../drjs/logger.js";
-import {
-  EventEmitter,
-  ObjectEventType,
-  Listeners,
-  BuildClickHandler,
-  Continuation,
-} from "../../drjs/browser/event.js";
-import { media } from "./media.js";
-import UTIL from "../../drjs/util.js";
+import { LOG_LEVEL, Logger } from '../../drjs/logger.js';
+import { Listeners } from '../../drjs/browser/event.js';
+import { media } from './media.js';
 import {
   BuildKeyHandler,
-  Key,
-} from "../../drjs/browser/event-handler/key-handler.js";
-const log = Logger.create("Navigation", LOG_LEVEL.DEBUG);
+  Key
+} from '../../drjs/browser/event-handler/key-handler.js';
+const log = Logger.create('Navigation', LOG_LEVEL.DEBUG);
 
 class Navigation {
   constructor(layout) {
@@ -29,22 +22,22 @@ class Navigation {
         .onKey(Key.Home, this, this.moveStart)
         .onKey(Key.End, this, this.moveEnd)
         .onKey(Key.Escape, this, this.clearSelection)
-        .onKey("[", this, this.rotate270)
-        .onKey("]", this, this.rotate90)
-        .onKey("\\", this, this.rotate180)
+        .onKey('[', this, this.rotate270)
+        .onKey(']', this, this.rotate90)
+        .onKey('\\', this, this.rotate180)
         .onKeyDown(this, this.onKeyDown) // to log keypresses
         .build()
     );
   }
 
   changeIndex(change, extendSelect = false) {
-    var index = media.getLastFocusIndex();
+    let index = media.getLastFocusIndex();
 
-    var newIndex = Math.max(
+    let newIndex = Math.max(
       0,
       Math.min(index + change, media.getVisibleItems().getLength() - 1)
     );
-    var focusItem = media.getVisibleItems().getItemAt(newIndex);
+    let focusItem = media.getVisibleItems().getItemAt(newIndex);
     if (focusItem != null) {
       media.setFocus(focusItem);
       if (extendSelect) {
@@ -92,7 +85,7 @@ class Navigation {
     this.rotate(180);
   }
   rotate(degrees) {
-    var focus = media.getFocus();
+    let focus = media.getFocus();
     if (focus == null) {
       return;
     }
@@ -105,7 +98,7 @@ class Navigation {
   }
 
   onKeyDown(key, target, event) {
-    log.debug("key down ", key);
+    log.debug('key down ', key);
   }
 }
 

@@ -2,11 +2,11 @@ import {
   Listeners,
   BuildDragHandler,
   BuildDropHandler,
-  Continuation,
-} from "../../drjs/browser/event.js";
-import { LOG_LEVEL, Logger } from "../../drjs/logger.js";
-import dom from "../../drjs/browser/dom.js";
-const log = Logger.create("Draggable", LOG_LEVEL.WARN);
+  Continuation
+} from '../../drjs/browser/event.js';
+import { LOG_LEVEL, Logger } from '../../drjs/logger.js';
+import dom from '../../drjs/browser/dom.js';
+const log = Logger.create('Draggable', LOG_LEVEL.WARN);
 
 export class Draggable {
   constructor(draggable) {
@@ -31,7 +31,7 @@ export class Draggable {
   }
   onStart(element, event) {
     if (this.dropListener != null) {
-      log.error("draggable onStart already has a drop listener");
+      log.error('draggable onStart already has a drop listener');
       return;
     }
     this.dropListener = BuildDropHandler()
@@ -41,33 +41,33 @@ export class Draggable {
       .onDrop(this, this.onDrop)
       .onOver(this, this.onOver)
       .build();
-    log.debug("dragstart");
-    dom.addClass(element, "dragging");
+    log.debug('dragstart');
+    dom.addClass(element, 'dragging');
 
-    event.dataTransfer.effectAllowed = "move";
+    event.dataTransfer.effectAllowed = 'move';
   }
   onEnd(element, event) {
     if (this.dropListener) {
       this.dropListener.remove();
       this.dropListener = null;
     }
-    log.debug("dragEnd");
-    dom.removeClass(element, "dragging");
+    log.debug('dragEnd');
+    dom.removeClass(element, 'dragging');
   }
   onDrag(element, event) {
     // log.debug("drag");
   }
   onEnter() {
-    log.debug("dragEnter");
+    log.debug('dragEnter');
   }
   onLeave() {
-    log.debug("dragLeave");
+    log.debug('dragLeave');
   }
   onOver() {
-    log.debug("dragOver");
+    log.debug('dragOver');
   }
   onDrop() {
-    log.debug("dragDrop");
+    log.debug('dragDrop');
   }
 }
 
@@ -86,12 +86,12 @@ export class LeftGridSizer extends GridSizer {
     super(sizer, target);
   }
   onOver(target, event) {
-    log.debug("dragOver");
-    var offset = dom.getPageOffset(dom.getParent(this.target));
+    log.debug('dragOver');
+    let offset = dom.getPageOffset(dom.getParent(this.target));
 
-    var pwidth = dom.getWidth(target);
-    var dragX = event.clientX;
-    var width = pwidth - (dragX - offset.left);
+    let pwidth = dom.getWidth(target);
+    let dragX = event.clientX;
+    let width = pwidth - (dragX - offset.left);
     dom.setWidth(this.target, width);
   }
 }
@@ -100,10 +100,10 @@ export class RightGridSizer extends GridSizer {
     super(sizer, target);
   }
   onOver(target, event) {
-    log.debug("dragOver");
-    var offset = dom.getPageOffset(dom.getParent(this.target));
-    var pwidth = dom.getWidth(target);
-    var dragX = event.clientX;
+    log.debug('dragOver');
+    let offset = dom.getPageOffset(dom.getParent(this.target));
+    let pwidth = dom.getWidth(target);
+    let dragX = event.clientX;
     dom.setWidth(this.target, dragX - offset.left);
   }
 }
@@ -113,12 +113,12 @@ export class BottomGridSizer extends GridSizer {
   }
   onOver(target, event) {
     event.preventDefault();
-    log.debug("dragOver");
-    var offset = dom.getPageOffset(dom.getParent(this.target));
+    log.debug('dragOver');
+    let offset = dom.getPageOffset(dom.getParent(this.target));
 
-    var pwidth = dom.getHeight(target);
-    var dragY = event.clientY;
-    var height = dragY;
+    let pwidth = dom.getHeight(target);
+    let dragY = event.clientY;
+    let height = dragY;
     dom.setHeight(this.target, dragY - offset.top);
   }
 }

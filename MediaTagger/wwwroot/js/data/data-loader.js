@@ -1,12 +1,12 @@
-import { LOG_LEVEL, Logger } from "../../drjs/logger.js";
-import { ObservableCollection } from "../modules/collections.js";
-const log = Logger.create("DataLoader", LOG_LEVEL.DEBUG);
+import { LOG_LEVEL, Logger } from '../../drjs/logger.js';
+import { ObservableCollection } from '../modules/collections.js';
+const log = Logger.create('DataLoader', LOG_LEVEL.DEBUG);
 
 export function dataAdder(collection, type) {
   function addBatch(dataArray) {
-    var itemStatus = dataArray.reduce(
+    let itemStatus = dataArray.reduce(
       (status, data) => {
-        var old = collection.findById(data.id);
+        let old = collection.findById(data.id);
         if (old) {
           status.toUpdate.push({ item: old });
         } else {
@@ -19,14 +19,14 @@ export function dataAdder(collection, type) {
       { toUpdate: [], toAdd: [] }
     );
     if (itemStatus.toUpdate.length > 0) {
-      log.error("dataAdder found existing data");
+      log.error('dataAdder found existing data');
     }
     collection.insertBatch(itemStatus.toAdd);
   }
   function addSingle(data) {
-    var exists = collection.findById(data.id);
+    let exists = collection.findById(data.id);
     if (exists) {
-      log.error("dataAdder found existing data");
+      log.error('dataAdder found existing data');
       return exists;
     } else {
       if (data instanceof type) {
@@ -51,9 +51,9 @@ export function dataAdder(collection, type) {
 
 export function dataUpdater(collection, type) {
   function updateBatch(dataArray) {
-    var itemStatus = dataArray.reduce(
+    let itemStatus = dataArray.reduce(
       (status, data) => {
-        var old = collection.findById(data.id);
+        let old = collection.findById(data.id);
         if (old) {
           status.toUpdate.push({ item: old, update: data });
         } else {
@@ -66,7 +66,7 @@ export function dataUpdater(collection, type) {
       },
       { toUpdate: [], toAdd: [] }
     );
-    var changed = itemStatus.toUpdate.filter((change) => {
+    let changed = itemStatus.toUpdate.filter((change) => {
       change.item.update(change.update);
       return change.item.isChanged();
     });
@@ -74,12 +74,12 @@ export function dataUpdater(collection, type) {
     collection.insertBatch(itemStatus.toAdd);
   }
   function updateSingle(data) {
-    var exists = collection.findById(data.id);
+    let exists = collection.findById(data.id);
     if (exists) {
       exists.update(data);
       return exists;
     } else {
-      var item = new type(data);
+      let item = new type(data);
       collection.insert(item);
       return item;
     }
@@ -98,10 +98,10 @@ export function dataUpdater(collection, type) {
 export function dataLoader(source, dataUpdater, batchSize = 1000) {
   return async function () {
     try {
-      var pos = 0;
-      var done = false;
+      let pos = 0;
+      let done = false;
       while (!done) {
-        var response = await source(pos, batchSize);
+        let response = await source(pos, batchSize);
         done =
           response == null ||
           response.totalCount == null ||
@@ -113,7 +113,7 @@ export function dataLoader(source, dataUpdater, batchSize = 1000) {
         }
       }
     } catch (ex) {
-      log.error(ex, "failed to load items");
+      log.error(ex, 'failed to load items');
     }
   };
 }

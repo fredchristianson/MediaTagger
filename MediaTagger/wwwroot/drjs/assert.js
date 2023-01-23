@@ -1,60 +1,60 @@
-import LoggerInterface from "./logger-interface.js";
-const log = new LoggerInterface("Assert");
+import { LoggerInterface } from './logger-interface.js';
+const log = new LoggerInterface('Assert');
 
 export class AssertionError extends Error {
-  constructor(message = "assertion failed") {
+  constructor(message = 'assertion failed') {
     super(message);
   }
 }
 
 class Assert {
   equal(val1, val2, message = null) {
-    this.test(() => val1 == val2, message || "assert.equal() failed");
+    this.test(() => val1 == val2, message || 'assert.equal() failed');
   }
 
   notEqual(val1, val2, message = null) {
-    this.test(() => val1 != val2, message || "assert.notEqual() failed");
+    this.test(() => val1 != val2, message || 'assert.notEqual() failed');
   }
 
   null(val1, message = null) {
     this.test(
-      () => val1 === null || typeof val1 === "undefined",
-      message || "assert.null() failed"
+      () => val1 === null || typeof val1 === 'undefined',
+      message || 'assert.null() failed'
     );
   }
 
   notNull(val1, message = null) {
     this.test(
-      () => val1 !== null && typeof val1 !== "undefined",
-      message || "assert.notNull() failed"
+      () => val1 !== null && typeof val1 !== 'undefined',
+      message || 'assert.notNull() failed'
     );
   }
 
   range(val, minValue, maxValue, message) {
     this.test(
       () => val >= minValue && val <= maxValue,
-      message || "assert.notEqual() failed"
+      message || 'assert.notEqual() failed'
     );
   }
 
   notRange(val, minValue, maxValue, message) {
     this.test(
       () => val < minValue || val > maxValue,
-      message || "assert.notEqual() failed"
+      message || 'assert.notEqual() failed'
     );
   }
 
   empty(item, message) {
-    var isEmpty = false;
-    if (typeof item === "undefined" || item === null) {
+    let isEmpty = false;
+    if (typeof item === 'undefined' || item === null) {
       isEmpty = true;
-    } else if (typeof item === "string") {
+    } else if (typeof item === 'string') {
       isEmpty = true;
     } else if (Array.isArray(item)) {
       isEmpty = true;
     }
     if (!isEmpty) {
-      message = message || "expected value to be an empty string or array";
+      message = message || 'expected value to be an empty string or array';
       log.error(mesage);
       throw new AssertionError(message);
     }
@@ -62,17 +62,17 @@ class Assert {
 
   notEmpty(val, message) {
     try {
-      if (val == null || (typeof val != "string" && !Array.isArray(val))) {
+      if (val == null || (typeof val != 'string' && !Array.isArray(val))) {
         throw new AssertionError(
-          message || "assert.notEmpty() failed.  Requires string or array"
+          message || 'assert.notEmpty() failed.  Requires string or array'
         );
-      } else if (typeof val == "string" && val.trim().length == 0) {
+      } else if (typeof val == 'string' && val.trim().length == 0) {
         throw new AssertionError(
-          message || "assert.notEmpty() failed.  String is empty"
+          message || 'assert.notEmpty() failed.  String is empty'
         );
       } else if (Array.isArray(val) && val.length == 0) {
         throw new AssertionError(
-          message || "assert.notEmpty() failed.  Array is empty"
+          message || 'assert.notEmpty() failed.  Array is empty'
         );
       }
     } catch (err) {
@@ -82,25 +82,27 @@ class Assert {
   }
 
   type(object, type, message) {
-    if (type == "string" || type == "number" || type == "boolean") {
-      return typeof object == type;
+    if (type == 'string' || type == 'number' || type == 'boolean') {
+      if (typeof object !== type) {
+        throw new AssertError('type of object is not ' + type);
+      }
     }
     if (Array.isArray(type)) {
       const hasOne = type.some((t) => {
         return object instanceof t;
       });
       if (!hasOne) {
-        log.error(message || "object is the wrong type");
+        log.error(message || 'object is the wrong type');
         throw new AssertionError(message);
       }
     } else if (!(object instanceof type)) {
-      log.error(message || "object is the wrong type");
+      log.error(message || 'object is the wrong type');
       throw new AssertionError(message);
     }
   }
 
   test(val, message) {
-    if (typeof val == "function") {
+    if (typeof val == 'function') {
       val = val();
     }
     if (!val) {
@@ -118,5 +120,4 @@ class Assert {
 }
 
 const singleton = new Assert();
-export { singleton as Assert };
-export default singleton;
+export { singleton as Assert, singleton as assert };

@@ -1,6 +1,6 @@
-import { MediaEntity } from "./media-entity.js";
-import { LOG_LEVEL, Logger } from "../../drjs/logger.js";
-const log = Logger.create("Album", LOG_LEVEL.DEBUG);
+import { MediaEntity } from './media-entity.js';
+import { LOG_LEVEL, Logger } from '../../drjs/logger.js';
+const log = Logger.create('Album', LOG_LEVEL.DEBUG);
 
 export class Album extends MediaEntity {
   constructor(data = {}) {
@@ -16,7 +16,7 @@ export class Album extends MediaEntity {
   }
 
   removeFile(file) {
-    var pos = this._files.indexOf(file);
+    let pos = this._files.indexOf(file);
     if (pos >= 0) {
       this._files.splice(pos, 1);
     }

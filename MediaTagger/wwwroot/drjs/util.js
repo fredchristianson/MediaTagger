@@ -1,10 +1,10 @@
-const hhRegex = new RegExp("HH", "g");
-const mmRegex = new RegExp("MM", "g");
-const SSRegex = new RegExp("SS", "g");
-const ssssRegex = new RegExp("ssss", "g");
-const sssRegex = new RegExp("sss", "g");
-const ssRegex = new RegExp("ss", "g");
-const sRegex = new RegExp("s", "g");
+const hhRegex = new RegExp('HH', 'g');
+const mmRegex = new RegExp('MM', 'g');
+const SSRegex = new RegExp('SS', 'g');
+const ssssRegex = new RegExp('ssss', 'g');
+const sssRegex = new RegExp('sss', 'g');
+const ssRegex = new RegExp('ss', 'g');
+const sRegex = new RegExp('s', 'g');
 
 class Util {
   constructor() {
@@ -13,13 +13,13 @@ class Util {
 
   isNull(item) {
     // treat "undefined" and null items the same
-    return typeof item === "undefined" || item === null;
+    return typeof item === 'undefined' || item === null;
   }
 
   isEmpty(item) {
-    if (typeof item === "undefined" || item === null) {
+    if (typeof item === 'undefined' || item === null) {
       return true;
-    } else if (typeof item === "string") {
+    } else if (typeof item === 'string') {
       return item.trim().length === 0;
     } else if (Array.isArray(item)) {
       return item.length === 0;
@@ -27,7 +27,7 @@ class Util {
     return false;
   }
   toArray(data) {
-    if (typeof data === "undefined" || data === null) {
+    if (typeof data === 'undefined' || data === null) {
       return [];
     } else if (Array.isArray(data)) {
       return data;
@@ -40,39 +40,39 @@ class Util {
     // return a string value of the item.  If it is JSON, remove cycles
     const type = typeof item;
     if (this.isEmpty(item)) {
-      return "";
-    } else if (type === "string") {
+      return '';
+    } else if (type === 'string') {
       return item;
     } else if (item instanceof HTMLElement) {
-      var parts = [];
-      var tag = item.tagName;
-      parts.push("[");
+      let parts = [];
+      let tag = item.tagName;
+      parts.push('[');
       parts.push(tag);
       if (item.id) {
-        parts.push("#");
+        parts.push('#');
         parts.push(item.id);
       }
 
-      var classes = item.classList;
+      let classes = item.classList;
       classes.forEach((c) => {
-        parts.push(".");
+        parts.push('.');
         parts.push(c);
       });
-      parts.push("]");
-      return parts.join("");
-    } else if (type === "object") {
-      var seen = [];
+      parts.push(']');
+      return parts.join('');
+    } else if (type === 'object') {
+      let seen = [];
       const deCycle = function (key, val) {
-        if (val != null && typeof val === "object") {
+        if (val != null && typeof val === 'object') {
           if (seen.includes(val)) {
-            return "...";
+            return '...';
           }
           seen.push(val);
         }
         return val;
       };
 
-      var result = "\n" + JSON.stringify(item, deCycle, 2) + "\n";
+      let result = '\n' + JSON.stringify(item, deCycle, 2) + '\n';
       if (item.message) {
         result = item.message + result;
       }
@@ -87,7 +87,7 @@ class Util {
 
   toNumber(val, defaultValue) {
     try {
-      var n = Number.parseInt(val);
+      let n = Number.parseInt(val);
       if (isNaN(n)) {
         return defaultValue;
       }
@@ -98,7 +98,7 @@ class Util {
   }
 
   removeItem(array, item) {
-    for (var idx = 0; idx < array; idx++) {
+    for (let idx = 0; idx < array; idx++) {
       if (array[idx] === item) {
         array.splice(idx, 1);
         idx = idx - 1;
@@ -107,10 +107,10 @@ class Util {
   }
 
   /* string utilities */
-  padRight(val, length, pad = " ", truncate = false) {
+  padRight(val, length, pad = ' ', truncate = false) {
     // add spaces on the right to make the string "length" characters.
     // If truncate==true remove characters beyond "length"
-    var text = this.toString(val);
+    let text = this.toString(val);
     if (this.isEmpty(text)) {
       return pad.repeat(length);
     }
@@ -123,10 +123,10 @@ class Util {
     return text;
   }
 
-  padLeft(val, length, pad = " ", truncate = false) {
+  padLeft(val, length, pad = ' ', truncate = false) {
     // add spaces on the right to make the string "length" characters.
     // If truncate==true remove characters beyond "length"
-    var text = this.toString(val);
+    let text = this.toString(val);
     if (this.isEmpty(text)) {
       return pad.repeat(length);
     }
@@ -140,26 +140,26 @@ class Util {
   }
 
   /* time/date functions */
-  formatTime(time = null, format = "HH:MM:SS") {
-    var result = "";
+  formatTime(time = null, format = 'HH:MM:SS') {
+    let result = '';
     try {
-      var date = this.getDate(time);
+      let date = this.getDate(time);
       const hour = date.getHours();
       const minutes = date.getMinutes();
       const seconds = date.getSeconds();
       const msecs = date.getMilliseconds();
-      const regex = new RegExp(format, "g");
+      const regex = new RegExp(format, 'g');
       return format
         .replace(hhRegex, this.formatHour(hour))
-        .replace(mmRegex, this.padLeft(minutes, "0", 2))
-        .replace(SSRegex, this.padLeft(seconds, "0", 2))
-        .replace(ssssRegex, this.padRight(msecs, "0", 4))
-        .replace(sssRegex, this.padRight(msecs, "0", 3))
-        .replace(ssRegex, this.padRight(msecs, "0", 2))
-        .replace(sRegex, this.padRight(msecs, "0", 1));
+        .replace(mmRegex, this.padLeft(minutes, '0', 2))
+        .replace(SSRegex, this.padLeft(seconds, '0', 2))
+        .replace(ssssRegex, this.padRight(msecs, '0', 4))
+        .replace(sssRegex, this.padRight(msecs, '0', 3))
+        .replace(ssRegex, this.padRight(msecs, '0', 2))
+        .replace(sRegex, this.padRight(msecs, '0', 1));
     } catch (err) {
       // because of circular dependencies we cannot log from util.js
-      result = "date error " + time;
+      result = 'date error ' + time;
     }
     return result;
   }
@@ -175,11 +175,11 @@ class Util {
   }
 
   getDate(val) {
-    var date = null;
+    let date = null;
     try {
       if (val instanceof Date) {
         return val;
-      } else if (typeof val == "string") {
+      } else if (typeof val == 'string') {
         date = new Date(Date.parse(val));
       } else if (Number.isInteger(val)) {
         date = new Date(val);
@@ -187,7 +187,7 @@ class Util {
         date = new Date();
       }
     } catch (err) {
-      log.error("cannot convert value to Date()", val, err);
+      log.error('cannot convert value to Date()', val, err);
     }
     return date;
   }
@@ -201,18 +201,18 @@ class Util {
       return options;
     }
 
-    for (var idx = 0; idx < optionDefs.length; idx++) {
+    for (let idx = 0; idx < optionDefs.length; idx++) {
       const def = optionDefs[idx];
       const name = def.name;
       // allow typeName to be a string or array of types
       const types = this.toArray(def.types);
-      var val = def.defaultValue || null;
+      let val = def.defaultValue || null;
 
-      var byType = args.filter((arg) => {
-        if (typeof arg === "object") {
+      let byType = args.filter((arg) => {
+        if (typeof arg === 'object') {
           if (this.isType(arg, types)) {
             return arg;
-          } else if (arg.constructor.name == "object") {
+          } else if (arg.constructor.name == 'object') {
             const member = getMemberByType(typeNames, arg);
             return member;
           }
@@ -227,10 +227,10 @@ class Util {
       options[name] = val;
     }
 
-    for (var nidx = 0; nidx < optionDefs.length; nidx++) {
-      var def = optionDefs[nidx];
+    for (let nidx = 0; nidx < optionDefs.length; nidx++) {
+      let def = optionDefs[nidx];
       args.forEach((arg) => {
-        if (typeof arg == "object" && !this.isNull(arg[def.name])) {
+        if (typeof arg == 'object' && !this.isNull(arg[def.name])) {
           options[def.name] = arg[def.name];
         }
       });
@@ -242,7 +242,7 @@ class Util {
     types = this.toArray(types);
     return !this.isNull(
       types.find((type) => {
-        if (typeof type === "string") {
+        if (typeof type === 'string') {
           return object.constructor.name == type;
         }
         return object instanceof type;
@@ -251,12 +251,12 @@ class Util {
   }
 
   getMemberByType(typeNames, object) {
-    if (typeof object !== "object") {
+    if (typeof object !== 'object') {
       return null;
     }
     const member = Object.keys(object).find((member) => {
       return (
-        typeof member === "object" &&
+        typeof member === 'object' &&
         typeNames.contains(member.constructor.name)
       );
     });
@@ -264,7 +264,7 @@ class Util {
   }
 
   getMemberByName(name, object) {
-    if (typeof object !== "object") {
+    if (typeof object !== 'object') {
       return null;
     }
     return object[name];
@@ -272,33 +272,33 @@ class Util {
 
   combinePath(...parts) {
     if (parts == null || this.isEmpty(parts)) {
-      return "";
-    } else if (typeof parts === "string") {
+      return '';
+    } else if (typeof parts === 'string') {
       return parts;
     } else if (Array.isArray(parts)) {
       const first = parts.shift();
       const rest = this.combinePath(...parts);
       if (this.isEmpty(rest)) {
         return first;
-      } else if (first.endsWith("/")) {
-        if (rest.startsWith("/")) {
+      } else if (first.endsWith('/')) {
+        if (rest.startsWith('/')) {
           return first + rest.substr(1);
         } else {
           return first + rest;
         }
       } else {
-        if (rest.startsWith("/")) {
+        if (rest.startsWith('/')) {
           return first + rest;
         } else {
-          return first + "/" + rest;
+          return first + '/' + rest;
         }
       }
     }
   }
 
   debounce(func, msecs = 2000) {
-    var timer = null;
-    var debouncer = function () {
+    let timer = null;
+    let debouncer = function () {
       if (timer != null) {
         clearTimeout(timer);
       }
@@ -311,7 +311,7 @@ class Util {
   }
 
   intersect(arr1, arr2, compareFunction = null) {
-    var result = [];
+    let result = [];
     if (arr1 == null || arr1.length == 0 || arr2.length == 0) {
       return result;
     }

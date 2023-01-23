@@ -1,14 +1,7 @@
-import { LOG_LEVEL, Logger } from "../../logger.js";
-import Util from "../../util.js";
-import { default as dom } from "../dom.js";
-import { EventHandlerBuilder, EventListener } from "./handler.js";
-import {
-  Continuation,
-  MousePosition,
-  HandlerMethod,
-  DoNothing,
-} from "./common.js";
-const log = Logger.create("MouseOverHandler", LOG_LEVEL.WARN);
+import { LOG_LEVEL, Logger } from '../../logger.js';
+import { EventHandlerBuilder, EventListener } from './handler.js';
+import { Continuation, MousePosition, HandlerMethod } from './common.js';
+const log = Logger.create('MouseOverHandler', LOG_LEVEL.WARN);
 
 export function BuildMouseOverHandler() {
   return new MouseOverHandlerBuilder();
@@ -36,11 +29,11 @@ export class MouseOverHandlerBuilder extends EventHandlerBuilder {
 export class MouseOverHandler extends EventListener {
   constructor(...args) {
     super(...args);
-    this.setTypeName(["mouseover", "mouseout"]);
+    this.setTypeName(['mouseover', 'mouseout']);
     this.setDefaultContinuation(Continuation.Continue);
     this.endDelayMSecs = 200;
-    this.onOver = HandlerMethod.None();
-    this.onOut = HandlerMethod.None();
+    this.onOver = HandlerMethod.None;
+    this.onOut = HandlerMethod.None;
     this.mousePosition = new MousePosition();
     this.disableContextMenu = false;
   }
@@ -54,17 +47,17 @@ export class MouseOverHandler extends EventListener {
   callHandlers(event) {
     this.mousePosition.update(event);
     try {
-      var target = this.getEventTarget(event);
+      let target = this.getEventTarget(event);
       log.never(`mouseover ${target.id}:${target.className} - ${event.type}`);
-      var response = Continuation.Continue;
-      if (event.type == "mouseover") {
+      let response = Continuation.Continue;
+      if (event.type == 'mouseover') {
         if (this.disableContextMenu) {
           document.body.oncontextmenu = () => {
             return false;
           };
         }
         response.replace(this.onOver.call(this, event, this.mousePosition));
-      } else if (event.type == "mouseout") {
+      } else if (event.type == 'mouseout') {
         response.replace(this.onOut.call(this, event, this.mousePosition));
         if (this.disableContextMenu) {
           document.body.oncontextmenu = null;
@@ -72,7 +65,7 @@ export class MouseOverHandler extends EventListener {
       }
       return response;
     } catch (ex) {
-      log.error(ex, "event handler for ", this.typeName, " failed");
+      log.error(ex, 'event handler for ', this.typeName, ' failed');
     }
   }
 }
@@ -80,5 +73,5 @@ export class MouseOverHandler extends EventListener {
 export default {
   BuildMouseOverHandler,
   MouseOverHandlerBuilder,
-  MouseOverHandler,
+  MouseOverHandler
 };

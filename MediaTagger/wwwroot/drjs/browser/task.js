@@ -1,6 +1,6 @@
-import { LOG_LEVEL, Logger } from "../logger.js";
+import { LOG_LEVEL, Logger } from '../logger.js';
 
-const log = Logger.create("Tack", LOG_LEVEL.INFO);
+const log = Logger.create('Tack', LOG_LEVEL.INFO);
 
 export class CancelToken {
   constructor(id = null) {
@@ -23,7 +23,7 @@ export class CancelToken {
 
 export class Task {
   static Delay(msecs, func) {
-    var task = new Task();
+    let task = new Task();
     task.run(func, msecs);
     return task;
   }
@@ -37,7 +37,7 @@ export class Task {
 
   cancel() {
     this.cancelToken.cancel();
-    this.resolve(new Error("cancelled"));
+    this.resolve(new Error('cancelled'));
   }
   async wait() {
     return await this.promise;
@@ -46,7 +46,7 @@ export class Task {
     return this.cancelToken.isCanceled() || this.promise.isResolved();
   }
   run(task, delay = 0) {
-    var timeoutId = setTimeout(() => {
+    let timeoutId = setTimeout(() => {
       this.resolve(task());
     }, delay);
     this.cancelToken.setTimeoutId(timeoutId);
@@ -59,7 +59,7 @@ export class IntervalTask extends Task {
     this.interval = interval;
   }
   run(func) {
-    var count = 0;
+    let count = 0;
     this.cancelToken.setTimeoutId(
       setInterval(() => {
         if (!this.cancelToken.isCanceled()) {
@@ -78,8 +78,8 @@ export const BackgroundTask = {
   each: function (list, func) {
     const items = [...list];
     const processor = func;
-    var pos = 0;
-    var task = new IntervalTask(0);
+    let pos = 0;
+    let task = new IntervalTask(0);
     task.run(() => {
       if (pos < items.length) {
         func(items[pos++]);
@@ -92,10 +92,10 @@ export const BackgroundTask = {
   batch: function (batchSize, list, func) {
     const items = [...list];
     const processor = func;
-    var pos = 0;
-    var task = new IntervalTask(0);
+    let pos = 0;
+    let task = new IntervalTask(0);
     task.run(() => {
-      var cnt = 0;
+      let cnt = 0;
       while (pos < items.length && cnt++ < batchSize) {
         func(items[pos++]);
       }
@@ -104,12 +104,12 @@ export const BackgroundTask = {
       }
     });
     return task;
-  },
+  }
 };
 
 export default {
   Background: BackgroundTask,
   Task,
   IntervalTask,
-  CancelToken,
+  CancelToken
 };

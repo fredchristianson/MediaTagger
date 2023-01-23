@@ -1,4 +1,4 @@
-import { toDate } from "./helpers.js";
+import { toDate } from './helpers.js';
 
 export class MediaEntity {
   static sort(array) {
@@ -13,7 +13,7 @@ export class MediaEntity {
     this.createdOn = toDate(data.createdOn);
     this.modifiedOn = toDate(data.modifiedOn);
     this.hidden = !!data.hidden;
-    this._changed = typeof data._changed == "boolean" ? data._changed : false;
+    this._changed = typeof data._changed == 'boolean' ? data._changed : false;
   }
 
   isChanged() {
@@ -45,23 +45,23 @@ export class MediaEntity {
     // this.modifiedOn = data.modifiedOn;
     // this.hidden = data.hidden;
     Object.entries(this).forEach(([key, value]) => {
-      if (key[0] == "_") {
+      if (key[0] == '_') {
         return;
       }
       if (value instanceof Date) {
-        var newDate = toDate(data[key]);
+        let newDate = toDate(data[key]);
         if (value.getTime() != newDate.getTime()) {
           this.setChanged();
           this[key] = newDate;
         }
-      } else if (typeof value == "boolean") {
-        var newBool = !!data[key];
+      } else if (typeof value == 'boolean') {
+        let newBool = !!data[key];
         if (value != newBool) {
           this.setChanged();
           this[key] = newBool;
         }
       } else {
-        var newValue = data[key];
+        let newValue = data[key];
         if (value != newValue) {
           this.setChanged();
           this.setValue(key, newValue);

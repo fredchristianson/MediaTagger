@@ -1,28 +1,27 @@
-import { LOG_LEVEL, Logger } from "../../drjs/logger.js";
+import { LOG_LEVEL, Logger } from '../../drjs/logger.js';
 import {
   EventEmitter,
   ObjectEventType,
   Listeners,
-  BuildCustomEventHandler,
-} from "../../drjs/browser/event.js";
-import UTIL from "../../drjs/util.js";
-import { Assert } from "../../drjs/assert.js";
-const log = Logger.create("Collections", LOG_LEVEL.INFO);
+  BuildCustomEventHandler
+} from '../../drjs/browser/event.js';
+import { Assert } from '../../drjs/assert.js';
+const log = Logger.create('Collections', LOG_LEVEL.INFO);
 
-var filteredEvent = new ObjectEventType("__collection-filtered");
-var sortedEvent = new ObjectEventType("__collection-sorted");
-var itemsAddedEvent = new ObjectEventType("__collection-itemsAdded");
-var itemsRemovedEvent = new ObjectEventType("__collection-itemsRemoved");
-var updatedEvent = new ObjectEventType("__collection-updated");
+let filteredEvent = new ObjectEventType('__collection-filtered');
+let sortedEvent = new ObjectEventType('__collection-sorted');
+let itemsAddedEvent = new ObjectEventType('__collection-itemsAdded');
+let itemsRemovedEvent = new ObjectEventType('__collection-itemsRemoved');
+let updatedEvent = new ObjectEventType('__collection-updated');
 
-var nextID = 1;
+let nextID = 1;
 /*
  * all items in a collection should have a getId() method
  */
 class ObservableCollection {
   constructor() {
     this._id = nextID++;
-    log.never("Create collection ", this._id, this.constructor.name);
+    log.never('Create collection ', this._id, this.constructor.name);
     this.sortedEvent = new EventEmitter(sortedEvent, this);
     this.filteredEvent = new EventEmitter(filteredEvent, this);
     this.itemsAddedEvent = new EventEmitter(itemsAddedEvent, this);
@@ -42,12 +41,12 @@ class ObservableCollection {
     return this.itemsRemovedEvent;
   }
   getUpdatedEvent() {
-    log.debug("getUpdateEvent");
+    log.debug('getUpdateEvent');
     return this.updatedEvent;
   }
 
   findById(id) {
-    for (var item of this) {
+    for (let item of this) {
       if (item.getId() == id) {
         return item;
       }
@@ -65,7 +64,7 @@ class ObservableCollection {
         } else {
           return { done: true };
         }
-      },
+      }
     };
   }
 }
@@ -79,7 +78,7 @@ class ObservableArray extends ObservableCollection {
       this.items = items;
     } else {
       throw new Error(
-        "ObservableArray parameter must be an ObservableCollection or Array"
+        'ObservableArray parameter must be an ObservableCollection or Array'
       );
     }
   }
@@ -112,9 +111,9 @@ class ObservableArray extends ObservableCollection {
     } else if (Array.isArray(items)) {
       this.items = items;
     } else if (items == null) {
-      this.items = "";
+      this.items = '';
     } else {
-      throw new Error("ObservableArray.items called with invalid parameter");
+      throw new Error('ObservableArray.items called with invalid parameter');
     }
     this.updatedEvent.emit(this.items);
   }
@@ -124,7 +123,7 @@ class ObservableArray extends ObservableCollection {
     this.updatedEvent.emit(items);
   }
   insertBatch(newItems) {
-    for (var item of newItems) {
+    for (let item of newItems) {
       this.items.push(item);
     }
     this.itemsAddedEvent.emitNow(newItems);
@@ -143,7 +142,7 @@ class ObservableArray extends ObservableCollection {
   }
 
   indexOf(item) {
-    for (var i = 0; i < this.items.length; i++) {
+    for (let i = 0; i < this.items.length; i++) {
       if (this.items[i] == item) {
         return i;
       }
@@ -152,9 +151,9 @@ class ObservableArray extends ObservableCollection {
   }
 
   remove(item) {
-    var idx = this.indexOf(item);
+    let idx = this.indexOf(item);
     if (idx != null) {
-      var removed = this.items.splice(idx, 1);
+      let removed = this.items.splice(idx, 1);
       this.itemsRemovedEvent.emitNow(removed);
       this.updatedEvent.emit(this.removed);
       return item;
@@ -163,8 +162,8 @@ class ObservableArray extends ObservableCollection {
   }
 
   removeMatch(matchFunc) {
-    for (var idx = 0; idx < this.getLength(); ) {
-      var item = this.getItemAt(idx);
+    for (let idx = 0; idx < this.getLength(); ) {
+      let item = this.getItemAt(idx);
       if (matchFunc(item)) {
         this.remove(item);
       } else {
@@ -174,7 +173,7 @@ class ObservableArray extends ObservableCollection {
   }
 
   contains(item) {
-    var found = this.items.find((i) => {
+    let found = this.items.find((i) => {
       return i == item;
     });
     return found != null;
@@ -276,13 +275,13 @@ class ObservableView extends ObservableCollection {
     try {
       return this.collectionIn.getItemAt(index);
     } catch (ex) {
-      var count = 0;
+      let count = 0;
     }
   }
 
   setCollection(collectionIn) {
     if (collectionIn == null) {
-      throw new Error("ObservableList needs an input collection");
+      throw new Error('ObservableList needs an input collection');
     }
 
     if (Array.isArray(collectionIn)) {
@@ -291,7 +290,7 @@ class ObservableView extends ObservableCollection {
     this.collectionIn = collectionIn;
     if (!(collectionIn instanceof ObservableCollection)) {
       throw new Error(
-        "ObservableLView constructor argument is not a collection"
+        'ObservableLView constructor argument is not a collection'
       );
     }
     if (this.listeners) {
@@ -300,23 +299,23 @@ class ObservableView extends ObservableCollection {
     this.listeners = new Listeners(
       BuildCustomEventHandler()
         .emitter(this.collectionIn.getSortedEvent())
-        .onEvent(this, "onBaseSorted")
+        .onEvent(this, 'onBaseSorted')
         .build(),
       BuildCustomEventHandler()
         .emitter(this.collectionIn.getFilteredEvent())
-        .onEvent(this, "onBaseFiltered")
+        .onEvent(this, 'onBaseFiltered')
         .build(),
       BuildCustomEventHandler()
         .emitter(this.collectionIn.getItemsAddedEvent())
-        .onEvent(this, "onBaseItemsAdded")
+        .onEvent(this, 'onBaseItemsAdded')
         .build(),
       BuildCustomEventHandler()
         .emitter(this.collectionIn.getItemsRemovedEvent())
-        .onEvent(this, "onBaseItemsRemoved")
+        .onEvent(this, 'onBaseItemsRemoved')
         .build(),
       BuildCustomEventHandler()
         .emitter(this.collectionIn.getUpdatedEvent())
-        .onEvent(this, "onBaseUpdated")
+        .onEvent(this, 'onBaseUpdated')
         .build()
     );
     this.updatedEvent.emit(this);
@@ -445,8 +444,8 @@ export class ObservableTree extends ObservableArray {
   }
 
   getChildren(parent) {
-    var parentId = parent;
-    if (parent && typeof parent == "object") {
+    let parentId = parent;
+    if (parent && typeof parent == 'object') {
       parentId = parent.getId();
     }
     return [...this].filter((item) => {
@@ -455,16 +454,16 @@ export class ObservableTree extends ObservableArray {
   }
 
   getChildByName(parent, name) {
-    var parentId = parent;
-    if (parent && typeof parent == "object") {
+    let parentId = parent;
+    if (parent && typeof parent == 'object') {
       parentId = parent.getId();
     }
     return [...this].find((item) => {
       return item.getParentId() == parentId && item.getName() == name;
     });
   }
-  getPath(path, divider = "/") {
-    Assert.type(path, "string", "getPath() requires a string path");
+  getPath(path, divider = '/') {
+    Assert.type(path, 'string', 'getPath() requires a string path');
     const levels = path.split(divider);
     let nodes = this.getTopNodes();
     let found = null;
@@ -475,7 +474,7 @@ export class ObservableTree extends ObservableArray {
         const next = nodes.find((node) => {
           return (
             node.Name.localeCompare(name, undefined, {
-              sensitivity: "accent",
+              sensitivity: 'accent'
             }) == 0
           );
         });

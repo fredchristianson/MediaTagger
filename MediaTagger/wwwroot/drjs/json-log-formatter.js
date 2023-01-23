@@ -5,24 +5,22 @@ import LogFormatter from './log-formatter.js';
  */
 
 export class JSONLogFormatter extends LogFormatter {
-    constructor(components=null,options=null) {
-        super(components,options);
-    }
+  constructor(components = null, options = null) {
+    super(components, options);
+  }
 
-    formatMessageText(partsArray) {
-        var result = partsArray.reduce((text,part)=>{
-            if (typeof part == 'object') {
-                const json = "\n"+JSON.stringify(part,null,4)+"\n";
-                text = text + json;
-            } else {
-                text = text + part + " ";
-            }
-            return text;
-        },"");
-        return result;
-    }
-
-    
+  formatMessageText(partsArray) {
+    let result = partsArray.reduce((text, part) => {
+      if (typeof part == 'object') {
+        const json = '\n' + JSON.stringify(part, null, 4) + '\n';
+        text = text + json;
+      } else {
+        text = text + part + ' ';
+      }
+      return text;
+    }, '');
+    return result;
+  }
 }
 
 export default JSONLogFormatter;

@@ -1,11 +1,11 @@
-import ENV from "./env.js";
-import { LogLevel, LOG_LEVEL } from "./logger-interface.js";
-export { LogLevel, LOG_LEVEL } from "./logger-interface.js";
+import { ENV } from './env.js';
+import { LogLevel, LOG_LEVEL } from './logger-interface.js';
+export { LogLevel, LOG_LEVEL } from './logger-interface.js';
 
 if (ENV.DEBUG) {
-  LOG_LEVEL.DEFAULT = new LogLevel(100, "DEBUG");
+  LOG_LEVEL.DEFAULT = new LogLevel(100, 'DEBUG');
 } else {
-  LOG_LEVEL.DEFAULT = new LogLevel(60, "WARN");
+  LOG_LEVEL.DEFAULT = new LogLevel(60, 'WARN');
 }
 
 export class LogMessage {
@@ -30,25 +30,25 @@ export class LogMessage {
 
   // if the writer doesn't have a formatter, use a simple format
   getMessageText() {
-    return this.parts.join(" ");
+    return this.parts.join(' ');
   }
 
   getLogLevelDescription() {
-    var v = this.level.value ? this.level.value : this.level;
+    let v = this.level.value ? this.level.value : this.level;
     if (v == LOG_LEVEL.NEVER.value) {
-      return "NEVER";
+      return 'NEVER';
     }
     if (v == LOG_LEVEL.ALWAYS.value) {
-      return "ALWAYS";
+      return 'ALWAYS';
     }
     if (v < LOG_LEVEL.WARN.value) {
-      return "ERROR";
+      return 'ERROR';
     } else if (v < LOG_LEVEL.INFO.value) {
-      return "WARN";
+      return 'WARN';
     } else if (v < LOG_LEVEL.DEBUG.value) {
-      return "INFO";
+      return 'INFO';
     } else {
-      return "DEBUG";
+      return 'DEBUG';
     }
   }
 }

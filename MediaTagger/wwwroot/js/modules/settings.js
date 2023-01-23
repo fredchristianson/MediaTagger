@@ -1,12 +1,12 @@
-import { dbLoadSettings, dbSaveSettings } from "../data/database.js";
+import { dbLoadSettings, dbSaveSettings } from '../data/database.js';
 
 export class Settings {
   static async load(scope, defaultValues) {
-    var json = await dbLoadSettings(scope);
+    let json = await dbLoadSettings(scope);
     if (json == null) {
-      var settings = new Settings({
+      let settings = new Settings({
         scope: scope,
-        values: defaultValues ?? {},
+        values: defaultValues ?? {}
       });
       dbSaveSettings(settings);
       return settings;
@@ -33,8 +33,7 @@ export class Settings {
   toJson() {
     return {
       scope: this.scope,
-      values: this.values,
+      values: this.values
     };
   }
 }
-export default Settings;

@@ -7,7 +7,7 @@ export class MediaFilterComponent extends ComponentBase {
   constructor(selector, htmlName = "media-filter") {
     super(selector, htmlName);
   }
-  async onHtmlInserted(elements) {
+  async onHtmlInserted(_elements) {
     this.tags = new TagFilterComponent(this.dom.first(".tag-filter .filter"));
     this.albums = new AlbumFilterComponent(
       this.dom.first(".album-filter .filter")

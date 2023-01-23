@@ -1,14 +1,13 @@
-var env = null;
-function nothing() { }
-var log = { debug: nothing, warn: nothing, info: nothing, error: nothing };
+let env = null;
+
 if (typeof process === 'undefined') {
   // browser, so set to the correct env file.
-  var baseEnv = {};
+  let baseEnv = {};
   async function importEnv(path) {
-    var val = await import(path);
+    let val = await import(path);
     return val.default;
   }
-  if (location.port == "6080") {
+  if (location.port == '6080') {
     // env = env_dev;
     baseEnv = await importEnv('./browser/browser-env-dev.js');
   } else {
@@ -16,8 +15,7 @@ if (typeof process === 'undefined') {
   }
   env = baseEnv.get();
   env.load = async function (url) {
-
-    console.log("load env " + url);
+    console.log('load env ' + url);
     try {
       const absolute = new URL(url, location);
       env.drHostEnv = await import(absolute);
@@ -25,16 +23,11 @@ if (typeof process === 'undefined') {
         env.drHostEnv.configure(env);
       }
     } catch (ex) {
-      console.error("cannot load environment " + url);
+      console.error('cannot load environment ' + url);
     }
-  }
-
+  };
 } else {
   // node.js
   env = process.env;
 }
-
-
-
-
-export default env;
+export { env, env as ENV };

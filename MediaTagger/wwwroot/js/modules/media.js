@@ -1,5 +1,5 @@
-import { LOG_LEVEL, Logger } from "../../drjs/logger.js";
-import { compareDates, compareIds, compareNames } from "../data/helpers.js";
+import { LOG_LEVEL, Logger } from '../../drjs/logger.js';
+import { compareDates, compareIds, compareNames } from '../data/helpers.js';
 import {
   Tag,
   MediaTag,
@@ -7,34 +7,34 @@ import {
   PropertyValue,
   MediaFile,
   Album,
-  MediaAlbum,
-} from "../data/items.js";
-import { runParallel, runSerial } from "./task.js";
-import { dataAdder, dataLoader, dataUpdater } from "../data/data-loader.js";
+  MediaAlbum
+} from '../data/items.js';
+import { runParallel, runSerial } from './task.js';
+import { dataAdder, dataLoader, dataUpdater } from '../data/data-loader.js';
 import {
   ObservableView,
   SortedObservableView,
   FilteredObservableView,
   ObservableArray,
-  ObservableTree,
-} from "./collections.js";
-import * as API from "./mt-api.js";
-import { dbGetMediaFiles, dbSaveMediaFiles } from "../data/database.js";
-import { Listeners } from "../../drjs/browser/event.js";
+  ObservableTree
+} from './collections.js';
+import * as API from './mt-api.js';
+import { dbGetMediaFiles, dbSaveMediaFiles } from '../data/database.js';
+import { Listeners } from '../../drjs/browser/event.js';
 import {
   BuildCustomEventHandler,
   EventEmitter,
-  ObjectEventType,
-} from "../../drjs/browser/event.js";
-import FileGroup from "../data/file-group.js";
+  ObjectEventType
+} from '../../drjs/browser/event.js';
+import FileGroup from '../data/file-group.js';
 
-const log = Logger.create("Media", LOG_LEVEL.WARN);
+const log = Logger.create('Media', LOG_LEVEL.WARN);
 
-export var FilterChangeEventType = new ObjectEventType("FilterChange");
-export var FilterChangeEvent = new EventEmitter(FilterChangeEventType, this);
+export let FilterChangeEventType = new ObjectEventType('FilterChange');
+export let FilterChangeEvent = new EventEmitter(FilterChangeEventType, this);
 
-export var FocusChangeEventType = new ObjectEventType("FocusChange");
-export var FocusChangeEvent = new EventEmitter(FocusChangeEventType, this);
+export let FocusChangeEventType = new ObjectEventType('FocusChange');
+export let FocusChangeEvent = new EventEmitter(FocusChangeEventType, this);
 
 class Media {
   constructor() {
@@ -146,7 +146,7 @@ class Media {
   }
 
   onFilterChanged() {
-    log.info("media filter changed");
+    log.info('media filter changed');
     this.mediaFilterItems.filter();
   }
 
@@ -175,7 +175,7 @@ class Media {
   }
 
   step() {
-    log.debug("files ", this.files.getLength());
+    log.debug('files ', this.files.getLength());
   }
   async loadItems() {
     await runSerial(
@@ -194,18 +194,18 @@ class Media {
 
   createGroups() {
     this.groups.clear();
-    var primary = this.files.search((f) => {
+    let primary = this.files.search((f) => {
       return f.isInGroup() && f.isPrimary();
     });
-    var groupMap = {};
-    for (var f of primary) {
-      var group = new FileGroup(f);
+    let groupMap = {};
+    for (let f of primary) {
+      let group = new FileGroup(f);
       this.groups.insert(group);
       groupMap[f.getId()] = group;
     }
-    for (var s of this.files) {
+    for (let s of this.files) {
       if (s.isGroupSecondary()) {
-        var g = groupMap[s.fileSetPrimaryId];
+        let g = groupMap[s.fileSetPrimaryId];
         g.addFile(s);
       }
     }
@@ -225,12 +225,12 @@ class Media {
     }, {});
   }
   setupTags() {
-    var tagMap = this.getTagMap();
-    var fileMap = this.getFileMap();
-    for (var fileTags of this.mediaTags) {
-      var file = fileMap[fileTags.getMediaFileId()];
+    let tagMap = this.getTagMap();
+    let fileMap = this.getFileMap();
+    for (let fileTags of this.mediaTags) {
+      let file = fileMap[fileTags.getMediaFileId()];
       if (file == null) {
-        log.error("file not found for tag ", fileTags.getId());
+        log.error('file not found for tag ', fileTags.getId());
       } else {
         const tags = fileTags.getTagIds().map((id) => {
           return tagMap[id];
@@ -251,12 +251,12 @@ class Media {
     }, {});
   }
   setupAlbums() {
-    var albumMap = this.getAlbumMap();
-    var fileMap = this.getFileMap();
-    for (var fileAlbum of this.mediaAlbums) {
-      var file = fileMap[fileAlbum.getMediaFileId()];
+    let albumMap = this.getAlbumMap();
+    let fileMap = this.getFileMap();
+    for (let fileAlbum of this.mediaAlbums) {
+      let file = fileMap[fileAlbum.getMediaFileId()];
       if (file == null) {
-        log.error("file not found for album ", fileAlbum.getId());
+        log.error('file not found for album ', fileAlbum.getId());
       } else {
         const albums = fileAlbum.getAlbumIds().map((id) => {
           return albumMap[id];
@@ -271,14 +271,14 @@ class Media {
   }
 
   async updateDatabaseItems() {
-    log.never("updateDatabaseItems");
-    var updates = [...this.files].filter((f) => {
+    log.never('updateDatabaseItems');
+    let updates = [...this.files].filter((f) => {
       return f.isChanged();
     });
-    log.never("\tcount=", updates.length);
+    log.never('\tcount=', updates.length);
     await dbSaveMediaFiles(updates);
     await API.saveMediaFiles(updates);
-    for (var update of updates) {
+    for (let update of updates) {
       update.unsetChanged();
     }
   }
@@ -289,7 +289,7 @@ class Media {
         dataLoader(dbGetMediaFiles, dataAdder(this.files, MediaFile), 10000)
       );
     } catch (ex) {
-      log.error(ex, "failed to get items");
+      log.error(ex, 'failed to get items');
     }
   }
 
@@ -313,17 +313,17 @@ class Media {
         dataLoader(API.getAlbums, dataUpdater(this.albums, Album))
       );
     } catch (ex) {
-      log.error(ex, "failed to get items");
+      log.error(ex, 'failed to get items');
     }
   }
 
   getVisibleItems() {
-    log.never("return visibleItems ");
+    log.never('return visibleItems ');
     return this.visibleItems;
   }
 
   getAllFiles() {
-    log.never("return all items ");
+    log.never('return all items ');
     return this.files;
   }
 
@@ -332,14 +332,14 @@ class Media {
   }
 
   setSearchText(text) {
-    var lcText = text.toLowerCase();
-    var num = Number.parseInt(lcText);
+    let lcText = text.toLowerCase();
+    let num = Number.parseInt(lcText);
     this.searchFilterItems.setKeepFunction((item) => {
-      var nameMatch = item.getName().toLowerCase().includes(lcText);
+      let nameMatch = item.getName().toLowerCase().includes(lcText);
       if (nameMatch) {
         return true;
       }
-      var idMatch = id.Id == num;
+      let idMatch = id.Id == num;
       if (idMatch) {
         return true;
       }
@@ -347,8 +347,8 @@ class Media {
   }
 
   setDateFilter(start, end) {
-    var starttime = start ? start.getTime() : null;
-    var endtime = end ? end.getTime() : null;
+    let starttime = start ? start.getTime() : null;
+    let endtime = end ? end.getTime() : null;
     this.dateFilterItems.setKeepFunction((item) => {
       return (
         (starttime == null || item.getDateTaken().getTime() >= starttime) &&
@@ -358,9 +358,9 @@ class Media {
   }
   setSortType(type) {
     type = type.toLowerCase();
-    if (type == "id") {
+    if (type == 'id') {
       this.sortedItems.setSortComparison(compareIds);
-    } else if (type == "date") {
+    } else if (type == 'date') {
       this.sortedItems.setSortComparison(compareDates);
     } else {
       this.sortedItems.setSortComparison(compareNames);
@@ -368,11 +368,11 @@ class Media {
   }
 
   selectItem(item) {
-    var index = this.visibleItems.indexOf(item);
-    log.debug("inserting index ", index);
+    let index = this.visibleItems.indexOf(item);
+    log.debug('inserting index ', index);
     this.selectedItems.clear();
     if (item == null) {
-      log.error("selecting null item");
+      log.error('selecting null item');
       return;
     }
     this.selectedItems.insertOnce(item);
@@ -382,7 +382,7 @@ class Media {
 
   addSelectItem(item) {
     if (item == null) {
-      log.error("selecting null item");
+      log.error('selecting null item');
       return;
     }
     this.selectedItems.insertOnce(item);
@@ -390,7 +390,7 @@ class Media {
   }
   toggleSelectItem(item) {
     if (item == null) {
-      log.error("selecting null item");
+      log.error('selecting null item');
       return;
     }
     if (this.selectedItems.indexOf(item) != null) {
@@ -405,17 +405,17 @@ class Media {
     if (this.lastSelect == null) {
       this.selectItem(item);
     }
-    var visible = this.getVisibleItems();
-    var idx1 = visible.indexOf(item);
-    var idx2 = visible.indexOf(this.lastSelect);
+    let visible = this.getVisibleItems();
+    let idx1 = visible.indexOf(item);
+    let idx2 = visible.indexOf(this.lastSelect);
     if (idx2 == null) {
       return this.selectItem(item);
     }
     log.debug(`select items ${idx1}-${idx2}`);
-    var start = Math.min(idx1, idx2);
-    var end = Math.max(idx1, idx2);
+    let start = Math.min(idx1, idx2);
+    let end = Math.max(idx1, idx2);
 
-    for (var i = start; i <= end; i++) {
+    for (let i = start; i <= end; i++) {
       // todo: an event is emitted each insert.  add a bulk insert so only 1 event results
       this.selectedItems.insertOnce(visible.getItemAt(i));
     }
@@ -434,18 +434,18 @@ class Media {
   }
 
   async groupSelectedItems(primary) {
-    var groupFiles = new ObservableArray([...this.selectedItems]);
-    for (var old of this.selectedItems) {
+    let groupFiles = new ObservableArray([...this.selectedItems]);
+    for (let old of this.selectedItems) {
       if (old.isInGroup()) {
-        for (var newSel of old.getGroup().getFiles()) {
+        for (let newSel of old.getGroup().getFiles()) {
           groupFiles.insertOnce(newSel);
         }
       }
       this.ungroup(old, false);
     }
-    var group = new FileGroup();
+    let group = new FileGroup();
     group.setPrimaryFile(primary);
-    for (var item of groupFiles) {
+    for (let item of groupFiles) {
       group.addFile(item);
     }
     this.groups.insert(group);
@@ -465,17 +465,17 @@ class Media {
   }
 
   async createTag(parent, newTag) {
-    var parentId = parent;
-    if (parent != null && typeof parent == "object") {
+    let parentId = parent;
+    if (parent != null && typeof parent == 'object') {
       parentId = parent.getId();
     }
-    var parts = newTag.split("/").map((n) => {
+    let parts = newTag.split('/').map((n) => {
       return n.trim();
     });
-    var leaf = parts.splice(-1)[0]; // remove last element (leaf tag name)
-    var walk = null;
-    for (var next of parts) {
-      var child = this.tags.getChildByName(parentId, next);
+    let leaf = parts.splice(-1)[0]; // remove last element (leaf tag name)
+    let walk = null;
+    for (let next of parts) {
+      let child = this.tags.getChildByName(parentId, next);
       if (child == null) {
         child = await this.createTag(walk, next);
       }
@@ -483,21 +483,21 @@ class Media {
       parentId = child.getId();
     }
 
-    var created = await API.createTag(parentId, leaf);
+    let created = await API.createTag(parentId, leaf);
     this.tags.insert(created);
     return created;
   }
 
   async updateTag(id, name, parentId, hidden = false) {
-    var tag = this.tags.findById(id);
+    let tag = this.tags.findById(id);
     if (tag == null) {
-      log.error("cannot find tag ", id);
+      log.error('cannot find tag ', id);
       return null;
     }
     tag.Name = name;
     tag.ParentId = parentId;
     tag.Hidden = hidden;
-    var updated = await API.updateTag(tag);
+    let updated = await API.updateTag(tag);
     if (tag.hidden) {
       this.tags.remove(tag);
     }
@@ -506,14 +506,14 @@ class Media {
   }
 
   async tagAddFile(tag, file) {
-    var result = await API.addMediaTag(file.getId(), tag.getId());
+    let result = await API.addMediaTag(file.getId(), tag.getId());
     file.addTag(tag);
     tag.addFile(file);
     FocusChangeEvent.emit(this.focus);
     return result;
   }
   async tagRemoveFile(tag, file) {
-    var result = await API.removeMediaTag(file.getId(), tag.getId());
+    let result = await API.removeMediaTag(file.getId(), tag.getId());
     file.removeTag(tag);
     tag.removeFile(file);
     FocusChangeEvent.emit(this.focus);
@@ -521,15 +521,15 @@ class Media {
   }
 
   async tagSelected(tagId) {
-    var tag = this.tags.findById(tagId);
+    let tag = this.tags.findById(tagId);
     if (tag == null) {
-      log.error("unkown tag", tagId);
+      log.error('unkown tag', tagId);
       return;
     }
-    for (var sel of this.selectedItems) {
-      var file = this.files.findById(sel.getId());
+    for (let sel of this.selectedItems) {
+      let file = this.files.findById(sel.getId());
       if (file == null) {
-        log.error("unknown file ", sel.getId());
+        log.error('unknown file ', sel.getId());
       } else {
         if (await API.addMediaTag(sel.getId(), tagId)) {
           file.addTag(tag);
@@ -540,15 +540,15 @@ class Media {
   }
 
   async untagSelected(tagId) {
-    var tag = this.tags.findById(tagId);
+    let tag = this.tags.findById(tagId);
     if (tag == null) {
-      log.error("unkown tag", tagId);
+      log.error('unkown tag', tagId);
       return;
     }
-    for (var sel of this.selectedItems) {
-      var file = this.files.findById(sel.getId());
+    for (let sel of this.selectedItems) {
+      let file = this.files.findById(sel.getId());
       if (file == null) {
-        log.error("unknown file ", sel.getId());
+        log.error('unknown file ', sel.getId());
       } else {
         if (await API.removeMediaTag(sel.getId(), tagId)) {
           file.removeTag(tag);
@@ -560,19 +560,19 @@ class Media {
 
   getTagPath(tag) {
     if (tag == null) {
-      return "";
+      return '';
     }
-    var tags = this.getTags();
-    if (typeof tag == "number") {
+    let tags = this.getTags();
+    if (typeof tag == 'number') {
       tag = tags.findById(tag);
     }
     if (tag == null) {
-      return "--";
+      return '--';
     }
-    var path = tag.getName();
-    var parent = tags.findById(tag.getParentId());
+    let path = tag.getName();
+    let parent = tags.findById(tag.getParentId());
     if (parent != null) {
-      path = this.getTagPath(parent) + "/" + path;
+      path = this.getTagPath(parent) + '/' + path;
     }
     return path;
   }
@@ -585,7 +585,7 @@ class Media {
   }
 
   async createAlbum(name, description = null) {
-    var album = await API.createAlbum(name, description);
+    let album = await API.createAlbum(name, description);
     if (album != null) {
       this.albums.insertOnce(album);
     }
@@ -593,14 +593,14 @@ class Media {
   }
 
   async albumAddFile(album, file) {
-    var result = await API.addMediaAlbum(file.getId(), album.getId());
+    let result = await API.addMediaAlbum(file.getId(), album.getId());
     file.addAlbum(album);
     album.addFile(file);
     FocusChangeEvent.emit(this.focus);
     return result;
   }
   async albumRemoveFile(album, file) {
-    var result = await API.removeMediaAlbum(file.getId(), album.getId());
+    let result = await API.removeMediaAlbum(file.getId(), album.getId());
     file.removeAlbum(album);
     album.removeFile(file);
     FocusChangeEvent.emit(this.focus);
@@ -608,15 +608,15 @@ class Media {
   }
 
   async albumAddSelected(albumId) {
-    var album = this.albums.findById(albumId);
+    let album = this.albums.findById(albumId);
     if (album == null) {
-      log.error("unkown album", albumId);
+      log.error('unkown album', albumId);
       return;
     }
-    for (var sel of this.selectedItems) {
-      var file = this.files.findById(sel.getId());
+    for (let sel of this.selectedItems) {
+      let file = this.files.findById(sel.getId());
       if (file == null) {
-        log.error("unknown file ", sel.getId());
+        log.error('unknown file ', sel.getId());
       } else {
         if (await API.addMediaAlbum(sel.getId(), albumId)) {
           file.addAlbum(album);
@@ -627,15 +627,15 @@ class Media {
   }
 
   async albumRemoveSelected(albumId) {
-    var album = this.albums.findById(albumId);
+    let album = this.albums.findById(albumId);
     if (album == null) {
-      log.error("unkown album", albumId);
+      log.error('unkown album', albumId);
       return;
     }
-    for (var sel of this.selectedItems) {
-      var file = this.files.findById(sel.getId());
+    for (let sel of this.selectedItems) {
+      let file = this.files.findById(sel.getId());
       if (file == null) {
-        log.error("unknown file ", sel.getId());
+        log.error('unknown file ', sel.getId());
       } else {
         if (await API.removeMediaAlbum(sel.getId(), albumId)) {
           file.removeAlbum(album);

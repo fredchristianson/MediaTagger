@@ -1,20 +1,20 @@
-import { Assert } from "../../drjs/assert.js";
-import DOM from "../../drjs/browser/dom.js";
-import { BuildClickHandler, Listeners } from "../../drjs/browser/event.js";
-import { LOG_LEVEL, Logger } from "../../drjs/logger.js";
+import { Assert } from '../../drjs/assert.js';
+import DOM from '../../drjs/browser/dom.js';
+import { BuildClickHandler, Listeners } from '../../drjs/browser/event.js';
+import { LOG_LEVEL, Logger } from '../../drjs/logger.js';
 
-const log = Logger.create("DOMWatcher", LOG_LEVEL.WARN);
+const log = Logger.create('DOMWatcher', LOG_LEVEL.WARN);
 const observerConfig = {
   attributes: true,
   attributeOldValue: true,
   childList: true,
-  subtree: true,
+  subtree: true
 };
 
 class WatchAction {
   constructor(selector, action) {
-    Assert.notNull(selector, "WatchAction requires a selector");
-    Assert.notNull(action, "WatchAction requires a selector");
+    Assert.notNull(selector, 'WatchAction requires a selector');
+    Assert.notNull(action, 'WatchAction requires a selector');
     this.selector = selector;
     this.action = action;
     this.listeners = new Listeners();
@@ -40,12 +40,12 @@ class WatchAction {
       this.newElement(element);
       this.watchedElements.push(element);
     } else {
-      log.never("element added multiple times");
+      log.never('element added multiple times');
     }
   }
 
   unwatchElement(element) {
-    var pos = this.watchedElements.indexOf(element);
+    let pos = this.watchedElements.indexOf(element);
     if (pos >= 0) {
       this.removeEvents(element);
       this.removeElement(element);
@@ -104,7 +104,7 @@ export class AttributeChangeAction extends WatchAction {
 
 export class ClassChangeAction extends AttributeChangeAction {
   constructor(selector, action) {
-    super("class", selector, action);
+    super('class', selector, action);
   }
   changed(element, attributeName, oldValue) {
     this.action(element, oldValue, element.className);
@@ -113,7 +113,7 @@ export class ClassChangeAction extends AttributeChangeAction {
 
 export class StyleChangeAction extends AttributeChangeAction {
   constructor(selector, action) {
-    super("style", selector, action);
+    super('style', selector, action);
   }
 }
 
@@ -128,22 +128,22 @@ export class DOMWatcher {
     this.actions.push(action);
   }
   addClickAction(selector, action) {
-    log.debug("watch: ", selector);
+    log.debug('watch: ', selector);
     this.actions.push(new ClickAction(selector, action));
     // do a search for existing element matches
     this.elementAdded(DOM.find(selector));
   }
 
   onMutation(mutationList) {
-    log.debug("mutation");
-    for (var mutation of mutationList) {
-      if (mutation.type == "attributes") {
+    log.debug('mutation');
+    for (let mutation of mutationList) {
+      if (mutation.type == 'attributes') {
         this.attributeChanged(mutation);
-      } else if (mutation.type == "childList") {
+      } else if (mutation.type == 'childList') {
         mutation.addedNodes.forEach((e) => this.elementAdded(e));
         mutation.removedNodes.forEach((e) => this.elementRemoved(e));
       } else {
-        log.warn("unknown mutation type ", mutation.type);
+        log.warn('unknown mutation type ', mutation.type);
       }
     }
   }
@@ -175,9 +175,9 @@ export class DOMWatcher {
     if (!(element instanceof HTMLElement)) {
       return;
     }
-    log.debug("check element: ", element.id, element.className);
+    log.debug('check element: ', element.id, element.className);
     this.actions.forEach((action) => {
-      var matches = DOM.find(element, action.selector);
+      let matches = DOM.find(element, action.selector);
       matches.forEach((match) => {
         action.watchElement(match);
       });

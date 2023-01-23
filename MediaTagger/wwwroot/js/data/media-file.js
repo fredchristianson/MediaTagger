@@ -1,8 +1,8 @@
-import { MediaEntity } from "./media-entity.js";
-import { LOG_LEVEL, Logger } from "../../drjs/logger.js";
-import { toDate } from "./helpers.js";
-import { Util } from "../../drjs/util.js";
-const log = Logger.create("MediaFile", LOG_LEVEL.DEBUG);
+import { MediaEntity } from './media-entity.js';
+import { LOG_LEVEL, Logger } from '../../drjs/logger.js';
+import { toDate } from './helpers.js';
+import { Util } from '../../drjs/util.js';
+const log = Logger.create('MediaFile', LOG_LEVEL.DEBUG);
 
 export class MediaFile extends MediaEntity {
   constructor(data = {}) {
@@ -26,7 +26,7 @@ export class MediaFile extends MediaEntity {
 
   setValue(name, newValue) {
     // don't set rotationDegrees to null in an update
-    if (name != "rotationDegrees" || newValue != null) {
+    if (name != 'rotationDegrees' || newValue != null) {
       this[name] = newValue;
     }
   }
@@ -35,8 +35,8 @@ export class MediaFile extends MediaEntity {
     return this.rotationDegrees;
   }
   rotate(degrees) {
-    var d = Util.toNumber(this.rotationDegrees, 0);
-    var change = Util.toNumber(degrees, 0);
+    let d = Util.toNumber(this.rotationDegrees, 0);
+    let change = Util.toNumber(degrees, 0);
     this.rotationDegrees = (d + change + 360) % 360;
     this._changed = true;
   }
@@ -53,7 +53,7 @@ export class MediaFile extends MediaEntity {
   }
 
   removeTag(tags) {
-    var pos = this._tags.indexOf(tags);
+    let pos = this._tags.indexOf(tags);
     if (pos >= 0) {
       this._tags.splice(pos, 1);
     }
@@ -66,8 +66,8 @@ export class MediaFile extends MediaEntity {
     if (tag == null) {
       return true;
     }
-    var id = tag;
-    if (typeof tag == "object") {
+    let id = tag;
+    if (typeof tag == 'object') {
       id = tag.getId();
     }
     return this._tags.find((t) => {
@@ -89,7 +89,7 @@ export class MediaFile extends MediaEntity {
   }
 
   removeAlbum(albums) {
-    var pos = this._albums.indexOf(albums);
+    let pos = this._albums.indexOf(albums);
     if (pos >= 0) {
       this._albums.splice(pos, 1);
     }
@@ -99,8 +99,8 @@ export class MediaFile extends MediaEntity {
     if (album == null) {
       return true;
     }
-    var id = album;
-    if (typeof album == "object") {
+    let id = album;
+    if (typeof album == 'object') {
       id = album.getId();
     }
     return this._albums.find((t) => {
@@ -168,9 +168,9 @@ export class MediaFile extends MediaEntity {
 
   getExtension() {
     if (this._extension == null) {
-      var dotPos = this.filename.lastIndexOf(".");
+      let dotPos = this.filename.lastIndexOf('.');
       if (dotPos < 0) {
-        this._extension = ".";
+        this._extension = '.';
       } else {
         this._extension = this.filename.substring(dotPos).toLowerCase();
       }
@@ -185,7 +185,7 @@ export class MediaFile extends MediaEntity {
       this.width == 0 ||
       this.height == 0
     ) {
-      return "unknown";
+      return 'unknown';
     }
     return `${this.width}x${this.height}`;
   }
@@ -215,11 +215,11 @@ export class MediaFile extends MediaEntity {
 
   static toJson(file) {
     if (file == null) {
-      log.warn("MediaFile.fromData called with null data");
+      log.warn('MediaFile.fromData called with null data');
       return null;
     }
     if (!(file instanceof MediaFile)) {
-      log.warn("MediaFile.fromData requires a MediaFile parameter");
+      log.warn('MediaFile.fromData requires a MediaFile parameter');
       return null;
     }
     return file.toJson();
@@ -227,7 +227,7 @@ export class MediaFile extends MediaEntity {
 
   toJson() {
     return Object.entries(this).reduce((props, val) => {
-      if (val[0][0] != "_") {
+      if (val[0][0] != '_') {
         props[val[0]] = val[1];
       }
       return props;
@@ -236,7 +236,7 @@ export class MediaFile extends MediaEntity {
 
   static fromJson(data) {
     if (data == null) {
-      log.warn("MediaFile.fromData called with null data");
+      log.warn('MediaFile.fromData called with null data');
       return null;
     }
     return new MediaFile(data);

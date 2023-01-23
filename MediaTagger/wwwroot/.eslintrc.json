@@ -1,0 +1,83 @@
+{
+  "env": {
+    "browser": true,
+    "es2021": true
+  },
+  "files": ["**/*.js"],
+  "overrides": [],
+  "parserOptions": {
+    "ecmaVersion": "latest",
+    "sourceType": "module"
+  },
+  "plugins": ["unused-imports"],
+  "rules": {
+    "import/default": "off",
+    "comma-dangle": 0,
+    "import/extensions": "off",
+    "no-unused-vars": "off",
+    "unused-imports/no-unused-imports": "error",
+    "array-callback-return": "error",
+    "getter-return": "error",
+
+    "unused-imports/no-unused-vars": [
+      "warn",
+      {
+        "vars": "all",
+        "varsIgnorePattern": "^_",
+        "args": "after-used",
+        "argsIgnorePattern": "^_"
+      }
+    ],
+    "valid-jsdoc": [
+      "error",
+      {
+        "requireReturn": false,
+        "requireReturnDescription": false,
+        "requireParamDescription": true,
+        "prefer": {
+          "return": "returns"
+        }
+      }
+    ],
+    "for-direction": "error",
+    "no-await-in-loop": "error",
+    "no-cond-assign": "error",
+    "no-const-assign": "error",
+    "no-constant-binary-expression": "error",
+    "no-constructor-return": "error",
+    "no-dupe-class-members": "error",
+    "no-dupe-else-if": "error",
+    "no-dupe-keys": "error",
+    "no-duplicate-case": "error",
+    "no-duplicate-imports": "error",
+    "no-promise-executor-return": "error",
+    "no-template-curly-in-string": "error",
+    "require-atomic-updates": "error",
+    "valid-typeof": "error",
+    "block-scoped-var": "error",
+    "camelcase": ["error", { "properties": "always" }],
+    "complexity": ["warn", 7],
+    "consistent-return": "error",
+    "consistent-this": ["error", "self"],
+    "curly": "error",
+    "default-param-last": "error",
+    "dot-notation": "off",
+    "guard-for-in": "error",
+    "multiline-comment-style": ["error", "starred-block"],
+    "new-cap": ["error", { "capIsNewExceptionPattern": "Build|On|Of|None" }],
+    "no-array-constructor": "error",
+    "no-extra-bind": "error",
+    "no-implicit-coercion": "error",
+    "no-invalid-this": "error",
+    "no-lone-blocks": "error",
+    "no-lonely-if": "error",
+    "no-loop-func": "error",
+    "no-nested-ternary": "error",
+    "no-param-reassign": ["warn", { "props": false }],
+    "no-throw-literal": "error",
+    "no-unneeded-ternary": "error",
+    "no-unused-expressions": "error",
+    "no-useless-concat": "error",
+    "no-var": "error"
+  }
+}

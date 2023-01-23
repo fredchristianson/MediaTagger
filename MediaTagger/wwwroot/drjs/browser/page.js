@@ -2,37 +2,37 @@ import assert from '../assert.js';
 import Logger from '../logger.js';
 import util from '../util.js';
 
-const log = Logger.create("Page");
+const log = Logger.create('Page');
 
 export class Page {
-    constructor() {
-        this.defaultPage = "index";
-    }
+  constructor() {
+    this.defaultPage = 'index';
+  }
 
-    setDefaultPage(name) {
-        this.defaultPage = name;
-    }
-    
-    name() {
-        var page = window.location.pathname.substr(1);
-        if (util.isEmpty(page)){
-            page = this.defaultPage;
-        }
-        return page;
-    }
+  setDefaultPage(name) {
+    this.defaultPage = name;
+  }
 
-    set(name) {
-        const newUrl = `/${name}`;
-        window.history.pushState({},null,newUrl);
+  name() {
+    let page = window.location.pathname.substr(1);
+    if (util.isEmpty(page)) {
+      page = this.defaultPage;
     }
+    return page;
+  }
 
-    isLoggedIn() {
-        return !util.isNull(this.user);
-    }
+  set(name) {
+    const newUrl = `/${name}`;
+    window.history.pushState({}, null, newUrl);
+  }
 
-    user() {
-        return null;
-    }
+  isLoggedIn() {
+    return !util.isNull(this.user);
+  }
+
+  user() {
+    return null;
+  }
 }
 
 export default new Page();

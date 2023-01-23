@@ -1,4 +1,4 @@
-body {
+﻿body {
   padding: 0px;
   margin: 0px;
 }
@@ -153,7 +153,6 @@ label.check-state[data-state=unchecked]::after {
   max-height: 100vh;
   display: grid;
   grid-template-areas: "view-options" "content" "status";
-  grid-template-rows: -webkit-max-content 1fr -webkit-max-content;
   grid-template-rows: max-content 1fr max-content;
 }
 #main-content #view-options {
@@ -203,7 +202,7 @@ label.check-state[data-state=unchecked]::after {
   height: 100%;
 }
 .date-select svg rect {
-  fill: hsl(230deg, 100%, 50%);
+  fill: #002bff;
   height: 100%;
   width: 20px;
   top: 0;
@@ -229,10 +228,7 @@ label.check-state[data-state=unchecked]::after {
 #media-view {
   background: linear-gradient(142deg, #777777, #ffffff), linear-gradient(0deg, #777777, #ffffff);
   background-size: 3px 3px;
-  -webkit-user-select: none;
-     -moz-user-select: none;
-      -ms-user-select: none;
-          user-select: none;
+  user-select: none;
   grid-area: content;
   display: grid;
   grid-template-areas: "date-filter date-filter date-filter date-filter date-filter" "media-filter grid-sizer-filter   media-items grid-sizer-details  media-details";
@@ -282,7 +278,7 @@ label.check-state[data-state=unchecked]::after {
 #media-view .media-items .media-item .name {
   position: relative;
   z-index: 2;
-  background-color: rgba(0, 68, 68, 0.4666666667);
+  background-color: #00444477;
   max-width: 100%;
 }
 #media-view .media-items .media-item .details {
@@ -302,8 +298,7 @@ label.check-state[data-state=unchecked]::after {
   max-width: 100%;
   max-height: 100%;
   z-index: 1;
-  -o-object-fit: contain;
-     object-fit: contain;
+  object-fit: contain;
 }
 #media-view .media-items .media-item .error {
   display: block;
@@ -552,12 +547,6 @@ label.check-state[data-state=unchecked]::after {
 #tag-details .tag-tree .tag .children .new .tag-name,
 .tag-filter .tag-tree .tag .children .new .tag-name {
   width: 100%;
-}
-#tag-details .tag-tree .tag .children .new .tag-name:-moz-placeholder-shown ~ div .ok, .tag-filter .tag-tree .tag .children .new .tag-name:-moz-placeholder-shown ~ div .ok {
-  visibility: hidden;
-}
-#tag-details .tag-tree .tag .children .new .tag-name:-ms-input-placeholder ~ div .ok, .tag-filter .tag-tree .tag .children .new .tag-name:-ms-input-placeholder ~ div .ok {
-  visibility: hidden;
 }
 #tag-details .tag-tree .tag .children .new .tag-name:placeholder-shown ~ div .ok,
 .tag-filter .tag-tree .tag .children .new .tag-name:placeholder-shown ~ div .ok {
@@ -938,8 +927,7 @@ label.check-state[data-state=unchecked]::after {
 #quick-tags .small > div img {
   width: 100%;
   height: 100%;
-  -o-object-fit: contain;
-     object-fit: contain;
+  object-fit: contain;
   display: block;
   margin: auto auto;
 }
@@ -960,8 +948,6 @@ label.check-state[data-state=unchecked]::after {
 }
 #quick-tags .images {
   margin: auto auto;
-  width: -webkit-fit-content;
-  width: -moz-fit-content;
   width: fit-content;
 }
 #quick-tags .images img.rotate-270 {
@@ -1030,14 +1016,6 @@ label.check-state[data-state=unchecked]::after {
   display: block;
   text-align: center;
 }
-@-webkit-keyframes cursorBlink {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
 @keyframes cursorBlink {
   from {
     opacity: 0;
@@ -1077,14 +1055,10 @@ label.check-state[data-state=unchecked]::after {
   height: 12px;
   margin-top: 4px;
   display: none;
-  -webkit-animation-duration: 1s;
-          animation-duration: 1s;
-  -webkit-animation-name: cursorBlink;
-          animation-name: cursorBlink;
-  -webkit-animation-iteration-count: infinite;
-          animation-iteration-count: infinite;
-  -webkit-animation-direction: alternate;
-          animation-direction: alternate;
+  animation-duration: 1s;
+  animation-name: cursorBlink;
+  animation-iteration-count: infinite;
+  animation-direction: alternate;
 }
 #quick-tags .input.active .cursor {
   display: inline-block;
@@ -1219,9 +1193,7 @@ button:hover {
   display: grid;
   width: 100%;
   grid-template-areas: "open check name" "children children children";
-  grid-template-columns: -webkit-max-content -webkit-max-content 1fr;
   grid-template-columns: max-content max-content 1fr;
-  grid-template-rows: -webkit-max-content;
   grid-template-rows: max-content;
 }
 .tree .tree-item .open-close {
@@ -1361,4 +1333,4 @@ button:hover {
 }
 .toggle-next-sibling + div {
   padding: 4px;
-}/*# sourceMappingURL=MediaTagger.css.map */
+}

@@ -1,9 +1,8 @@
-import assert from "../assert.js";
-import Logger from "../logger.js";
-import util, { Util } from "../util.js";
-import DOM from "./dom.js";
+import { Logger } from '../logger.js';
+import { util } from '../util.js';
+import { DOM } from './dom.js';
 
-const log = Logger.create("HtmlTemplate");
+const log = Logger.create('HtmlTemplate');
 
 export class TemplateValue {
   constructor(value) {
@@ -20,7 +19,7 @@ export class TemplateValue {
 
   set(element) {
     log.error(
-      "derived class did not implement the set(element) method ",
+      'derived class did not implement the set(element) method ',
       this.constructor.name
     );
   }
@@ -111,14 +110,14 @@ export class ReplaceTemplateValue extends TemplateValue {
       this.oldValue,
       this.newValue
     );
-    var attrs = element.getAttributeNames();
+    let attrs = element.getAttributeNames();
     attrs.forEach((name) => {
-      var val = element.getAttribute(name);
-      var newVal = this.newValue;
-      if (typeof newVal == "function") {
+      let val = element.getAttribute(name);
+      let newVal = this.newValue;
+      if (typeof newVal == 'function') {
         newVal = newVal();
       }
-      var rval = val.replaceAll(this.oldValue, newVal);
+      let rval = val.replaceAll(this.oldValue, newVal);
       element.setAttribute(name, rval);
     });
   }
@@ -127,11 +126,11 @@ export class ReplaceTemplateValue extends TemplateValue {
 export class HtmlTemplate {
   constructor(templateElement, initValues = null) {
     this.templateElement = templateElement;
-    if (typeof this.templateElement === "string") {
+    if (typeof this.templateElement === 'string') {
       this.nodes = this.stringToNodes(this.templateElement);
     } else if (
       this.templateElement &&
-      this.templateElement.tagName == "SCRIPT"
+      this.templateElement.tagName == 'SCRIPT'
     ) {
       // if the template is a script, process all elements in it
       this.nodes = this.stringToNodes(this.templateElement.innerHTML);
@@ -150,24 +149,24 @@ export class HtmlTemplate {
   }
 
   getFirstNode() {
-    var nodes = this.nodes.map((node) => {
-      var clone = node.cloneNode(true);
-      DOM.remove(DOM.find(clone, ".repeat"));
+    let nodes = this.nodes.map((node) => {
+      let clone = node.cloneNode(true);
+      DOM.remove(DOM.find(clone, '.repeat'));
       return clone;
     });
     return nodes[0];
   }
   getNodes() {
-    var nodes = this.nodes.map((node) => {
-      var clone = node.cloneNode(true);
-      DOM.remove(DOM.find(clone, ".repeat"));
+    let nodes = this.nodes.map((node) => {
+      let clone = node.cloneNode(true);
+      DOM.remove(DOM.find(clone, '.repeat'));
       return clone;
     });
     return nodes;
   }
 
   stringToNodes(text) {
-    const parent = document.createElement("div");
+    const parent = document.createElement('div');
     parent.innerHTML = text.trim();
     return Array.from(parent.childNodes);
   }
@@ -190,15 +189,15 @@ export class HtmlTemplate {
         ? [node]
         : DOM.find(node, selector);
       elements.forEach((element) => {
-        if (DOM.hasClass(element, "repeat") && Array.isArray(value)) {
+        if (DOM.hasClass(element, 'repeat') && Array.isArray(value)) {
           value.forEach((val) => {
             const clone = element.cloneNode(true);
-            if (typeof val == "object" && !(val instanceof TemplateValue)) {
+            if (typeof val == 'object' && !(val instanceof TemplateValue)) {
               this.fillNode(clone, val);
             } else {
               this.setValue(clone, val);
             }
-            DOM.removeClass(clone, "repeat");
+            DOM.removeClass(clone, 'repeat');
             element.parentNode.appendChild(clone);
           });
         } else {
@@ -210,12 +209,12 @@ export class HtmlTemplate {
 
   setValue(element, value) {
     if (util.isEmpty(value)) {
-      element.innerHTML = "";
+      element.innerHTML = '';
       return;
     }
     if (Array.isArray(value)) {
       value.forEach((val) => this.setValue(element, val));
-    } else if (typeof value === "string" || typeof value === "number") {
+    } else if (typeof value === 'string' || typeof value === 'number') {
       if (element.value != null) {
         element.value = value;
       } else {
@@ -224,7 +223,7 @@ export class HtmlTemplate {
     } else if (value instanceof TemplateValue) {
       value.set(element);
     } else {
-      log.error("unknown template value type ", value);
+      log.error('unknown template value type ', value);
     }
   }
 }
