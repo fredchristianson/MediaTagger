@@ -1,9 +1,9 @@
 {
+  "root": true,
   "env": {
     "browser": true,
     "es2021": true
   },
-  "files": ["**/*.js"],
   "overrides": [],
   "parserOptions": {
     "ecmaVersion": "latest",
@@ -56,7 +56,7 @@
     "valid-typeof": "error",
     "block-scoped-var": "error",
     "camelcase": ["error", { "properties": "always" }],
-    "complexity": ["warn", 7],
+    "complexity": ["warn", 4],
     "consistent-return": "error",
     "consistent-this": ["error", "self"],
     "curly": "error",
@@ -78,6 +78,30 @@
     "no-unneeded-ternary": "error",
     "no-unused-expressions": "error",
     "no-useless-concat": "error",
-    "no-var": "error"
+    "no-var": "error",
+    "prefer-const": "error",
+    "prefer-promise-reject-errors": "error",
+    "prefer-template": "error",
+    "array-bracket-spacing": ["error", "always"],
+    "array-element-newline": [
+      "error",
+      {
+        "ArrayExpression": "consistent",
+        "multiline": true,
+        "ArrayPattern": { "minItems": 3 }
+      }
+    ],
+    "arrow-parens": ["error", "always"],
+    "arrow-spacing": ["error", { "before": false, "after": true }],
+    "block-spacing": "error",
+    "brace-style": "error",
+    "comma-spacing": ["error", { "before": false, "after": true }],
+    "dot-location": ["error", "property"],
+    "line-comment-position": ["error", { "position": "above" }],
+    "newline-per-chained-call": ["error", { "ignoreChainWithDepth": 2 }],
+    "no-multiple-empty-lines": "error",
+    "object-curly-spacing": ["error", "always"],
+    "operator-linebreak": ["error", "before"],
+    "quotes": ["error", "single"]
   }
 }
