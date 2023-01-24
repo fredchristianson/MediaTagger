@@ -56,7 +56,7 @@
     "valid-typeof": "error",
     "block-scoped-var": "error",
     "camelcase": ["error", { "properties": "always" }],
-    "complexity": ["warn", 4],
+    "complexity": ["warn", 7],
     "consistent-return": "error",
     "consistent-this": ["error", "self"],
     "curly": "error",
@@ -64,7 +64,10 @@
     "dot-notation": "off",
     "guard-for-in": "error",
     "multiline-comment-style": ["error", "starred-block"],
-    "new-cap": ["error", { "capIsNewExceptionPattern": "Build|On|Of|None" }],
+    "new-cap": [
+      "error",
+      { "capIsNewExceptionPattern": "Build|On|Of|None|Key" }
+    ],
     "no-array-constructor": "error",
     "no-extra-bind": "error",
     "no-implicit-coercion": "error",
@@ -82,17 +85,15 @@
     "prefer-const": "error",
     "prefer-promise-reject-errors": "error",
     "prefer-template": "error",
-    "array-bracket-spacing": ["error", "always"],
     "array-element-newline": [
       "error",
       {
         "ArrayExpression": "consistent",
-        "multiline": true,
         "ArrayPattern": { "minItems": 3 }
       }
     ],
     "arrow-parens": ["error", "always"],
-    "arrow-spacing": ["error", { "before": false, "after": true }],
+    "arrow-spacing": ["error", { "before": true, "after": true }],
     "block-spacing": "error",
     "brace-style": "error",
     "comma-spacing": ["error", { "before": false, "after": true }],
@@ -102,6 +103,6 @@
     "no-multiple-empty-lines": "error",
     "object-curly-spacing": ["error", "always"],
     "operator-linebreak": ["error", "before"],
-    "quotes": ["error", "single"]
+    "quotes": ["error", "single", { "avoidEscape": true }]
   }
 }

@@ -121,7 +121,9 @@ export class Layout {
         .emitter(ZoomEvent)
         .onEvent(this, this.onZoomChange)
         .build(),
-      BuildScrollHandler().listenTo(this.layoutScroll).onScroll(this).build(),
+      BuildScrollHandler().listenTo(this.layoutScroll)
+.onScroll(this)
+.build(),
 
       BuildCustomEventHandler()
         .emitter(this.list.getUpdatedEvent())
@@ -156,9 +158,9 @@ export class Layout {
   }
 
   setFocus(item) {
-    let oldFocus = dom.first('.focus');
+    const oldFocus = dom.first('.focus');
     dom.removeClass(oldFocus, 'focus');
-    let focusItem = item;
+    const focusItem = item;
     if (item != null) {
       this.ensureVisible(focusItem);
     }
@@ -176,15 +178,15 @@ export class Layout {
     if (this.list == null || this.list.Length == 0) {
       return;
     }
-    let index = this.list.indexOf(item);
-    let itemCount = this.list.Length;
-    let scrollHeight = this.layoutScroll.scrollHeight;
-    let scrollTop = this.layoutScroll.scrollTop;
-    let scrollPercent = scrollTop / scrollHeight;
-    let totalRows = Math.floor(itemCount / this.layoutDetails.Columns) + 1;
-    let itemRow = Math.floor(index / this.layoutDetails.Columns);
+    const index = this.list.indexOf(item);
+    const itemCount = this.list.Length;
+    const scrollHeight = this.layoutScroll.scrollHeight;
+    const scrollTop = this.layoutScroll.scrollTop;
+    const scrollPercent = scrollTop / scrollHeight;
+    const totalRows = Math.floor(itemCount / this.layoutDetails.Columns) + 1;
+    const itemRow = Math.floor(index / this.layoutDetails.Columns);
     let firstVisibleRow = Math.floor(scrollPercent * totalRows);
-    let lastVisibleRow = firstVisibleRow + this.layoutDetails.VisibleRows - 1;
+    const lastVisibleRow = firstVisibleRow + this.layoutDetails.VisibleRows - 1;
 
     if (itemRow <= firstVisibleRow) {
       firstVisibleRow = itemRow;
@@ -201,30 +203,30 @@ export class Layout {
   }
 
   getItem(index) {
-    let item = this.list.getItemAt(index);
+    const item = this.list.getItemAt(index);
     return item;
   }
 
   getItemHtml(index) {
-    let item = this.list.getItemAt(index);
+    const item = this.list.getItemAt(index);
     if (item == null) {
       return null;
     }
     if (item._layoutElement == null) {
-      let element = this.htmlCreator(item);
+      const element = this.htmlCreator(item);
       item._layoutElement = element;
     }
     return item._layoutElement;
   }
 
   onScroll(_target, _event) {
-    let pos = this.layoutScroll.scrollTop;
-    let totalRows =
-      Math.floor(media.getVisibleItems().Length / this.layoutDetails.Columns) +
-      1;
+    const pos = this.layoutScroll.scrollTop;
+    const totalRows
+      = Math.floor(media.getVisibleItems().Length / this.layoutDetails.Columns)
+      + 1;
 
-    let rowPercent = pos / this.layoutScroll.scrollHeight;
-    let row = Math.floor(totalRows * (rowPercent + 0.0005)); // add .0005 for rounding error in percent
+    const rowPercent = pos / this.layoutScroll.scrollHeight;
+    const row = Math.floor(totalRows * (rowPercent + 0.0005)); // add .0005 for rounding error in percent
     this.firstVisibleIndex = row * this.layoutDetails.Columns;
     this.drawItems(this.firstVisibleIndex, this.layoutDetails, this.layoutView);
   }
@@ -246,11 +248,11 @@ export class Layout {
   onContainerResize() {
     this.layoutDetails = this.createLayoutDetails();
 
-    let totalRows = this.list.Length / this.layoutDetails.Columns + 1;
-    let totalHeight = totalRows * this.layoutDetails.RowHeight;
+    const totalRows = this.list.Length / this.layoutDetails.Columns + 1;
+    const totalHeight = totalRows * this.layoutDetails.RowHeight;
     //this.layoutScroll.style.height = px(totalHeight);
     this.setScrollHeight(totalHeight);
-    let item = media.getFocus();
+    const item = media.getFocus();
     if (item) {
       this.ensureVisible(item);
     }
@@ -285,21 +287,22 @@ export class GridLayout extends Layout {
     this.gridDataName = 'data-layout-grid-visible';
   }
 
+  // eslint-disable-next-line complexity
   drawItems(firstItemIndex, layoutDetails, view) {
     if (firstItemIndex < 0) {
       firstItemIndex = 0;
     }
-    let selection = Media.getSelectedItems();
-    let visibleItems = Media.getVisibleItems();
+    const selection = Media.getSelectedItems();
+    const visibleItems = Media.getVisibleItems();
     let visible = true;
     let left = 0;
     let top = view.scrollTop;
-    let viewBottom = view.scrollTop + view.clientHeight;
-    let width = layoutDetails.ItemWidth;
-    let height = layoutDetails.ItemHeight;
-    let gap = layoutDetails.Gap;
-    let viewWidth = layoutDetails.ViewWidth;
-    let viewHeight = layoutDetails.ViewHeight;
+    const viewBottom = view.scrollTop + view.clientHeight;
+    const width = layoutDetails.ItemWidth;
+    const height = layoutDetails.ItemHeight;
+    const gap = layoutDetails.Gap;
+    const viewWidth = layoutDetails.ViewWidth;
+    const viewHeight = layoutDetails.ViewHeight;
     if (viewWidth == 0 || viewHeight == 0) {
       return;
     }
@@ -307,7 +310,7 @@ export class GridLayout extends Layout {
     this.itemStepCount = layoutDetails.Columns;
     let itemIndex = firstItemIndex;
     let html = this.getItemHtml(itemIndex);
-    let layoutChildren = [];
+    const layoutChildren = [];
     left = gap / 2;
     while (visible && html != null) {
       //fragment.appendChild(html);
@@ -322,16 +325,16 @@ export class GridLayout extends Layout {
         top += height + gap;
         visible = top < viewBottom;
       }
-      let item = visibleItems.getItemAt(itemIndex);
+      const item = visibleItems.getItemAt(itemIndex);
       dom.toggleClass(html, 'selected', selection.contains(item));
       dom.toggleClass(html, 'group', item.isInGroup());
       dom.toggleClass(html, 'primary', item.isPrimary());
 
-      dom.removeClass(html, [`rotate-90`, 'rotate-180', 'rotate-270']);
+      dom.removeClass(html, ['rotate-90', 'rotate-180', 'rotate-270']);
       if (item.RotationDegrees) {
         dom.addClass(html, `rotate-${(item.RotationDegrees + 360) % 360}`);
       }
-      let img = dom.first(html, 'img');
+      const img = dom.first(html, 'img');
       if (item.RotationDegrees == 90 || item.RotationDegrees == 270) {
         dom.addClass(img, 'portrait');
       } else {
@@ -342,7 +345,7 @@ export class GridLayout extends Layout {
     }
 
     let change = true;
-    let children = view.children;
+    const children = view.children;
     if (layoutChildren.length == children.length) {
       change = false;
       for (let i = 0; i < layoutChildren.length && !change; i++) {
@@ -352,11 +355,11 @@ export class GridLayout extends Layout {
       }
     }
     if (change) {
-      let fragment = document.createDocumentFragment();
-      for (let child of layoutChildren) {
+      const fragment = document.createDocumentFragment();
+      for (const child of layoutChildren) {
         fragment.appendChild(child);
       }
-      let bottom = dom.first(view, '.bottom');
+      const bottom = dom.first(view, '.bottom');
       view.replaceChildren(fragment);
       dom.append(view, bottom);
 
@@ -364,7 +367,7 @@ export class GridLayout extends Layout {
        * position top margin after image has been inserted into the body DOM
        * before then the <img> has 0 size
        */
-      for (let img of dom.find(view, 'img')) {
+      for (const img of dom.find(view, 'img')) {
         if (!img.complete) {
           img.addEventListener('load', () => this.positionImage.bind(this));
         } else {

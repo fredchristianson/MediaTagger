@@ -1,3 +1,4 @@
+/* eslint-disable complexity */
 import { LoggerInterface } from './logger-interface.js';
 const log = new LoggerInterface('Assert');
 
@@ -54,9 +55,9 @@ class Assert {
       isEmpty = true;
     }
     if (!isEmpty) {
-      message = message || 'expected value to be an empty string or array';
-      log.error(mesage);
-      throw new AssertionError(message);
+      const msg = message ?? 'expected value to be an empty string or array';
+      log.error(msg);
+      throw new AssertionError(msg);
     }
   }
 
@@ -84,8 +85,9 @@ class Assert {
   type(object, type, message) {
     if (type == 'string' || type == 'number' || type == 'boolean') {
       if (typeof object !== type) {
-        throw new AssertError('type of object is not ' + type);
+        throw new AssertError(`type of object is not ${type}`);
       }
+      return;
     }
     if (Array.isArray(type)) {
       const hasOne = type.some((t) => {
@@ -102,10 +104,8 @@ class Assert {
   }
 
   test(val, message) {
-    if (typeof val == 'function') {
-      val = val();
-    }
-    if (!val) {
+    const test = typeof val == 'function' ? val() : val;
+    if (!test) {
       log.error(message);
       throw new AssertionError(message);
     }

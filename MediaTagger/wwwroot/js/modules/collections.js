@@ -8,11 +8,11 @@ import {
 import { Assert } from '../../drjs/assert.js';
 const log = Logger.create('Collections', LOG_LEVEL.INFO);
 
-let filteredEvent = new ObjectEventType('__collection-filtered');
-let sortedEvent = new ObjectEventType('__collection-sorted');
-let itemsAddedEvent = new ObjectEventType('__collection-itemsAdded');
-let itemsRemovedEvent = new ObjectEventType('__collection-itemsRemoved');
-let updatedEvent = new ObjectEventType('__collection-updated');
+const filteredEvent = new ObjectEventType('__collection-filtered');
+const sortedEvent = new ObjectEventType('__collection-sorted');
+const itemsAddedEvent = new ObjectEventType('__collection-itemsAdded');
+const itemsRemovedEvent = new ObjectEventType('__collection-itemsRemoved');
+const updatedEvent = new ObjectEventType('__collection-updated');
 
 let nextID = 1;
 /*
@@ -46,7 +46,7 @@ class ObservableCollection {
   }
 
   findById(id) {
-    for (let item of this) {
+    for (const item of this) {
       if (item.getId() == id) {
         return item;
       }
@@ -100,8 +100,12 @@ class ObservableArray extends ObservableCollection {
   }
 
   getItemAt(index) {
-    if (this.items == null) return null;
-    if (this.items.length - 1 < index) return null;
+    if (this.items == null) {
+      return null;
+    }
+    if (this.items.length - 1 < index) {
+      return null;
+    }
     return this.items[index];
   }
 
@@ -123,7 +127,7 @@ class ObservableArray extends ObservableCollection {
     this.updatedEvent.emit(items);
   }
   insertBatch(newItems) {
-    for (let item of newItems) {
+    for (const item of newItems) {
       this.items.push(item);
     }
     this.itemsAddedEvent.emitNow(newItems);
@@ -151,9 +155,9 @@ class ObservableArray extends ObservableCollection {
   }
 
   remove(item) {
-    let idx = this.indexOf(item);
+    const idx = this.indexOf(item);
     if (idx != null) {
-      let removed = this.items.splice(idx, 1);
+      const removed = this.items.splice(idx, 1);
       this.itemsRemovedEvent.emitNow(removed);
       this.updatedEvent.emit(this.removed);
       return item;
@@ -163,7 +167,7 @@ class ObservableArray extends ObservableCollection {
 
   removeMatch(matchFunc) {
     for (let idx = 0; idx < this.getLength(); ) {
-      let item = this.getItemAt(idx);
+      const item = this.getItemAt(idx);
       if (matchFunc(item)) {
         this.remove(item);
       } else {
@@ -173,7 +177,7 @@ class ObservableArray extends ObservableCollection {
   }
 
   contains(item) {
-    let found = this.items.find((i) => {
+    const found = this.items.find((i) => {
       return i == item;
     });
     return found != null;
@@ -200,11 +204,13 @@ class ObservableArray extends ObservableCollection {
   }
 }
 
-// a ObservableList requires an ObservableCollection it accesses.
-// ObservableLists can be chained.  For example
-//    baseArray --> FilteredList --> SortedList --> ObservableList
-// the final list in this chain is a filtered and sorted version of the base array.
-// items added/removed in the base array will trigger events in every list in the chain
+/*
+ * a ObservableList requires an ObservableCollection it accesses.
+ * ObservableLists can be chained.  For example
+ *    baseArray --> FilteredList --> SortedList --> ObservableList
+ * the final list in this chain is a filtered and sorted version of the base array.
+ * items added/removed in the base array will trigger events in every list in the chain
+ */
 class ObservableView extends ObservableCollection {
   constructor(collectionIn = null) {
     super();
@@ -275,7 +281,7 @@ class ObservableView extends ObservableCollection {
     try {
       return this.collectionIn.getItemAt(index);
     } catch (ex) {
-      let count = 0;
+      return null;
     }
   }
 
@@ -285,9 +291,10 @@ class ObservableView extends ObservableCollection {
     }
 
     if (Array.isArray(collectionIn)) {
-      collectionIn = new ObservableArray(collectionIn);
+      this.collectionIn = new ObservableArray(collectionIn);
+    } else {
+      this.collectionIn = collectionIn;
     }
-    this.collectionIn = collectionIn;
     if (!(collectionIn instanceof ObservableCollection)) {
       throw new Error(
         'ObservableLView constructor argument is not a collection'
@@ -337,9 +344,11 @@ export class SortedObservableView extends ObservableView {
   onBaseUpdated() {
     this.sortedItems = new ObservableArray(this.collectionIn);
     this.sort();
-    // sort() emited events
-    //this.sortedEvent.emit(this.sortedItems);
-    //this.updatedEvent.emit(this.updatedEvent);
+    /*
+     *  sort() emited events
+     * this.sortedEvent.emit(this.sortedItems);
+     * this.updatedEvent.emit(this.updatedEvent);
+     */
   }
 
   getItemAt(index) {
@@ -371,7 +380,7 @@ export class SortedObservableView extends ObservableView {
   }
 }
 
-function defaultKeepFilter(item) {
+function defaultKeepFilter(_item) {
   return true;
 }
 
@@ -462,14 +471,15 @@ export class ObservableTree extends ObservableArray {
       return item.getParentId() == parentId && item.getName() == name;
     });
   }
+  // eslint-disable-next-line complexity
   getPath(path, divider = '/') {
     Assert.type(path, 'string', 'getPath() requires a string path');
     const levels = path.split(divider);
     let nodes = this.getTopNodes();
     let found = null;
     for (let idx = 0; idx < levels.length; idx++) {
-      let level = levels[idx];
-      let name = level.trim();
+      const level = levels[idx];
+      const name = level.trim();
       if (nodes != null && name.length > 0) {
         const next = nodes.find((node) => {
           return (

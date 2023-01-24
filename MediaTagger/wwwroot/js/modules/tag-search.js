@@ -114,28 +114,24 @@ class SearchMatch {
     return this.parts;
   }
   skip(chars) {
-    if (chars != null && chars.length > 0) {
-      const levels = chars.split('/');
-      this.parts.push(new SkipPart(levels.shift()));
+    const levels = chars?.split('/') ?? '';
+    this.parts.push(new SkipPart(levels.shift()));
 
-      for (const level of levels) {
-        this.parts.push(new LevelPart());
-        if (level != '') {
-          this.parts.push(new SkipPart(level));
-        }
+    for (const level of levels) {
+      this.parts.push(new LevelPart());
+      if (level != '') {
+        this.parts.push(new SkipPart(level));
       }
     }
   }
 
   match(chars) {
-    if (chars != null && chars.length > 0) {
-      const levels = chars.split('/');
-      this.parts.push(new MatchPart(levels.shift()));
-      for (const level of levels) {
-        this.parts.push(new LevelPart());
-        if (level != '') {
-          this.parts.push(new MatchPart(level));
-        }
+    const levels = chars?.split('/') ?? '';
+    this.parts.push(new MatchPart(levels.shift()));
+    for (const level of levels) {
+      this.parts.push(new LevelPart());
+      if (level != '') {
+        this.parts.push(new MatchPart(level));
       }
     }
   }
@@ -192,11 +188,6 @@ class SearchPhrase {
   }
 
   match(path) {
-    if (this.levels.length == 0) {
-      const sm = new SearchMatch();
-      sm.Success = true;
-      return sm;
-    }
     let rest = path;
     const searchMatch = new SearchMatch(path);
     for (let index = 0; index < this.levels.length; index++) {

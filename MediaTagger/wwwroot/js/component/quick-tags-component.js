@@ -1,35 +1,25 @@
 import { ComponentBase } from '../../drjs/browser/component.js';
 import { Settings } from '../modules/settings.js';
-import { Tree, TreeDataProvider, TreeItem } from '../controls/tree.js';
-import { FocusChangeEvent, media } from '../modules/media.js';
+import { media } from '../modules/media.js';
 import {
   Listeners,
-  BuildInputHandler,
   BuildClickHandler,
   Continuation,
   BuildCheckboxHandler,
   BuildHoverHandler,
   BuildKeyHandler,
   BuildCustomEventHandler,
-  Key,
-  KeyMatch
+  Key
 } from '../../drjs/browser/event.js';
 import { LOG_LEVEL, Logger } from '../../drjs/logger.js';
 import {
-  BuildDragHandler,
-  BuildDropHandler
-} from '../../drjs/browser/event.js';
-import {
   HtmlTemplate,
-  ClassValue,
   DataValue,
   InputValue,
   HtmlValue
 } from '../../drjs/browser/html-template.js';
-import { Dialog } from '../controls/dialog.js';
 import { OnNextLoop } from '../../drjs/browser/timer.js';
 import { imageWindow } from '../controls/image-window.js';
-import MediaEntity from '../data/media-entity.js';
 import {
   SearchWord,
   SearchLevel,
@@ -43,17 +33,9 @@ function sortTagPaths(tags) {
   const paths = tags.map((t) => {
     return media.getTagPath(t).split('/');
   });
-  const sorted = paths.sort((a, b) => {
-    for (let step = 0; step < a.length && step < b.length; step++) {
-      const diff = a[step].localeCompare(b[step]);
-      if (diff != 0) {
-        return diff;
-      }
-    }
-    return a.length - b.length;
-  });
+
   return paths.map((p) => {
-    return '/' + p.join('/');
+    return `/${p.join('/')}`;
   });
 }
 
@@ -76,7 +58,7 @@ export class QuickTagsComponent extends ComponentBase {
     window.removeEventListener('beforeunload', stopBrowserClose, true);
   }
 
-  async onHtmlInserted(parent) {
+  async onHtmlInserted(_parent) {
     //window.addEventListener("beforeunload", stopBrowserClose, true);
     this.settings = await Settings.load('quick-tags');
     this.tags = media.getTags();
@@ -116,11 +98,13 @@ export class QuickTagsComponent extends ComponentBase {
         .build(),
       BuildKeyHandler()
         .setDefaultContinuation(Continuation.Continue)
-        // .filterAllow((event) => {
-        //   let active = document.activeElement;
-        //   log.debug("filter ", active, active?.tagName);
-        //   return active == null || active.tagName != "INPUT";
-        // })
+        /*
+         * .filterAllow((event) => {
+         *   let active = document.activeElement;
+         *   log.debug("filter ", active, active?.tagName);
+         *   return active == null || active.tagName != "INPUT";
+         * })
+         */
         .onKey('Backspace', this, this.keyPress)
         .onKey('ArrowRight', this, this.nextImage)
         .onKey(Key('='), this, this.nextImage)
@@ -180,8 +164,8 @@ export class QuickTagsComponent extends ComponentBase {
     this.fillImages();
   }
 
-  onSelectImage(target, event, handler) {
-    let offset = this.dom.getData(target, 'offset');
+  onSelectImage(target, _event, _handler) {
+    const offset = this.dom.getData(target, 'offset');
     if (offset != 0) {
       this.focusIndex += offset;
       this.fillImages();
@@ -200,7 +184,9 @@ export class QuickTagsComponent extends ComponentBase {
       this.fillImages();
       return Continuation.StopAll;
     }
+    return null;
   }
+
   async selectHotkey(key, target, event) {
     event.preventDefault();
     log.debug('hotkey ', key);
@@ -214,6 +200,7 @@ export class QuickTagsComponent extends ComponentBase {
       this.fillImages();
       return Continuation.StopAll;
     }
+    return null;
   }
 
   getTagForElement(element) {
@@ -274,9 +261,11 @@ export class QuickTagsComponent extends ComponentBase {
 
   fillImages() {
     const images = this.dom.find('.images', 'img');
-    //    const visible = media.getVisibleItems();
-    // don't get latest visible items since they may have changed
-    // want to be able to re-untag media
+    /*
+     *    const visible = media.getVisibleItems();
+     * don't get latest visible items since they may have changed
+     * want to be able to re-untag media
+     */
     const visible = this.visibleItems;
     if (this.focusIndex < 0) {
       this.focusIndex = 0;
@@ -287,25 +276,23 @@ export class QuickTagsComponent extends ComponentBase {
 
     this.currentImage = visible.getItemAt(this.focusIndex);
     while (images.length > 0) {
-      let img = images.shift();
-      let offset = this.dom.getData(img, 'offset');
-      let item = this.visibleItems.getItemAt(offset + this.focusIndex);
+      const img = images.shift();
+      const offset = this.dom.getData(img, 'offset');
+      const item = this.visibleItems.getItemAt(offset + this.focusIndex);
       if (item == null) {
         this.dom.setAttribute(img, 'src', 'image/1x1.png');
-      } else {
-        if (this.dom.hasClass(img, 'thumb')) {
-          this.dom.setAttribute(img, 'src', item.getThumbnailUrl());
-          this.dom.removeChildren(img, 'rotate-90');
-          this.dom.removeChildren(img, 'rotate-360');
-          if (item.RotationDegrees) {
-            this.dom.addClass(
-              img,
-              `rotate-${(item.RotationDegrees + 360) % 360}`
-            );
-          }
-        } else {
-          this.dom.setAttribute(img, 'src', item.getImageReloadUrl());
+      } else if (this.dom.hasClass(img, 'thumb')) {
+        this.dom.setAttribute(img, 'src', item.getThumbnailUrl());
+        this.dom.removeChildren(img, 'rotate-90');
+        this.dom.removeChildren(img, 'rotate-360');
+        if (item.RotationDegrees) {
+          this.dom.addClass(
+            img,
+            `rotate-${(item.RotationDegrees + 360) % 360}`
+          );
         }
+      } else {
+        this.dom.setAttribute(img, 'src', item.getImageReloadUrl());
       }
     }
     this.imageWindow.setImage(this.currentImage);
@@ -319,7 +306,7 @@ export class QuickTagsComponent extends ComponentBase {
     this.dom.removeChildren(container);
 
     if (image != null) {
-      for (let tag of sortTagPaths(image.Tags)) {
+      for (const tag of sortTagPaths(image.Tags)) {
         const child = this.dom.createElement(`<div>${tag}</div>`);
         this.dom.append(container, child);
       }
@@ -332,7 +319,7 @@ export class QuickTagsComponent extends ComponentBase {
       tree,
       ".tag.node > .self input[type='checkbox']"
     );
-    for (let tagElement of tags) {
+    for (const tagElement of tags) {
       const tag = this.getTagForElement(tagElement);
       if (tag) {
         // don't use this.dom to check.  it sends event we don't want
@@ -358,7 +345,7 @@ export class QuickTagsComponent extends ComponentBase {
     }
   }
 
-  getNodeTag(target, event) {
+  getNodeTag(target, _event) {
     const id = this.dom.getDataWithParent(target, 'id');
     return media.getTagById(id);
   }
@@ -381,22 +368,17 @@ export class QuickTagsComponent extends ComponentBase {
   }
 
   setHotkey(tag, key) {
-    if (tag == null) {
-      return;
-    }
-
-    for (let oldKey of Object.keys(this.hotkeys)) {
-      let oldTagId = this.hotkeys[oldKey];
-      if (oldTagId == tag.Id) {
+    Object.keys(this.hotkeys).forEach((oldKey) => {
+      const oldTagId = this.hotkeys[oldKey];
+      if (oldTagId == (tag?.Id ?? -1)) {
         delete this.hotkeys[oldKey];
       }
-    }
-    if (key != null) {
-      let oldHotkey = this.getTagForHotkey(key);
-      if (oldHotkey != key) {
-        this.hotkeys[key] = tag.Id;
-        this.settings.set('hotkeys', this.hotkeys);
-      }
+    });
+
+    const oldHotkey = this.getTagForHotkey(key ?? '');
+    if (oldHotkey != key) {
+      this.hotkeys[key] = tag.Id;
+      this.settings.set('hotkeys', this.hotkeys);
     }
   }
 
@@ -405,8 +387,8 @@ export class QuickTagsComponent extends ComponentBase {
     if (typeof tagId == 'object') {
       searchId = tagId.Id;
     }
-    for (let key of Object.keys(this.hotkeys)) {
-      let hotkeyTagId = this.hotkeys[key];
+    for (const key of Object.keys(this.hotkeys)) {
+      const hotkeyTagId = this.hotkeys[key];
       if (hotkeyTagId == searchId) {
         return key;
       }
@@ -456,7 +438,7 @@ export class QuickTagsComponent extends ComponentBase {
   fillHotkeys() {
     const hotkeys = this.dom.first('.keys');
     this.dom.removeChildren(hotkeys);
-    for (let key of Object.keys(this.hotkeys).sort()) {
+    for (const key of Object.keys(this.hotkeys).sort()) {
       const tag = this.hotkeys[key];
       if (tag != null) {
         const row = this.keyTemplate.fill({
@@ -470,8 +452,8 @@ export class QuickTagsComponent extends ComponentBase {
       }
     }
 
-    let treeKeys = this.dom.find('.tag.node .hotkey .key');
-    for (let key of treeKeys) {
+    const treeKeys = this.dom.find('.tag.node .hotkey .key');
+    for (const key of treeKeys) {
       const id = this.dom.getDataWithParent(key, 'id');
       const k = this.getHotkeyForTag(id);
       this.dom.setInnerHTML(key, k);
@@ -499,10 +481,8 @@ export class QuickTagsComponent extends ComponentBase {
     tags.sort((a, b) => {
       return a.Name.localeCompare(b.Name);
     });
-    function isChild(child) {
-      return child.ParentId == tag.Id;
-    }
-    for (let tag of tags) {
+
+    for (const tag of tags) {
       const element = this.nodeTemplate.fill({
         '.tag': [
           new DataValue('id', tag.id),
@@ -514,7 +494,7 @@ export class QuickTagsComponent extends ComponentBase {
         "input[type='checkbox']": new InputValue(tag.hasFile(this.currentImage))
       });
       this.dom.append(parent, element);
-      const childTags = this.tags.search(isChild);
+      const childTags = media.tags.getChildren(tag);
 
       const children = this.dom.first(element, '.children');
       this.insertTags(children, childTags);
@@ -539,14 +519,14 @@ export class QuickTagsComponent extends ComponentBase {
 
   hoverKeyPress(key) {
     if (!this.hasHotkeyHover) {
-      return;
+      return Continuation.Continue;
     }
     log.debug('hover keypress', key);
-    let tag = this.getTagForElement(this.hasHotkeyHover);
+    const tag = this.getTagForElement(this.hasHotkeyHover);
     if (key == 'Backspace') {
       this.setHotkey(tag, null);
     } else {
-      let lc = key.toLowerCase();
+      const lc = key.toLowerCase();
       if (lc >= 'a' && lc <= 'z') {
         this.setHotkey(tag, lc);
       }
@@ -584,10 +564,9 @@ export class QuickTagsComponent extends ComponentBase {
     this.dom.hide('div.create');
   }
   fillSearch() {
-    let phrase = new SearchPhrase();
-    let word = new SearchWord();
-    let levelText = this.searchText.split('/');
-    let levels = levelText.map((text) => {
+    const phrase = new SearchPhrase();
+    const levelText = this.searchText.split('/');
+    const levels = levelText.map((text) => {
       return text.split(/\s+/).filter((t) => {
         return t != '';
       });
@@ -595,10 +574,10 @@ export class QuickTagsComponent extends ComponentBase {
     if (levels[0] == '') {
       levels.shift();
     }
-    for (let level of levels) {
-      let searchLevel = new SearchLevel();
-      for (let word of level) {
-        let searchWord = new SearchWord(word);
+    for (const level of levels) {
+      const searchLevel = new SearchLevel();
+      for (const word of level) {
+        const searchWord = new SearchWord(word);
         searchLevel.add(searchWord);
       }
       phrase.addLevel(searchLevel);
@@ -609,17 +588,18 @@ export class QuickTagsComponent extends ComponentBase {
     this.searchNodes(phrase);
   }
 
+  // eslint-disable-next-line complexity
   searchNodes(phrase) {
-    let tags = this.dom.find('.tag-tree .tags .tag');
+    const tags = this.dom.find('.tag-tree .tags .tag');
     this.dom.hide('.tag-tree div.create');
     this.dom.remove('.new');
     let firstMatch = true;
-    for (let tag of tags) {
+    for (const tag of tags) {
       log.never('search ', tag, phrase);
-      let path = this.dom.getData(tag, 'path');
-      let match = phrase.match(path);
-      let label = this.dom.first(tag, 'span.name');
-      let html = this.formatHtml(path, match);
+      const path = this.dom.getData(tag, 'path');
+      const match = phrase.match(path);
+      const label = this.dom.first(tag, 'span.name');
+      const html = this.formatHtml(path, match);
       if (match.Success && match.NameMatch && match.Remainder?.length > 0) {
         this.dom.setData(tag, 'can_create', match.Remainder);
       } else {
@@ -631,7 +611,7 @@ export class QuickTagsComponent extends ComponentBase {
     }
     let createParent = '/';
     let createName = this.searchText;
-    for (let checkMatch of tags) {
+    for (const checkMatch of tags) {
       this.dom.removeClass(checkMatch, 'selected');
       const isMatch = this.dom.hasClass(checkMatch, 'match');
       const childMatch = this.dom.first(checkMatch, '.match');
@@ -642,8 +622,8 @@ export class QuickTagsComponent extends ComponentBase {
 
           firstMatch = false;
         }
-        let newChild = this.dom.getData(checkMatch, 'can_create');
-        let path = this.dom.getData(checkMatch, 'path');
+        const newChild = this.dom.getData(checkMatch, 'can_create');
+        const path = this.dom.getData(checkMatch, 'path');
         if (newChild && path.length > createParent.length) {
           createParent = path;
           createName = newChild;
@@ -667,14 +647,14 @@ export class QuickTagsComponent extends ComponentBase {
   }
   formatHtml(path, match) {
     if (match.Parts.length == 0) {
-      let idx = path.lastIndexOf('/');
+      const idx = path.lastIndexOf('/');
       return path.slice(idx + 1);
     }
     if (match.Parts.lengh == 0) {
       return path;
     }
     let html = '<div>';
-    for (let part of match.Parts) {
+    for (const part of match.Parts) {
       if (part.isDivider) {
         html = '<div>';
       } else if (part.IsSkip) {
@@ -683,21 +663,22 @@ export class QuickTagsComponent extends ComponentBase {
         html += `<div class="word"><b>${part.Text}</b></div>`;
       }
     }
-    html = html + '</div>';
+    html = `${html}</div>`;
     return html;
   }
 
-  async onCreateTag(target, event, handler) {
+  async onCreateTag(_target, _event, _handler) {
     const tags = media.getTags();
     const parentPath = this.dom.getInnerHTML('div.create .parent');
     let parent = tags.getPath(parentPath);
     const name = this.dom.getInnerHTML('div.create .name');
     Assert.notNull(name, "createTag doesn't have a name");
-    let parts = name.split('/');
-    for (let part of parts) {
-      let newName = part.trim();
+    const parts = name.split('/');
+    for (const part of parts) {
+      const newName = part.trim();
       if (newName != null && newName != '') {
-        let child = await media.createTag(parent, newName);
+        // eslint-disable-next-line no-await-in-loop
+        const child = await media.createTag(parent, newName);
         parent = child;
       }
     }
@@ -707,9 +688,9 @@ export class QuickTagsComponent extends ComponentBase {
   }
 
   async toggleTagSelect() {
-    let node = this.dom.first('.tag.node.selected');
-    let tagId = this.dom.getDataWithParent(node, 'id');
-    let tag = media.getTagById(tagId);
+    const node = this.dom.first('.tag.node.selected');
+    const tagId = this.dom.getDataWithParent(node, 'id');
+    const tag = media.getTagById(tagId);
     if (tag != null) {
       if (this.currentImage.hasTag(tag)) {
         this.unselectTag(tag);
@@ -721,8 +702,8 @@ export class QuickTagsComponent extends ComponentBase {
 
   nextTag() {
     log.debug('nextTag');
-    let sel = this.dom.first('.tag.node.selected');
-    let matches = this.dom.find('.tag.node.match');
+    const sel = this.dom.first('.tag.node.selected');
+    const matches = this.dom.find('.tag.node.match');
     if (matches.length > 1) {
       let idx = matches.indexOf(sel);
       idx = (idx + 1) % matches.length;
@@ -736,8 +717,8 @@ export class QuickTagsComponent extends ComponentBase {
   }
   prevTag() {
     log.debug('nextTag');
-    let sel = this.dom.first('.tag.node.selected');
-    let matches = this.dom.find('.tag.node.match');
+    const sel = this.dom.first('.tag.node.selected');
+    const matches = this.dom.find('.tag.node.match');
     if (matches.length > 1) {
       let idx = matches.indexOf(sel);
       idx = idx == 0 ? match.lengh - 1 : idx - 1;
