@@ -6,7 +6,7 @@ import { EventEmitter, ObjectEventType } from './event.js';
 
 const log = Logger.create('Component', LOG_LEVEL.INFO);
 
-export let ComponentLoadedEvent = new ObjectEventType('componentLoaded');
+export const ComponentLoadedEvent = new ObjectEventType('componentLoaded');
 
 class ComponentBase {
   constructor(selector, htmlName) {
@@ -16,6 +16,7 @@ class ComponentBase {
       this.load(selector, htmlName);
     }
     this.onLoadedEmitter = new EventEmitter(ComponentLoadedEvent, this);
+    this.componentDom = null;
   }
 
   isLoaded() {
@@ -55,7 +56,7 @@ class ComponentBase {
           parent.appendChild(element);
         });
         this.elements = elements;
-        this.dom = new DOMUtils(this.parent);
+        this.componentDom = new DOMUtils(this.parent);
 
         this.onHtmlInserted(elements);
         this.attach(elements);
@@ -72,12 +73,17 @@ class ComponentBase {
       });
   }
 
+  get dom() {
+ return this.componentDom || dom; 
+  }
+
+
   detach() {
     log.debug('detaching');
     if (this.parent == null) {
       return;
     }
-    let component = this.parent.componentImplementation;
+    const component = this.parent.componentImplementation;
     if (component && component.onDetach) {
       component.onDetach();
     } else {

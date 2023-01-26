@@ -10,7 +10,7 @@ import {
 
 let recentTags = [];
 
-import Media, { media } from '../modules/media.js';
+import {media} from '../modules/media.js';
 import HtmlTemplate, {
   ClassValue,
   DataValue,
@@ -182,13 +182,13 @@ export class MediaFileEditorComponent extends ComponentBase {
   }
   async groupSelectedItems() {
     log.debug('group selected items');
-    Media.groupSelectedItems(this.activeItem);
+    media.groupSelectedItems(this.activeItem);
     this.hidePopup();
   }
 
   async ungroupItem() {
     log.debug('ungroup item');
-    Media.ungroup(this.activeItem);
+    media.ungroup(this.activeItem);
     this.hidePopup();
   }
 

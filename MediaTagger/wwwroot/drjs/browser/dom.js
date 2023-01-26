@@ -67,8 +67,8 @@ export class DOMUtils {
     }
     if (Array.isArray(parent)) {
       parent = parent.filter((elem) => {
-        const validParent =
-          elem instanceof HTMLElement || elem instanceof HTMLDocument;
+        const validParent
+          = elem instanceof HTMLElement || elem instanceof HTMLDocument;
         if (!validParent) {
           /*
            * don't assert and throw an error since there are cases where Text nodes are in the array.
@@ -95,6 +95,7 @@ export class DOMUtils {
     return { parent: parent, selector: selector };
   }
 
+  // eslint-disable-next-line complexity
   first(...opts) {
     if (Array.isArray(opts[0])) {
       return opts[0][0];
@@ -103,8 +104,8 @@ export class DOMUtils {
     try {
       let element = null;
       if (
-        sel.selector instanceof HTMLElement ||
-        sel.selector instanceof SVGElement
+        sel.selector instanceof HTMLElement
+        || sel.selector instanceof SVGElement
       ) {
         // a DOM element was passed as a selector, so return it
         element = sel.selector;
@@ -126,7 +127,7 @@ export class DOMUtils {
   firstSibling(elem, selector) {
     let element = this.first(elem);
     while (element != null && element.nextElementSibling != null) {
-      let next = element.nextElementSibling;
+      const next = element.nextElementSibling;
       if (next.matches(selector)) {
         return next;
       }
@@ -143,8 +144,7 @@ export class DOMUtils {
         arr.push(...this.find(sel.parent, e));
         return arr;
       }, []);
-    } else {
-      if (sel.selector instanceof HTMLElement) {
+    } else if (sel.selector instanceof HTMLElement) {
         // a DOM element was passed as a selector, so return it
         result = [sel.selector];
       } else if (Array.isArray(sel.parent)) {
@@ -163,19 +163,18 @@ export class DOMUtils {
           result.push(sel.parent);
         }
       }
-    }
     return result;
   }
 
   // return true if one of the elements in the first argument matches one of the selectors in the 2nd
   matches(element, sel) {
-    let selectors = util.toArray(sel);
+    const selectors = util.toArray(sel);
     let match = false;
     this.toElementArray(element).forEach((elem) => {
-      match =
-        match ||
-        selectors.find((s) => {
-          return typeof s == 'string' ? element.matches(s) : element == s;
+      match
+        = match
+        || selectors.find((s) => {
+          return typeof s == 'string' ? elem.matches(s) : element == s;
         });
     });
     return match;
@@ -260,7 +259,7 @@ export class DOMUtils {
   }
 
   getAttribute(element, name) {
-    let e = this.first(element);
+    const e = this.first(element);
     return e == null ? null : e.getAttribute(name);
   }
 
@@ -379,7 +378,7 @@ export class DOMUtils {
   }
 
   hasClass(element, className) {
-    let first = this.first(element);
+    const first = this.first(element);
     return first && first.classList && first.classList.contains(className);
   }
 
@@ -420,7 +419,7 @@ export class DOMUtils {
   }
   toggleClasses(elements, classA, classB) {
     this.toElementArray(elements).forEach((element) => {
-      let isA = !this.hasClass(element, classA);
+      const isA = !this.hasClass(element, classA);
       if (isA) {
         this.addClass(element, classB);
         this.removeClass(element, classA);
@@ -465,7 +464,7 @@ export class DOMUtils {
   }
 
   append(parent, elements) {
-    let children = [];
+    const children = [];
     parent = this.first(parent);
     this.toElementArray(elements).forEach((element) => {
       children.push(parent.appendChild(element));
@@ -478,7 +477,7 @@ export class DOMUtils {
   }
 
   prepend(parent, elements) {
-    let children = [];
+    const children = [];
     parent = this.first(parent);
     this.toElementArray(elements).forEach((element) => {
       children.push(parent.prepend(element));
@@ -506,17 +505,17 @@ export class DOMUtils {
     let element = this.first(sel);
     if (element) {
       if (element.tagName == 'SELECT') {
-        let opt = this.first(element, ':checked');
+        const opt = this.first(element, ':checked');
         if (opt.value == NO_SELECTION) {
           return null;
         }
         element = opt;
       }
-      let dataValue = this.getProperty(element, 'dataValue');
+      const dataValue = this.getProperty(element, 'dataValue');
       if (dataValue) {
         return dataValue;
       }
-      let val = element.value || element.innerHTML;
+      const val = element.value || element.innerHTML;
       if (element.type == 'number') {
         return parseInt(val, 10);
       }
@@ -527,7 +526,7 @@ export class DOMUtils {
   }
 
   getIntValue(sel) {
-    let val = this.getValue(sel);
+    const val = this.getValue(sel);
     return parseInt(val, 10);
   }
 
@@ -558,7 +557,7 @@ export class DOMUtils {
     if (element == null) {
       return null;
     }
-    let parent = element.parentElement;
+    const parent = element.parentElement;
 
     return parent;
   }
@@ -614,14 +613,11 @@ export class DOMUtils {
 
   addOption(element, opt) {
     this.find(element).forEach((sel) => {
-      let val = opt.getValue ? opt.getValue() : opt.value ? opt.value : opt;
-      let label = opt.getName ? opt.getName() : opt.name ? opt.name : opt;
-      let disabled = opt.isDisabled
-        ? opt.isDisabled
-        : opt.disabled
-        ? opt.disabled
-        : false;
-      let optElement = this.createElement('option', {
+      const val = util.firstNotEmpty([opt.getValue, opt, value, op]);
+
+      const label = util.firstNotEmpty([opt.getName, opt.name, opt]);
+      const disabled = util.firstNotEmpty([opt.isDisabled, opt.disabled, false]);
+      const optElement = this.createElement('option', {
         '@value': val,
         innerHTML: label
       });
@@ -640,7 +636,7 @@ export class DOMUtils {
     let element = null;
     tagName = tagName.trim();
     if (tagName[0] == '<') {
-      let div = document.createElement('div');
+      const div = document.createElement('div');
       div.innerHTML = tagName;
       element = div.firstChild;
     } else {
@@ -654,9 +650,9 @@ export class DOMUtils {
       return element;
     }
     Object.getOwnPropertyNames(values).forEach((prop) => {
-      let val = values[prop];
+      const val = values[prop];
       if (prop[0] == '@') {
-        let attr = prop.substring(1);
+        const attr = prop.substring(1);
         element.setAttribute(attr, val);
       } else if (prop == 'innerHTML' || prop == 'text' || prop == 'html') {
         element.innerHTML = val;
@@ -668,7 +664,7 @@ export class DOMUtils {
   }
 
   createElementNS(tagName, values = null) {
-    let element = document.createElementNS(svgns, tagName);
+    const element = document.createElementNS(svgns, tagName);
     if (values == null) {
       return element;
     }
@@ -677,9 +673,9 @@ export class DOMUtils {
       return element;
     }
     Object.getOwnPropertyNames(values).forEach((prop) => {
-      let val = values[prop];
+      const val = values[prop];
       if (prop[0] == '@') {
-        let attr = prop.substr(1);
+        const attr = prop.substr(1);
         element.setAttribute(attr, val);
       } else if (prop == 'innerHTML' || prop == 'text' || prop == 'html') {
         element.innerHTML = val;
@@ -702,8 +698,8 @@ export class DOMUtils {
     if (typeof item == 'string') {
       item = this.find(item);
     }
-    let array = util.toArray(item);
-    let elements = array.map((e) => {
+    const array = util.toArray(item);
+    const elements = array.map((e) => {
       return this.first(e);
     });
     return elements.filter(
@@ -712,7 +708,7 @@ export class DOMUtils {
   }
 
   isEmpty(...opts) {
-    let element = this.first(...opts);
+    const element = this.first(...opts);
     if (element == null) {
       return true;
     }
@@ -743,7 +739,7 @@ export class DOMUtils {
   }
 
   getInnerHTML(selector) {
-    let element = this.first(selector);
+    const element = this.first(selector);
     if (element) {
       return element.innerHTML;
     }
@@ -751,7 +747,7 @@ export class DOMUtils {
   }
 
   getInnerText(selector) {
-    let element = this.first(selector);
+    const element = this.first(selector);
     if (element) {
       return element.innerText;
     }
@@ -760,14 +756,14 @@ export class DOMUtils {
 
   isElementIn(element, selectors) {
     if (
-      element == null ||
-      selectors == null ||
-      !(element instanceof HTMLElement)
+      element == null
+      || selectors == null
+      || !(element instanceof HTMLElement)
     ) {
       return false;
     }
-    let e = this.first(element);
-    let match = util.toArray(selectors).find((sel) => {
+    const e = this.first(element);
+    const match = util.toArray(selectors).find((sel) => {
       if (typeof sel == 'string') {
         return e != null && e.matches(sel);
       } else {
@@ -781,16 +777,16 @@ export class DOMUtils {
   }
 
   getPageOffset(...args) {
-    let el = this.first(...args);
+    const el = this.first(...args);
     let x = 0;
     let y = 0;
     let width = 0;
     let height = 0;
     if (el != null) {
-      let rect = el.getBoundingClientRect();
-      let scrollLeft =
-        window.pageXOffset || document.documentElement.scrollLeft;
-      let scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+      const rect = el.getBoundingClientRect();
+      const scrollLeft
+        = window.pageXOffset || document.documentElement.scrollLeft;
+      const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
       y = rect.top + scrollTop;
       x = rect.left + scrollLeft;
       height = el.clientHeight;
@@ -812,11 +808,11 @@ export class DOMUtils {
     if (element === null) {
       return this.root.offsetWidth;
     }
-    let first = this.first(element);
+    const first = this.first(element);
     return first ? first.offsetWidth : 0;
   }
   getHeight(element) {
-    let first = this.first(element);
+    const first = this.first(element);
     return first ? first.offsetHeight : 0;
   }
 
@@ -844,7 +840,7 @@ export class DOMUtils {
   }
 
   setFocus(...args) {
-    let e = this.first(...args);
+    const e = this.first(...args);
     if (e) {
       e.focus();
     }
@@ -854,7 +850,7 @@ export class DOMUtils {
     return document.activeElement;
   }
   blur(...args) {
-    let element = this.first(...args);
+    const element = this.first(...args);
     if (element) {
       //log.always("blur ", element);
       element.blur();
@@ -866,7 +862,7 @@ export class DOMUtils {
    * multiple inputs with same name
    */
   getFormValues(form) {
-    let inputs = this.find(form, ['input', 'select', 'textarea']);
+    const inputs = this.find(form, ['input', 'select', 'textarea']);
     const values = {};
     inputs.forEach((input) => {
       if (!util.isEmpty(input.name)) {

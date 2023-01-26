@@ -76,7 +76,6 @@
     "no-lonely-if": "error",
     "no-loop-func": "error",
     "no-nested-ternary": "error",
-    "no-param-reassign": ["warn", { "props": false }],
     "no-throw-literal": "error",
     "no-unneeded-ternary": "error",
     "no-unused-expressions": "error",

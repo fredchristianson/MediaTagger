@@ -20,11 +20,11 @@ export async function getTags(startPos, count) {
 }
 
 export async function createTag(parentId, name) {
-  let url = 'Tag/?name=' + name;
+  let url = `Tag/?name=${  name}`;
   if (parentId != null) {
-    url += '&parentId=' + parentId;
+    url += `&parentId=${  parentId}`;
   }
-  let result = await httpAPI.put(url, null, 'json');
+  const result = await httpAPI.put(url, null, 'json');
   if (result != null && result.success) {
     return new Tag(result.data);
   }
@@ -32,14 +32,14 @@ export async function createTag(parentId, name) {
 }
 
 export async function updateTag(tag) {
-  let url = 'Tag';
-  let data = {
+  const url = 'Tag';
+  const data = {
     id: tag.getId(),
     name: tag.getName(),
     hidden: tag.getHidden(),
     parentId: tag.ParentId
   };
-  let result = await httpAPI.post(url, data, 'json');
+  const result = await httpAPI.post(url, data, 'json');
   if (result != null) {
     return new Tag(result);
   }
@@ -47,13 +47,13 @@ export async function updateTag(tag) {
 }
 
 export async function createAlbum(name, description) {
-  let url = 'Album';
+  const url = 'Album';
 
-  let model = {
+  const model = {
     name: name,
     description: description
   };
-  let result = await httpAPI.put(url, model, 'json');
+  const result = await httpAPI.put(url, model, 'json');
   if (result != null && result.success) {
     return new Album(result.data);
   } else {
@@ -64,15 +64,15 @@ export async function createAlbum(name, description) {
 export async function updateAlbum(parentId, Album) {
   let url = 'Album';
   if (parentId != null) {
-    url += '?parentId=' + parentId;
+    url += `?parentId=${  parentId}`;
   }
-  let data = {
+  const data = {
     id: Album.getId(),
     name: Album.getName(),
     hidden: Album.getHidden(),
     parentId: Album.getParentId
   };
-  let result = await httpAPI.put(url, data, 'json');
+  const result = await httpAPI.put(url, data, 'json');
   if (result != null) {
     return new Album(result);
   }
@@ -88,17 +88,17 @@ export async function getMediaTags(startPos, count) {
 }
 
 export async function addMediaTag(mediaFileId, tagId) {
-  let url = `MediaTag?mediaFileId=${mediaFileId}&tagId=${tagId}`;
-  let result = await httpAPI.put(url, null, 'json');
+  const url = `MediaTag?mediaFileId=${mediaFileId}&tagId=${tagId}`;
+  const result = await httpAPI.put(url, null, 'json');
   if (result == null || !result.success) {
     log.error('failed to add media tag to file');
   }
   return result != null && result.success;
 }
 export async function removeMediaTag(mediaFileId, tagId) {
-  let url = `MediaTag?mediaFileId=${mediaFileId}&tagId=${tagId}`;
+  const url = `MediaTag?mediaFileId=${mediaFileId}&tagId=${tagId}`;
 
-  let result = await httpAPI.delete(url, null, 'json');
+  const result = await httpAPI.delete(url, null, 'json');
   if (result == null || !result.success) {
     log.error('failed to remove media tag from file');
   }
@@ -115,9 +115,9 @@ export async function getMediaAlbums(startPos, count) {
 }
 
 export async function addMediaAlbum(mediaFileId, albumId) {
-  let url = `MediaAlbum?mediaFileId=${mediaFileId}&albumId=${albumId}`;
+  const url = `MediaAlbum?mediaFileId=${mediaFileId}&albumId=${albumId}`;
 
-  let result = await httpAPI.put(url, null, 'json');
+  const result = await httpAPI.put(url, null, 'json');
   if (result == null || !result.success) {
     log.error('failed to add album  to file');
   }
@@ -125,9 +125,9 @@ export async function addMediaAlbum(mediaFileId, albumId) {
   return result != null && result.success;
 }
 export async function removeMediaAlbum(mediaFileId, albumId) {
-  let url = `MediaAlbum?mediaFileId=${mediaFileId}&albumId=${albumId}`;
+  const url = `MediaAlbum?mediaFileId=${mediaFileId}&albumId=${albumId}`;
 
-  let result = await httpAPI.delete(url, null, 'json');
+  const result = await httpAPI.delete(url, null, 'json');
   if (result == null || !result.success) {
     log.error('failed to add album to file');
   }
@@ -156,15 +156,15 @@ export async function getAlbums(startPos, count) {
 }
 
 export async function saveMediaFiles(updates) {
-  for (let update of updates) {
-    let data = MediaFile.toJson(update);
+  for (const update of updates) {
+    const data = MediaFile.toJson(update);
     try {
       delete data.fileModifiedOn;
       delete data.fileCreatedOn;
       delete data.fileSize;
       delete data.filename;
       delete data.directory;
-      let response = await httpAPI.post('MediaFile', data, 'json');
+      const response = await httpAPI.post('MediaFile', data, 'json');
       log.info('updated ', update.getId());
     } catch (ex) {
       log.error(ex, 'failed to save file ', update.getId());
@@ -173,12 +173,12 @@ export async function saveMediaFiles(updates) {
 }
 
 export async function getTopFolders() {
-  let response = await httpAPI.get('filesystem/folders', null, 'json');
+  const response = await httpAPI.get('filesystem/folders', null, 'json');
   return response;
 }
 
 export async function getFolders(parent) {
-  let response = await httpAPI.get(
+  const response = await httpAPI.get(
     'filesystem/folders/children',
     { parent: encodeURIComponent(parent) },
     'json'
@@ -187,12 +187,12 @@ export async function getFolders(parent) {
 }
 
 export async function getAppSettings() {
-  let response = await httpAPI.get('settings/app', null, 'json');
+  const response = await httpAPI.get('settings/app', null, 'json');
   return response;
 }
 
 export async function postAppSettings(settings) {
-  let response = await httpAPI.post('settings/app', settings, 'json');
+  const response = await httpAPI.post('settings/app', settings, 'json');
   return response;
 }
 

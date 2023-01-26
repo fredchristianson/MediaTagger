@@ -35,10 +35,10 @@ export class MediaFile extends MediaEntity {
     return this.rotationDegrees;
   }
   rotate(degrees) {
-    let d = Util.toNumber(this.rotationDegrees, 0);
-    let change = Util.toNumber(degrees, 0);
+    const d = Util.toNumber(this.rotationDegrees, 0);
+    const change = Util.toNumber(degrees, 0);
     this.rotationDegrees = (d + change + 360) % 360;
-    this._changed = true;
+    this.setChanged();
   }
   setTags(tags) {
     this._tags = tags;
@@ -53,7 +53,7 @@ export class MediaFile extends MediaEntity {
   }
 
   removeTag(tags) {
-    let pos = this._tags.indexOf(tags);
+    const pos = this._tags.indexOf(tags);
     if (pos >= 0) {
       this._tags.splice(pos, 1);
     }
@@ -89,7 +89,7 @@ export class MediaFile extends MediaEntity {
   }
 
   removeAlbum(albums) {
-    let pos = this._albums.indexOf(albums);
+    const pos = this._albums.indexOf(albums);
     if (pos >= 0) {
       this._albums.splice(pos, 1);
     }
@@ -121,7 +121,10 @@ export class MediaFile extends MediaEntity {
       this.setChanged();
       return;
     }
-    this._changed = group.getPrimaryFile().getId() != this.fileSetPrimaryId;
+    if (group.getPrimaryFile().getId() != this.fileSetPrimaryId) {
+      this.setChanged();
+    }
+      
     this._group = group;
     if (group == null) {
       this.fileSetPrimaryId = null;
@@ -140,11 +143,13 @@ export class MediaFile extends MediaEntity {
   isGroupSecondary() {
     return this.fileSetPrimaryId != null && this.fileSetPrimaryId != this.id;
   }
-  // update(data) {
-  //   super.update(data);
-  //   this.dateTaken = data.dateTaken;
-  //   this.fileSize = data.fileSize;
-  // }
+  /*
+   * update(data) {
+   *   super.update(data);
+   *   this.dateTaken = data.dateTaken;
+   *   this.fileSize = data.fileSize;
+   * }
+   */
   getThumbnailUrl() {
     return `/thumbnail/${this.getId()}?v=1.0`;
   }
@@ -168,7 +173,7 @@ export class MediaFile extends MediaEntity {
 
   getExtension() {
     if (this._extension == null) {
-      let dotPos = this.filename.lastIndexOf('.');
+      const dotPos = this.filename.lastIndexOf('.');
       if (dotPos < 0) {
         this._extension = '.';
       } else {
@@ -180,10 +185,10 @@ export class MediaFile extends MediaEntity {
 
   getResolution() {
     if (
-      isNaN(this.width) ||
-      isNaN(this.height) ||
-      this.width == 0 ||
-      this.height == 0
+      isNaN(this.width)
+      || isNaN(this.height)
+      || this.width == 0
+      || this.height == 0
     ) {
       return 'unknown';
     }

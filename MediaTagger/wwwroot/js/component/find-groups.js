@@ -10,7 +10,7 @@ import {
   BuildCustomEventHandler,
   Listeners
 } from '../../drjs/browser/event.js';
-import Media from '../modules/media.js';
+import {media}  from '../modules/media.js';
 import { ObservableArray } from '../modules/collections.js';
 import { BackgroundTask } from '../../drjs/browser/task.js';
 import dom from '../../drjs/browser/dom.js';
@@ -41,7 +41,7 @@ export class FindGroupsComponent extends ComponentBase {
         .onEvent(this, this.onGroupsUpdated)
         .build()
     );
-    this.allFiles = await Media.getAllFiles();
+    this.allFiles = await media.getAllFiles();
     this.unattached = [...this.allFiles].filter((f) => {
       return f.fileSetPrimaryId == null;
     });

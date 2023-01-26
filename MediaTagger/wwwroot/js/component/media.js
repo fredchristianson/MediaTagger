@@ -9,7 +9,7 @@ import { Listeners, BuildClickHandler } from '../../drjs/browser/event.js';
 import MediaDetailsComponent from './media-details.js';
 import DateFilterComponent from './date-filter.js';
 import MediaFilterComponent from './media-filter.js';
-import Media from '../modules/media.js';
+import {media}  from '../modules/media.js';
 import { GridLayout } from '../modules/layout.js';
 import { RightGridSizer, LeftGridSizer } from '../modules/drag-drop.js';
 const log = Logger.create('MediaComponent', LOG_LEVEL.DEBUG);
@@ -29,7 +29,7 @@ export class MediaComponent extends ComponentBase {
     this.filterSizer = new RightGridSizer();
     this.detailsSizer = new LeftGridSizer();
 
-    let allItems = await Media.getVisibleItems();
+    let allItems = await media.getVisibleItems();
     let template = new HtmlTemplate(this.dom.first('#media-item-template'));
 
     this.layout = new GridLayout('.items', allItems, (item) => {
@@ -54,10 +54,10 @@ export class MediaComponent extends ComponentBase {
         .onMiddleClick(this, this.middleClick)
         .setData((element) => {
           return {
-            item: Media.getAllItems().getById(
+            item: media.getAllItems().getById(
               this.dom.getData(element, 'mediaid')
             ),
-            file: Media.getAllItems().getById(
+            file: media.getAllItems().getById(
               this.dom.getData(element, 'fileid')
             )
           };
@@ -83,18 +83,18 @@ export class MediaComponent extends ComponentBase {
   leftClick(element, data, event, handler) {
     log.debug('leftClick element ');
     if (event.hasShift) {
-      Media.selectToItem(data.item);
+      media.selectToItem(data.item);
     } else if (event.hasCtrl) {
-      Media.toggleSelectItem(data.item);
+      media.toggleSelectItem(data.item);
     } else {
-      Media.selectItem(data.item);
+      media.selectItem(data.item);
     }
   }
   rightClick(element, data, event, handler) {
-    Media.selectToItem(data.item);
+    media.selectToItem(data.item);
   }
   middleClick(element, data, event, handler) {
-    Media.toggleSelectItem(data.item);
+    media.toggleSelectItem(data.item);
   }
 }
 

@@ -6,7 +6,7 @@ import {
   getFolders
 } from '../modules/mt-api.js';
 import { Tree, TreeDataProvider, TreeItem } from '../controls/tree.js';
-import Media from '../modules/media.js';
+import {media}  from '../modules/media.js';
 import {
   Listeners,
   BuildInputHandler,

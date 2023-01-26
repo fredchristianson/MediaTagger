@@ -13,13 +13,13 @@ export class ComponentLoader {
   async load(htmlFile) {
     assert.notEmpty(htmlFile);
     const fileExt = htmlFile.split('.');
-    let fileName = htmlFile;
+    const fileName = htmlFile;
     let ext = '.html';
     if (fileExt.length > 1) {
       ext = fileExt[fileExt.length - 2];
       file = htmlFile.substr(htmlFile.length - ext.length);
     }
-    let nocache = '?a=' + Date.now();
+    const nocache = `?a=${  Date.now()}`;
     const filename = `${this.componentDirectory}/${fileName}${ext}${nocache}`;
     const contents = await httpRequest.get(filename);
     const htmlObject = document.createElement('div');

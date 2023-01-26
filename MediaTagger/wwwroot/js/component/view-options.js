@@ -1,11 +1,10 @@
 import { dom } from '../../drjs/browser/dom.js';
 import { ComponentBase } from '../../drjs/browser/component.js';
 import { LOG_LEVEL, Logger } from '../../drjs/logger.js';
-import Media from '../modules/media.js';
 
 import main from './main.js';
 const log = Logger.create('ViewOptions', LOG_LEVEL.DEBUG);
-
+import { media } from '../modules/media.js';
 import {
   Listeners,
   BuildClickHandler,
@@ -18,11 +17,11 @@ import {
 } from '../../drjs/browser/event.js';
 import { Settings } from '../modules/settings.js';
 
-export let ZoomChangeEventType = new ObjectEventType('zoomChange');
-export let ZoomEvent = new EventEmitter(ZoomChangeEventType, this);
-export let ExpandGroupsEventType = new ObjectEventType('ExpandGroups');
-export let ExpandGroupsEvent = new EventEmitter(ExpandGroupsEventType, this);
-let MAX_ZOOM = 800;
+export const ZoomChangeEventType = new ObjectEventType('zoomChange');
+export const ZoomEvent = new EventEmitter(ZoomChangeEventType, this);
+export const ExpandGroupsEventType = new ObjectEventType('ExpandGroups');
+export const ExpandGroupsEvent = new EventEmitter(ExpandGroupsEventType, this);
+const MAX_ZOOM = 800;
 const DEFAULT_SETTINGS = {
   zoom: 100,
   showSecondary: false,
@@ -88,7 +87,7 @@ export class ViewOptionsComponent extends ComponentBase {
         .onChange(this, this.zoomWheel)
         .build(),
       BuildCustomEventHandler()
-        .emitter(Media.getSelectedItems().getUpdatedEvent())
+        .emitter(media.getSelectedItems().getUpdatedEvent())
         .onEvent(this, this.selectionInput)
         .build()
     );
@@ -110,7 +109,7 @@ export class ViewOptionsComponent extends ComponentBase {
   async setExpandGroups(expand) {
     this.dom.check("[name='expand-groups']", expand);
     ExpandGroupsEvent.emit(expand);
-    Media.showSecondaryGroupFiles(expand);
+    media.showSecondaryGroupFiles(expand);
     await this.settings.set('showSecondary', expand);
   }
   selectionInput(selected) {
@@ -119,7 +118,7 @@ export class ViewOptionsComponent extends ComponentBase {
   }
   search(text) {
     log.debug('search change ', text);
-    Media.setSearchText(text);
+    media.setSearchText(text);
   }
 
   async sort(sortType) {
@@ -129,7 +128,7 @@ export class ViewOptionsComponent extends ComponentBase {
 
   async setSort(sortType) {
     this.dom.setValue("[name='sort']", sortType);
-    Media.setSortType(sortType.toLowerCase());
+    media.setSortType(sortType.toLowerCase());
     await this.settings.set('sort', sortType);
   }
   onDetach() {

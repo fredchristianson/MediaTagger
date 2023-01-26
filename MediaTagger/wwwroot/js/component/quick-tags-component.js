@@ -19,25 +19,15 @@ import {
   HtmlValue
 } from '../../drjs/browser/html-template.js';
 import { OnNextLoop } from '../../drjs/browser/timer.js';
-import { imageWindow } from '../controls/image-window.js';
 import {
   SearchWord,
   SearchLevel,
   SearchPhrase
 } from '../modules/tag-search.js';
 import { Assert } from '../../drjs/assert.js';
-
+import { FocusView } from '../controls/focus-view.js';
 const log = Logger.create('QuickTags', LOG_LEVEL.DEBUG);
 
-function sortTagPaths(tags) {
-  const paths = tags.map((t) => {
-    return media.getTagPath(t).split('/');
-  });
-
-  return paths.map((p) => {
-    return `/${p.join('/')}`;
-  });
-}
 
 function stopBrowserClose(event) {
   // Cancel the event as stated by the standard.
@@ -66,13 +56,13 @@ export class QuickTagsComponent extends ComponentBase {
     this.searchText = '';
     this.searchCursorPosition = 0;
     this.searchPhrase = new SearchPhrase();
+    this.focusView = new FocusView(this, '.images');
     this.nodeTemplate = new HtmlTemplate(
       this.dom.first('.quick-tag-tree-node-template')
     );
     this.keyTemplate = new HtmlTemplate(
       this.dom.first(this.dom.first('.quick-tag-key-template'))
     );
-    this.imageWindow = imageWindow;
 
     this.dom.check('[name="untagged"]');
     this.untaggedOnly = true;
@@ -129,16 +119,8 @@ export class QuickTagsComponent extends ComponentBase {
           this.keyPress
         )
         .build(),
-      BuildClickHandler()
-        .setDefaultContinuation(Continuation.StopAll)
-        .listenTo(this.dom, '.big-view')
-        .onClick(this, this.openPreviewWindow)
-        .build(),
-      BuildClickHandler()
-        .setDefaultContinuation(Continuation.StopAll)
-        .listenTo(this.dom, '.images img')
-        .onClick(this, this.onSelectImage)
-        .build(),
+
+
       BuildClickHandler()
         .setDefaultContinuation(Continuation.StopAll)
         .listenTo(this.dom, '.create-tag')
@@ -161,15 +143,6 @@ export class QuickTagsComponent extends ComponentBase {
 
     this.createTags();
     this.focusIndex = 0;
-    this.fillImages();
-  }
-
-  onSelectImage(target, _event, _handler) {
-    const offset = this.dom.getData(target, 'offset');
-    if (offset != 0) {
-      this.focusIndex += offset;
-      this.fillImages();
-    }
   }
 
   async selectRecent(key) {
@@ -237,81 +210,19 @@ export class QuickTagsComponent extends ComponentBase {
     }
   }
 
-  onFileChange() {
-    this.visibleItems = media.getVisibleItems();
-    this.fillImages();
-  }
-
-  async openPreviewWindow() {
-    await this.imageWindow.open();
-    this.imageWindow.setImage(this.currentImage);
-  }
+ 
   nextImage() {
+    // save current tags to quickly tag next image
     this.previousTags = this.currentImage?.Tags;
-    this.focusIndex += 1;
-    this.fillImages();
+    media.moveFocus(1);
     return Continuation.PreventDefault;
   }
 
   previousImage() {
-    this.focusIndex -= 1;
-    this.fillImages();
+    media.moveFocus(-1);
     return Continuation.PreventDefault;
   }
-
-  fillImages() {
-    const images = this.dom.find('.images', 'img');
-    /*
-     *    const visible = media.getVisibleItems();
-     * don't get latest visible items since they may have changed
-     * want to be able to re-untag media
-     */
-    const visible = this.visibleItems;
-    if (this.focusIndex < 0) {
-      this.focusIndex = 0;
-    }
-    if (this.focusIndex > visible.Length - 1) {
-      this.focusIndex = visible.Length - 1;
-    }
-
-    this.currentImage = visible.getItemAt(this.focusIndex);
-    while (images.length > 0) {
-      const img = images.shift();
-      const offset = this.dom.getData(img, 'offset');
-      const item = this.visibleItems.getItemAt(offset + this.focusIndex);
-      if (item == null) {
-        this.dom.setAttribute(img, 'src', 'image/1x1.png');
-      } else if (this.dom.hasClass(img, 'thumb')) {
-        this.dom.setAttribute(img, 'src', item.getThumbnailUrl());
-        this.dom.removeChildren(img, 'rotate-90');
-        this.dom.removeChildren(img, 'rotate-360');
-        if (item.RotationDegrees) {
-          this.dom.addClass(
-            img,
-            `rotate-${(item.RotationDegrees + 360) % 360}`
-          );
-        }
-      } else {
-        this.dom.setAttribute(img, 'src', item.getImageReloadUrl());
-      }
-    }
-    this.imageWindow.setImage(this.currentImage);
-
-    this.fillImageTags(this.currentImage);
-    this.checkTagTree(this.currentImage);
-  }
-
-  fillImageTags(image) {
-    const container = this.dom.first('.image-tags');
-    this.dom.removeChildren(container);
-
-    if (image != null) {
-      for (const tag of sortTagPaths(image.Tags)) {
-        const child = this.dom.createElement(`<div>${tag}</div>`);
-        this.dom.append(container, child);
-      }
-    }
-  }
+  
 
   checkTagTree(image) {
     const tree = this.dom.first('.tag-tree');

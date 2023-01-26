@@ -1,7 +1,6 @@
 import { ComponentBase } from '../../drjs/browser/component.js';
 import {
   HtmlTemplate,
-  ReplaceTemplateValue,
   DataValue,
   AttributeValue
 } from '../../drjs/browser/html-template.js';
@@ -11,7 +10,6 @@ import {
   BuildClickHandler,
   BuildKeyHandler,
   BuildScrollHandler,
-  BuildFocusHandler,
   Continuation,
   BuildMouseHandler,
   BuildCustomEventHandler
@@ -19,7 +17,7 @@ import {
 import MediaDetailsComponent from './media-details.js';
 import DateFilterComponent from './date-filter.js';
 import MediaFilterComponent from './media-filter.js';
-import Media, {
+import  {
   FilterChangeEvent,
   FocusChangeEvent,
   media
@@ -28,13 +26,11 @@ import { Navigation } from '../modules/navigation.js';
 import { GridLayout } from '../modules/layout.js';
 import { RightGridSizer, LeftGridSizer } from '../modules/drag-drop.js';
 
-import UTIL from '../../drjs/util.js';
 
 import { ZoomEvent } from '../component/view-options.js';
 
 import { ImageLoader } from '../modules/image-loader.js';
 import MediaFileEditorComponent from './media-file-editor.js';
-import { MouseHandler } from '../../drjs/browser/event-handler/mouse-handler.js';
 
 const log = Logger.create('FileView', LOG_LEVEL.DEBUG);
 const navigationKeys = [
@@ -77,7 +73,7 @@ export class FileViewComponent extends ComponentBase {
     this.popup = this.dom.first('.file.popup');
     this.filterSizer = new RightGridSizer('.grid-sizer.right', '.media-filter');
     this.detailsSizer = new LeftGridSizer('.grid-sizer.left', '.media-details');
-    let allItems = await Media.getVisibleItems();
+    const allItems = await media.getVisibleItems();
     this.template = new HtmlTemplate(this.dom.first('#media-item-template'));
 
     this.editorElement = this.dom.createElement(
@@ -100,7 +96,7 @@ export class FileViewComponent extends ComponentBase {
         .onMiddleClick(this, this.middleClick)
         .setData((element) => {
           return {
-            item: Media.getAllFiles().findById(
+            item: media.getAllFiles().findById(
               this.dom.getData(element, 'file-id')
             )
           };
@@ -121,7 +117,8 @@ export class FileViewComponent extends ComponentBase {
         .selector('button.ungroup')
         .onClick(this, this.ungroupItem)
         .build(),
-      BuildMouseHandler().onMouseDown(this, this.checkCancel).build(),
+      BuildMouseHandler().onMouseDown(this, this.checkCancel)
+.build(),
       BuildKeyHandler()
         .filterAllow(this.filterKeyEvent.bind(this))
         .onKeyDown(this, this.onKeypress)
@@ -134,11 +131,13 @@ export class FileViewComponent extends ComponentBase {
         .listenTo('.items')
         .onScroll(this, this.hidePopup)
         .build(),
-      // BuildFocusHandler()
-      //   .listenTo(document.body)
-      //   .onFocusIn(this, this.clearItemFocus)
-      //   .onBlur(this, this.clearFocus)
-      //   .build(),
+      /*
+       * BuildFocusHandler()
+       *   .listenTo(document.body)
+       *   .onFocusIn(this, this.clearItemFocus)
+       *   .onBlur(this, this.clearFocus)
+       *   .build(),
+       */
       BuildCustomEventHandler()
         .emitter(FocusChangeEvent)
         .onEvent(this, this.hidePopup)
@@ -151,8 +150,8 @@ export class FileViewComponent extends ComponentBase {
 
   checkCancel(position, target, event) {
     if (
-      this.isEditorVisible &&
-      !this.dom.contains(this.editorElement, event.target)
+      this.isEditorVisible
+      && !this.dom.contains(this.editorElement, event.target)
     ) {
       this.dom.hide(this.editorElement);
       this.isEditorVisible = false;
@@ -170,7 +169,7 @@ export class FileViewComponent extends ComponentBase {
     return this.dom.contains(active);
   }
   createItemElement(item) {
-    let htmlItem = this.template.fill({
+    const htmlItem = this.template.fill({
       '.media-item': [new DataValue('file-id', item.getId())],
       '.thumbnail': [
         new DataValue('file-id', item.getId()),
@@ -188,13 +187,13 @@ export class FileViewComponent extends ComponentBase {
 
   async groupSelectedItems() {
     log.debug('group selected items');
-    Media.groupSelectedItems(this.activeItem);
+    media.groupSelectedItems(this.activeItem);
     this.hidePopup();
   }
 
   async ungroupItem() {
     log.debug('ungroup item');
-    Media.ungroup(this.activeItem);
+    media.ungroup(this.activeItem);
     this.hidePopup();
   }
 
@@ -215,20 +214,20 @@ export class FileViewComponent extends ComponentBase {
   leftClick(data, element, event, handler) {
     log.debug('leftClick element ');
     if (event.hasShift) {
-      Media.selectToItem(data.item);
+      media.selectToItem(data.item);
     } else if (event.hasCtrl) {
-      Media.toggleSelectItem(data.item);
+      media.toggleSelectItem(data.item);
     } else {
-      Media.selectItem(data.item);
+      media.selectItem(data.item);
     }
   }
   rightClick(data, element, event, handler) {
     this.layout.setFocus(data.item);
-    Media.selectToItem(data.item);
+    media.selectToItem(data.item);
   }
   middleClick(data, element, event, handler) {
     this.layout.setFocus(data.item);
-    Media.toggleSelectItem(data.item);
+    media.toggleSelectItem(data.item);
   }
 
   isNavigationKey(key) {
@@ -245,15 +244,15 @@ export class FileViewComponent extends ComponentBase {
     const mediaRect = this.dom.getPageOffset('.media-items');
     const bodyWidth = document.body.clientWidth;
 
-    let width = this.dom.getWidth();
+    const width = this.dom.getWidth();
     let left = 'unset';
     let right = width - rect.left;
-    let top = mediaRect.top;
+    const top = mediaRect.top;
     if (right > rect.left) {
       left = rect.right;
       right = 'unset';
     }
-    let style = {
+    const style = {
       left: left,
       right: right,
       top: top

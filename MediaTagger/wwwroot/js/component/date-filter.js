@@ -1,5 +1,5 @@
 import { ComponentBase } from '../../drjs/browser/component.js';
-import Media from '../modules/media.js';
+import {media}  from '../modules/media.js';
 import { LOG_LEVEL, Logger } from '../../drjs/logger.js';
 const log = Logger.create('DateFilter', LOG_LEVEL.DEBUG);
 import {
@@ -22,7 +22,7 @@ export class DateFilterComponent extends ComponentBase {
     this.popup = this.dom.first('.popup-details');
     this.listeners = new Listeners(
       BuildCustomEventHandler()
-        .emitter(Media.getVisibleItems().getUpdatedEvent())
+        .emitter(media.getVisibleItems().getUpdatedEvent())
         .onEvent(this, this.onItemsUpdated)
         .build(),
       BuildMouseOverHandler()
@@ -54,7 +54,7 @@ export class DateFilterComponent extends ComponentBase {
         .build()
     );
 
-    this.onItemsUpdated(Media.getVisibleItems());
+    this.onItemsUpdated(media.getVisibleItems());
 
     this.fillSvg();
   }
@@ -62,13 +62,13 @@ export class DateFilterComponent extends ComponentBase {
   resetStart() {
     this.startDate = this.earliestDate;
     this.fillSvg();
-    Media.setDateFilter(this.startDate, this.endDate);
+    media.setDateFilter(this.startDate, this.endDate);
   }
 
   resetEnd() {
     this.endDate = this.latestDate;
     this.fillSvg();
-    Media.setDateFilter(this.startDate, this.endDate);
+    media.setDateFilter(this.startDate, this.endDate);
   }
   datePercent(date) {
     if (date == null || isNaN(date)) {
@@ -105,7 +105,7 @@ export class DateFilterComponent extends ComponentBase {
       this.dateString(this.endDate || this.latestDate)
     );
 
-    let buckets = [...Media.getVisibleItems()].reduce((bucket, item) => {
+    let buckets = [...media.getVisibleItems()].reduce((bucket, item) => {
       let date = item.getDateTaken();
       let pct = this.datePercent(date);
       if (bucket[pct] == null) {
@@ -133,7 +133,7 @@ export class DateFilterComponent extends ComponentBase {
     }, []);
     this.buckets = buckets;
     this.dom.removeChildren(this.svg);
-    // for (let item of Media.getVisibleItems()) {
+    // for (let item of media.getVisibleItems()) {
     //   this.dom.append(this.svg, this.createRect(item));
     // }
     for (let bucket of buckets) {
@@ -157,7 +157,7 @@ export class DateFilterComponent extends ComponentBase {
     }
     if (bucket) {
       this.startDate = bucket.start;
-      Media.setDateFilter(this.startDate, this.endDate);
+      media.setDateFilter(this.startDate, this.endDate);
       this.fillSvg();
     }
   }
@@ -171,7 +171,7 @@ export class DateFilterComponent extends ComponentBase {
     }
     if (bucket) {
       this.endDate = bucket.end;
-      Media.setDateFilter(this.startDate, this.endDate);
+      media.setDateFilter(this.startDate, this.endDate);
       this.fillSvg();
     }
   }
@@ -214,7 +214,7 @@ export class DateFilterComponent extends ComponentBase {
     let start = null;
     let end = null;
     let photosPerDay = {};
-    for (let item of Media.getAllFiles()) {
+    for (let item of media.getAllFiles()) {
       let taken = item.getDateTaken();
       if (start == null || start > taken) {
         start = taken;

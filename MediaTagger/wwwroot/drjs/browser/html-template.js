@@ -17,7 +17,7 @@ export class TemplateValue {
     this._value = val;
   }
 
-  set(element) {
+  set(_element) {
     log.error(
       'derived class did not implement the set(element) method ',
       this.constructor.name
@@ -110,14 +110,14 @@ export class ReplaceTemplateValue extends TemplateValue {
       this.oldValue,
       this.newValue
     );
-    let attrs = element.getAttributeNames();
+    const attrs = element.getAttributeNames();
     attrs.forEach((name) => {
-      let val = element.getAttribute(name);
+      const val = element.getAttribute(name);
       let newVal = this.newValue;
       if (typeof newVal == 'function') {
         newVal = newVal();
       }
-      let rval = val.replaceAll(this.oldValue, newVal);
+      const rval = val.replaceAll(this.oldValue, newVal);
       element.setAttribute(name, rval);
     });
   }
@@ -129,8 +129,8 @@ export class HtmlTemplate {
     if (typeof this.templateElement === 'string') {
       this.nodes = this.stringToNodes(this.templateElement);
     } else if (
-      this.templateElement &&
-      this.templateElement.tagName == 'SCRIPT'
+      this.templateElement
+      && this.templateElement.tagName == 'SCRIPT'
     ) {
       // if the template is a script, process all elements in it
       this.nodes = this.stringToNodes(this.templateElement.innerHTML);
@@ -149,16 +149,16 @@ export class HtmlTemplate {
   }
 
   getFirstNode() {
-    let nodes = this.nodes.map((node) => {
-      let clone = node.cloneNode(true);
+    const nodes = this.nodes.map((node) => {
+      const clone = node.cloneNode(true);
       DOM.remove(DOM.find(clone, '.repeat'));
       return clone;
     });
     return nodes[0];
   }
   getNodes() {
-    let nodes = this.nodes.map((node) => {
-      let clone = node.cloneNode(true);
+    const nodes = this.nodes.map((node) => {
+      const clone = node.cloneNode(true);
       DOM.remove(DOM.find(clone, '.repeat'));
       return clone;
     });

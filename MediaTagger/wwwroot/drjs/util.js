@@ -36,6 +36,7 @@ class Util {
     }
   }
 
+  // eslint-disable-next-line complexity
   toString(item) {
     // return a string value of the item.  If it is JSON, remove cycles
     const type = typeof item;
@@ -44,8 +45,8 @@ class Util {
     } else if (type === 'string') {
       return item;
     } else if (item instanceof HTMLElement) {
-      let parts = [];
-      let tag = item.tagName;
+      const parts = [];
+      const tag = item.tagName;
       parts.push('[');
       parts.push(tag);
       if (item.id) {
@@ -53,7 +54,7 @@ class Util {
         parts.push(item.id);
       }
 
-      let classes = item.classList;
+      const classes = item.classList;
       classes.forEach((c) => {
         parts.push('.');
         parts.push(c);
@@ -72,7 +73,7 @@ class Util {
         return val;
       };
 
-      let result = '\n' + JSON.stringify(item, deCycle, 2) + '\n';
+      let result = `\n${  JSON.stringify(item, deCycle, 2)  }\n`;
       if (item.message) {
         result = item.message + result;
       }
@@ -87,7 +88,7 @@ class Util {
 
   toNumber(val, defaultValue) {
     try {
-      let n = Number.parseInt(val);
+      const n = Number.parseInt(val);
       if (isNaN(n)) {
         return defaultValue;
       }
@@ -108,8 +109,10 @@ class Util {
 
   /* string utilities */
   padRight(val, length, pad = ' ', truncate = false) {
-    // add spaces on the right to make the string "length" characters.
-    // If truncate==true remove characters beyond "length"
+    /*
+     * add spaces on the right to make the string "length" characters.
+     * If truncate==true remove characters beyond "length"
+     */
     let text = this.toString(val);
     if (this.isEmpty(text)) {
       return pad.repeat(length);
@@ -124,8 +127,10 @@ class Util {
   }
 
   padLeft(val, length, pad = ' ', truncate = false) {
-    // add spaces on the right to make the string "length" characters.
-    // If truncate==true remove characters beyond "length"
+    /*
+     * add spaces on the right to make the string "length" characters.
+     * If truncate==true remove characters beyond "length"
+     */
     let text = this.toString(val);
     if (this.isEmpty(text)) {
       return pad.repeat(length);
@@ -143,12 +148,11 @@ class Util {
   formatTime(time = null, format = 'HH:MM:SS') {
     let result = '';
     try {
-      let date = this.getDate(time);
+      const date = this.getDate(time);
       const hour = date.getHours();
       const minutes = date.getMinutes();
       const seconds = date.getSeconds();
       const msecs = date.getMilliseconds();
-      const regex = new RegExp(format, 'g');
       return format
         .replace(hhRegex, this.formatHour(hour))
         .replace(mmRegex, this.padLeft(minutes, '0', 2))
@@ -159,7 +163,7 @@ class Util {
         .replace(sRegex, this.padRight(msecs, '0', 1));
     } catch (err) {
       // because of circular dependencies we cannot log from util.js
-      result = 'date error ' + time;
+      result = `date error ${  time}`;
     }
     return result;
   }
@@ -208,12 +212,12 @@ class Util {
       const types = this.toArray(def.types);
       let val = def.defaultValue || null;
 
-      let byType = args.filter((arg) => {
+      const byType = args.filter((arg) => {
         if (typeof arg === 'object') {
           if (this.isType(arg, types)) {
             return arg;
           } else if (arg.constructor.name == 'object') {
-            const member = getMemberByType(typeNames, arg);
+            const member = this.getMemberByType(this.typeNames, arg);
             return member;
           }
         }
@@ -228,7 +232,7 @@ class Util {
     }
 
     for (let nidx = 0; nidx < optionDefs.length; nidx++) {
-      let def = optionDefs[nidx];
+      const def = optionDefs[nidx];
       args.forEach((arg) => {
         if (typeof arg == 'object' && !this.isNull(arg[def.name])) {
           options[def.name] = arg[def.name];
@@ -256,8 +260,8 @@ class Util {
     }
     const member = Object.keys(object).find((member) => {
       return (
-        typeof member === 'object' &&
-        typeNames.contains(member.constructor.name)
+        typeof member === 'object'
+        && typeNames.contains(member.constructor.name)
       );
     });
     return member;
@@ -270,6 +274,7 @@ class Util {
     return object[name];
   }
 
+  // eslint-disable-next-line complexity
   combinePath(...parts) {
     if (parts == null || this.isEmpty(parts)) {
       return '';
@@ -286,19 +291,18 @@ class Util {
         } else {
           return first + rest;
         }
-      } else {
-        if (rest.startsWith('/')) {
+      } else if (rest.startsWith('/')) {
           return first + rest;
         } else {
-          return first + '/' + rest;
+          return `${first  }/${  rest}`;
         }
-      }
     }
+    return '';
   }
 
   debounce(func, msecs = 2000) {
     let timer = null;
-    let debouncer = function () {
+    const debouncer = function () {
       if (timer != null) {
         clearTimeout(timer);
       }
@@ -311,7 +315,7 @@ class Util {
   }
 
   intersect(arr1, arr2, compareFunction = null) {
-    let result = [];
+    const result = [];
     if (arr1 == null || arr1.length == 0 || arr2.length == 0) {
       return result;
     }
@@ -330,14 +334,27 @@ class Util {
     });
     return result;
   }
+
+  firstNotEmpty(list) {
+    while (list[0] == null) {
+      list.shift();
+    }
+    let result = list[0];
+    if (typeof result == 'function') {
+      result = result();
+    }
+    return result;
+  }
 }
 
 const util = new Util();
 
 export class OptionDef {
-  // name - the key to use in the options Object
-  // typeName - a string or array of strings for allowed types
-  // a default value if not found
+  /*
+   * name - the key to use in the options Object
+   * typeName - a string or array of strings for allowed types
+   * a default value if not found
+   */
   constructor(name, type, defaultValue) {
     this.name = name;
     this.types = util.toArray(type);

@@ -17,7 +17,7 @@
   ],
   "favorites.sortOrder": "ASC",
   "favorites.sortDirection": "ASC",
-  "prettier.enable": false,
+  "prettier.enable": true,
   "prettier.singleQuote": true,
   "prettier.trailingComma": "none",
   "jshint.enable": false

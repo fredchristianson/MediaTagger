@@ -295,7 +295,7 @@ class ObservableView extends ObservableCollection {
     } else {
       this.collectionIn = collectionIn;
     }
-    if (!(collectionIn instanceof ObservableCollection)) {
+    if (!(this.collectionIn instanceof ObservableCollection)) {
       throw new Error(
         'ObservableLView constructor argument is not a collection'
       );

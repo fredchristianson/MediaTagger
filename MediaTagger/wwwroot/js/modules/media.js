@@ -7,7 +7,7 @@ import {
   PropertyValue,
   MediaFile,
   Album,
-  MediaAlbum
+  MediaAlbum, EntityChangeEvent
 } from '../data/items.js';
 import { runParallel, runSerial } from './task.js';
 import { dataAdder, dataLoader, dataUpdater } from '../data/data-loader.js';
@@ -36,6 +36,9 @@ export const FilterChangeEvent = new EventEmitter(FilterChangeEventType);
 export const FocusChangeEventType = new ObjectEventType('FocusChange');
 export const FocusChangeEvent = new EventEmitter(FocusChangeEventType);
 
+export const FocusEntityChangeEventType = new ObjectEventType('FocusEntityChange');
+export const FocusEntityChangeEvent = new EventEmitter(FocusEntityChangeEventType);
+
 class Media {
   constructor() {
     this.files = new ObservableArray();
@@ -48,6 +51,7 @@ class Media {
     this.mediaTags = new ObservableArray();
     this.mediaAlbums = new ObservableArray();
     this.showAllGroupFiles = false;
+    this.focusIndex = 0;
     this.mediaFilterItems = new FilteredObservableView(
       this.files,
       this.mediaFilter.bind(this)
@@ -72,7 +76,7 @@ class Media {
     this.selectedItems = new ObservableView([]);
     // lastSelect may be toggled off
     this.lastSelect = null;
-    this.focus = null;
+    this.focusItem = null;
     this.previousFocus = null;
 
     this.listeners = new Listeners(
@@ -84,11 +88,36 @@ class Media {
       BuildCustomEventHandler()
         .emitter(FilterChangeEvent)
         .onEvent(this, this.onFilterChanged)
-        .build()
+        .build(),
+      BuildCustomEventHandler()
+        .emitter(EntityChangeEvent)
+        .onEvent(this, this.onEntityChanged)
+        .build(),
+      BuildCustomEventHandler()
+        .emitter(this.visibleItems.getUpdatedEvent())
+        .onEvent(this, this.onVisibleItemsChange)
+        .build(),
+      
     );
     this.filterIncludeFunctions = [];
   }
 
+  onEntityChanged(entity) {
+    if (entity === this.focusItem) {
+      FocusEntityChangeEvent.emit(entity);
+    }
+  }
+
+  onVisibleItemsChange() {
+    log.always('media onVisibleItemChange');
+    const focus = this.visibleItems.getItemAt(this.focusIndex);
+    if (focus == null) {
+      this.focusIndex = 0;
+      this.focusItem = this.visibleItems.getItemAt(0);
+    } else if (focus != this.focusItem) {
+      this.setFocus(focus);
+    }
+  }
   getFocusChangeEvent() {
     return FocusChangeEvent;
   }
@@ -98,52 +127,61 @@ class Media {
     this.selectedItems.clear();
   }
   clearFocus() {
-    if (this.focus != null) {
-      this.previousFocus = this.focus;
+    if (this.focusItem != null) {
+      this.previousFocus = this.focusItem;
     }
-    this.focus = null;
+    this.focusItem = null;
     this.focusIndex = null;
 
     FocusChangeEvent.emit(null);
   }
   getFocus() {
-    return this.focus;
+    return this.focusItem;
   }
   getFocusIndex() {
-    return this.focus == null ? 0 : this.visibleItems.indexOf(this.focus);
+    return this.focusIndex;
   }
   getLastFocusIndex() {
     return this.focusIndex ?? this.visibleItems.indexOf(this.previousFocus);
   }
 
+  moveFocus(focusIndexOffset) {
+    let newIndex = Math.max(0, this.focusIndex + focusIndexOffset);
+    newIndex = Math.min(newIndex, this.visibleItems.Length - 1);
+    this.focusItem = this.visibleItems.getItemAt(newIndex);
+    this.focusIndex = newIndex;
+    FocusChangeEvent.emitNow(this.focusItem);
+  }
   setFocus(item) {
-    if (this.focus != null) {
-      this.previousFocus = this.focus;
+    if (item == this.focusItem) {
+      return;
     }
-    this.focus = item;
+    if (this.focusItem != null) {
+      this.previousFocus = this.focusItem;
+    }
+    this.focusItem = item;
     this.focusIndex = this.visibleItems.indexOf(item);
-    FilterChangeEvent.emit();
-    FocusChangeEvent.emit(item);
+    FocusChangeEvent.emitNow(item);
   }
 
   getLastFocus() {
-    return this.focus ?? this.previousFocus;
+    return this.focusItem ?? this.previousFocus;
   }
 
   // updateFocus happens when the item doesn't change, but an attribute does (e.g. rotation)
   async updateFocus() {
     await this.updateDatabaseItems();
-    FocusChangeEvent.emit(this.focus);
+    FocusChangeEvent.emitNow(this.focus);
   }
 
   clearFilter() {
     this.filterIncludeFunctions = [];
-    FilterChangeEvent.emit();
+    FilterChangeEvent.emitNow();
   }
 
   addFilter(func) {
     this.filterIncludeFunctions.push(func);
-    FilterChangeEvent.emit();
+    FilterChangeEvent.emitNow();
   }
 
   onFilterChanged() {
@@ -242,7 +280,7 @@ class Media {
         });
       }
     }
-    FilterChangeEvent.emit();
+    FilterChangeEvent.emitNow();
   }
 
   getAlbumMap() {
@@ -268,7 +306,7 @@ class Media {
         });
       }
     }
-    FilterChangeEvent.emit();
+    FilterChangeEvent.emitNow();
   }
 
   async updateDatabaseItems() {
@@ -511,7 +549,7 @@ class Media {
     if (tag.hidden) {
       this.tags.remove(tag);
     }
-    FilterChangeEvent.emit();
+    FilterChangeEvent.emitNow();
     return updated;
   }
 
@@ -519,14 +557,14 @@ class Media {
     const result = await API.addMediaTag(file.getId(), tag.getId());
     file.addTag(tag);
     tag.addFile(file);
-    FocusChangeEvent.emit(this.focus);
+    FocusChangeEvent.emitNow(this.focus);
     return result;
   }
   async tagRemoveFile(tag, file) {
     const result = await API.removeMediaTag(file.getId(), tag.getId());
     file.removeTag(tag);
     tag.removeFile(file);
-    FocusChangeEvent.emit(this.focus);
+    FocusChangeEvent.emitNow(this.focus);
     return result;
   }
 
@@ -605,14 +643,14 @@ class Media {
     const result = await API.addMediaAlbum(file.getId(), album.getId());
     file.addAlbum(album);
     album.addFile(file);
-    FocusChangeEvent.emit(this.focus);
+    FocusChangeEvent.emitNow(this.focus);
     return result;
   }
   async albumRemoveFile(album, file) {
     const result = await API.removeMediaAlbum(file.getId(), album.getId());
     file.removeAlbum(album);
     album.removeFile(file);
-    FocusChangeEvent.emit(this.focus);
+    FocusChangeEvent.emitNow(this.focus);
     return result;
   }
 
@@ -657,4 +695,4 @@ const media = new Media();
 
 export { media };
 
-export default media;
+

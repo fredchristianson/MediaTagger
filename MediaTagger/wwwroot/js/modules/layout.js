@@ -6,7 +6,7 @@ import {
   BuildScrollHandler,
   BuildCustomEventHandler
 } from '../../drjs/browser/event.js';
-import Media, { media } from './media.js';
+import { media } from './media.js';
 import { OnNextLoop } from './timer.js';
 import { Assert } from '../../drjs/assert.js';
 const log = Logger.create('Layout', LOG_LEVEL.INFO);
@@ -105,8 +105,8 @@ export class Layout {
     log.debug('create Layout');
     this.containerSelector = containerSelector;
     this.container = dom.first(this.containerSelector);
-    this.layoutScroll = dom.first(this.container, '.view'); // dom.createElement("div", { "@class": "layout" });
-    this.layoutView = dom.first(this.container, '.view'); //dom.createElement("div", { "@class": "layout-view" });
+    this.layoutScroll = dom.first(this.container, '.view'); 
+    this.layoutView = dom.first(this.container, '.view'); 
     this.htmlCreator = htmlCreator;
     this.list = list;
 
@@ -131,12 +131,12 @@ export class Layout {
         .build(),
 
       BuildCustomEventHandler()
-        .emitter(Media.getSelectedItems().getUpdatedEvent())
+        .emitter(media.getSelectedItems().getUpdatedEvent())
         .onEvent(this, this.onSelectionChanged)
         .build(),
 
       BuildCustomEventHandler()
-        .emitter(Media.getFocusChangeEvent())
+        .emitter(media.getFocusChangeEvent())
         .onEvent(this, this.setFocus)
         .build()
     );
@@ -226,7 +226,8 @@ export class Layout {
       + 1;
 
     const rowPercent = pos / this.layoutScroll.scrollHeight;
-    const row = Math.floor(totalRows * (rowPercent + 0.0005)); // add .0005 for rounding error in percent
+    // add .0005 for rounding error in percent
+    const row = Math.floor(totalRows * (rowPercent + 0.0005)); 
     this.firstVisibleIndex = row * this.layoutDetails.Columns;
     this.drawItems(this.firstVisibleIndex, this.layoutDetails, this.layoutView);
   }
@@ -292,8 +293,8 @@ export class GridLayout extends Layout {
     if (firstItemIndex < 0) {
       firstItemIndex = 0;
     }
-    const selection = Media.getSelectedItems();
-    const visibleItems = Media.getVisibleItems();
+    const selection = media.getSelectedItems();
+    const visibleItems = media.getVisibleItems();
     let visible = true;
     let left = 0;
     let top = view.scrollTop;

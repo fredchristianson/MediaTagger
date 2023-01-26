@@ -1,4 +1,4 @@
-export function compareIds(a, b) {
+function compareIds(a, b) {
   if (a == null) {
     return b == null ? 0 : -1;
   }
@@ -8,7 +8,7 @@ export function compareIds(a, b) {
   return a.getId() - b.getId();
 }
 
-export function compareDates(a, b) {
+function compareDates(a, b) {
   if (a == null) {
     return b == null ? 0 : -1;
   }
@@ -18,7 +18,7 @@ export function compareDates(a, b) {
   return a.getDateTaken() - b.getDateTaken();
 }
 
-export function compareNames(a, b) {
+function compareNames(a, b) {
   if (a == null) {
     return b == null ? 0 : -1;
   }
@@ -28,12 +28,12 @@ export function compareNames(a, b) {
   return a.getName().localeCompare(b.getName());
 }
 
-export function toDate(val) {
+function toDate(val) {
   if (val == null || val instanceof Date) {
     return val;
   } else {
     try {
-      if (typeof val == "string") {
+      if (typeof val == 'string') {
         return new Date(Date.parse(val));
       }
       return new Date(val);
@@ -43,4 +43,5 @@ export function toDate(val) {
   }
 }
 
-export default { compareIds, compareDates, compareNames, toDate };
+
+export  { compareIds, compareDates, compareNames, toDate };
