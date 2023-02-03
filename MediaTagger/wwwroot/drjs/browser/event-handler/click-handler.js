@@ -1,11 +1,9 @@
 import { LOG_LEVEL, Logger } from '../../logger.js';
-import { default as dom } from '../dom.js';
 import {
   EventHandlerBuilder,
   EventListener,
   HandlerMethod,
-  DoNothing,
-  Continuation
+  DoNothing
 } from './handler.js';
 
 const log = Logger.create('ClickHandler', LOG_LEVEL.WARN);
@@ -69,10 +67,10 @@ export class ClickHandler extends EventListener {
 
   callHandlers(event) {
     try {
-      let response = this.defaultResponse.clone();
+      const response = this.defaultResponse.clone();
 
       if (event.type == 'mouseover') {
-        if (this.onRightClick) {
+        if (this.onRightClick.IsValid) {
           document.oncontextmenu = DoNothing;
         }
         return;

@@ -1,4 +1,6 @@
 
 .media-filter {
     grid-area: media-filter;
+    background-color: var(--background-color);
+    overflow-y: auto;
 }

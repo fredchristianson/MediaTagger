@@ -194,6 +194,10 @@ class HandlerMethod {
     }
   }
 
+  get IsValid() {
+    return this.handlerFunction != null;
+  }
+
   call(handler, event, ...args) {
     const continuation = handler.DefaultContinuation;
     try {

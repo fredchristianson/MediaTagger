@@ -1,3 +1,4 @@
+@charset "UTF-8";
 @import url("https://fonts.googleapis.com/css2?family=Cedarville+Cursive&display=swap");
 html {
   box-sizing: border-box;
@@ -339,6 +340,8 @@ body.theme-dark {
 
 .media-filter {
   grid-area: media-filter;
+  background-color: var(--background-color);
+  overflow-y: auto;
 }
 
 input, select, text-area, button {
@@ -369,6 +372,81 @@ button:hover {
 
 input[type=text] {
   background-color: var(--background-color);
+}
+
+.component h1,
+.component h2 {
+  border: 0;
+  border-top: 1px solid var(--highlight-background-color);
+  padding: var(--padding);
+  color: var(--highlight-background-color);
+  background-color: var(--highlight-foreground-color);
+  position: relative;
+  cursor: pointer;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+.component h1 > *,
+.component h2 > * {
+  display: inline-block;
+}
+.component h1 .on-hover,
+.component h2 .on-hover {
+  visibility: hidden;
+}
+.component h1:hover .on-hover {
+  visibility: visible;
+}
+.component h2 {
+  padding-left: calc(var(--padding) * 2);
+  background-color: var(--highlight-background-color);
+  color: var(--highlight-foreground-color);
+  border-top: 1px solid var(--highlight-foreground-color);
+  font-size: 0.75rem;
+}
+
+.toggle-next-sibling,
+h1.toggle-next-sibling,
+h2.toggle-next-sibling {
+  position: relative;
+  padding-left: 2em;
+}
+
+.toggle-next-sibling + * {
+  transform: scaleY(1);
+  margin-left: var(--margin);
+  transform-origin: top;
+  height: auto;
+  max-height: 999999px;
+  transition: transform 500ms, max-height 50ms;
+}
+
+.toggle-next-sibling.hide-next-sibling + * {
+  transform: scaleY(0);
+  max-height: 0;
+  overflow: hidden;
+  transform-origin: top;
+  transition: transform 500ms, max-height 500ms;
+}
+
+.toggle-next-sibling::after {
+  content: "▼";
+  position: absolute;
+  left: var(--padding);
+  width: var(--padding);
+  height: var(--padding);
+  top: calc(var(--padding));
+  transform: rotate(0deg);
+}
+
+.toggle-next-sibling.hide-next-sibling::after {
+  content: "▶";
+  position: absolute;
+  left: var(--padding);
+  width: var(--padding);
+  height: var(--padding);
+  top: calc(var(--padding));
 }
 
 #content-view {

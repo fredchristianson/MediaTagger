@@ -1,9 +1,9 @@
 import {
   BuildCheckboxHandler,
+  BuildClickHandler,
   Continuation
 } from '../../drjs/browser/event.js';
 import { Dialog } from '../controls/dialog.js';
-import { BuildClickHandler } from '../../drjs/browser/event.js';
 import { HtmlTemplate, InputValue } from '../../drjs/browser/html-template.js';
 import { TagComponent } from './tags.js';
 
@@ -82,11 +82,11 @@ export class TagFilterComponent extends TagComponent {
   }
 
   expandAll() {
-    let parents = this.dom.find('.has-children');
+    const parents = this.dom.find('.has-children');
     this.dom.removeClass(parents, 'closed');
   }
   collapseAll() {
-    let parents = this.dom.find('.has-children');
+    const parents = this.dom.find('.has-children');
     this.dom.addClass(parents, 'closed');
   }
 
@@ -95,25 +95,23 @@ export class TagFilterComponent extends TagComponent {
     const tagElement = this.dom.closest(element, '.tag');
     const label = this.dom.first(tagElement, 'label.check-state');
     let state = this.dom.getData(label, 'state');
-    let hasChildren = this.dom.hasClass(tagElement, 'has-children');
-    let childState = null;
+    const hasChildren = this.dom.hasClass(tagElement, 'has-children');
+    const childState = null;
     if (!hasChildren) {
       state = state != 'checked' ? 'checked' : 'unchecked';
       this.dom.setData(label, 'state', state);
+    } else if (state == 'unchecked') {
+      state = 'checked-and-children';
+      this.dom.setData(label, 'state', state);
+      this.updateChildren(tagElement, 'checked');
+    } else if (state == 'checked-and-children') {
+      state = 'checked-no-children';
+      this.dom.setData(label, 'state', state);
+      this.updateChildren(tagElement, 'unchecked');
     } else {
-      if (state == 'unchecked') {
-        state = 'checked-and-children';
-        this.dom.setData(label, 'state', state);
-        this.updateChildren(tagElement, 'checked');
-      } else if (state == 'checked-and-children') {
-        state = 'checked-no-children';
-        this.dom.setData(label, 'state', state);
-        this.updateChildren(tagElement, 'unchecked');
-      } else {
-        state = 'unchecked';
-        this.dom.setData(label, 'state', state);
-        this.updateChildren(tagElement, 'unchecked');
-      }
+      state = 'unchecked';
+      this.dom.setData(label, 'state', state);
+      this.updateChildren(tagElement, 'unchecked');
     }
     this.updateParent(tagElement);
     media.clearFocus();
@@ -123,8 +121,8 @@ export class TagFilterComponent extends TagComponent {
   }
 
   updateChildren(parent, state) {
-    let children = this.dom.first(parent, '.children');
-    let childStates = this.dom.find(children, '.check-state');
+    const children = this.dom.first(parent, '.children');
+    const childStates = this.dom.find(children, '.check-state');
     childStates.forEach((child) => {
       this.dom.setData(child, 'state', state);
     });
@@ -140,7 +138,7 @@ export class TagFilterComponent extends TagComponent {
         return state != 'unchecked';
       });
       //const checked = this.dom.getData(parent, "state") != "unchecked";
-      let parentState = this.dom.getData(
+      const parentState = this.dom.getData(
         this.dom.first(parent, 'label label'),
         'state'
       );
@@ -159,14 +157,14 @@ export class TagFilterComponent extends TagComponent {
     }
   }
   checkChildOnly() {
-    let childOnly = this.dom.find("input[data-state='child-only-check']");
+    const childOnly = this.dom.find("input[data-state='child-only-check']");
     this.dom.setData(childOnly, 'state', 'unchecked');
-    let unchecked = this.dom.find("input[data-state='unchecked']");
+    const unchecked = this.dom.find("input[data-state='unchecked']");
     unchecked.forEach((uncheck) => {
-      let parent = this.dom.closest(uncheck, '.tag');
-      let checkchild = this.dom.first(parent, 'input[data-state^="check"]');
+      const parent = this.dom.closest(uncheck, '.tag');
+      const checkchild = this.dom.first(parent, 'input[data-state^="check"]');
       if (checkchild != null) {
-        let hasChildCheck = this.dom.first(
+        const hasChildCheck = this.dom.first(
           parent,
           "input[data-state='checked']"
         );
@@ -180,9 +178,9 @@ export class TagFilterComponent extends TagComponent {
   }
 
   updateSettings() {
-    let checks = this.dom.find('label.check-state');
+    const checks = this.dom.find('label.check-state');
     checks.forEach((check) => {
-      let id = this.dom.getDataWithParent(check, 'id');
+      const id = this.dom.getDataWithParent(check, 'id');
       this.settings.set(`state-${id}`, this.dom.getData(check, 'state'));
     });
     this.settings.set('all', false);
@@ -193,39 +191,37 @@ export class TagFilterComponent extends TagComponent {
     if (this.settings == null || this.settings.get('all')) {
       keep = true;
     } else {
-      let itemTags = item.getTags();
+      const itemTags = item.getTags();
       if (itemTags.length == 0) {
-        let untagged = this.settings.get('state-untagged');
+        const untagged = this.settings.get('state-untagged');
         keep = untagged == null || untagged.startsWith('checked');
+      } else if (this.isAny) {
+        const found = itemTags.find((tag) => {
+          const state = this.settings.get(`state-${tag.getId()}`);
+          return state != null && state.startsWith('checked');
+        });
+        keep = found != null;
       } else {
-        if (this.isAny) {
-          const found = itemTags.find((tag) => {
-            let state = this.settings.get(`state-${tag.getId()}`);
-            return state != null && state.startsWith('checked');
+        const selected = this.dom.find(
+          'label.check-state[data-state^="check"]'
+        );
+        const selectedIds = selected
+          .map((label) => {
+            return this.dom.getDataWithParent(label, 'id');
+          })
+          .filter((sel) => {
+            return sel != 'root';
           });
-          keep = found != null;
-        } else {
-          const selected = this.dom.find(
-            'label.check-state[data-state^="check"]'
-          );
-          const selectedIds = selected
-            .map((label) => {
-              return this.dom.getDataWithParent(label, 'id');
-            })
-            .filter((sel) => {
-              return sel != 'root';
-            });
 
-          // if nothing is selected, every() returns true but it's not a match
-          const every =
-            selectedIds.length > 0 &&
-            selectedIds.every((selId) => {
-              return itemTags.find((t) => {
-                return t.Id == selId;
-              });
+        // if nothing is selected, every() returns true but it's not a match
+        const every =
+          selectedIds.length > 0 &&
+          selectedIds.every((selId) => {
+            return itemTags.find((t) => {
+              return t.Id == selId;
             });
-          keep = every;
-        }
+          });
+        keep = every;
       }
     }
     return keep;
@@ -261,7 +257,7 @@ export class TagFilterComponent extends TagComponent {
       '.parent': parentTag,
       "[name='parentId']": new InputValue(parentId)
     });
-    let dialog = new Dialog(html, createTag);
+    const dialog = new Dialog(html, createTag);
     dialog.show();
   }
 }
@@ -274,7 +270,7 @@ function getTagPath(id) {
   if (tag == null) {
     return '?';
   }
-  return getTagPath(tag.getParentId()) + tag.Name + '/';
+  return `${getTagPath(tag.getParentId()) + tag.Name}/`;
 }
 async function createTag(values) {
   log.debug('createTag', values);
