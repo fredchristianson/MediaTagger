@@ -67,8 +67,8 @@ export class DOMUtils {
     }
     if (Array.isArray(parent)) {
       parent = parent.filter((elem) => {
-        const validParent
-          = elem instanceof HTMLElement || elem instanceof HTMLDocument;
+        const validParent =
+          elem instanceof HTMLElement || elem instanceof HTMLDocument;
         if (!validParent) {
           /*
            * don't assert and throw an error since there are cases where Text nodes are in the array.
@@ -104,8 +104,8 @@ export class DOMUtils {
     try {
       let element = null;
       if (
-        sel.selector instanceof HTMLElement
-        || sel.selector instanceof SVGElement
+        sel.selector instanceof HTMLElement ||
+        sel.selector instanceof SVGElement
       ) {
         // a DOM element was passed as a selector, so return it
         element = sel.selector;
@@ -145,24 +145,24 @@ export class DOMUtils {
         return arr;
       }, []);
     } else if (sel.selector instanceof HTMLElement) {
-        // a DOM element was passed as a selector, so return it
-        result = [sel.selector];
-      } else if (Array.isArray(sel.parent)) {
-        sel.parent.forEach((parent) => {
-          // if the parent matches, keep it
-          if (parent.matches(sel.selector)) {
-            result.push(parent);
-          }
-          // also keep any decendants that match
-          result.push(...Array.from(parent.querySelectorAll(sel.selector)));
-        });
-      } else {
-        const elements = sel.parent.querySelectorAll(sel.selector);
-        result = Array.from(elements);
-        if (sel.parent.matches && sel.parent.matches(sel.selector)) {
-          result.push(sel.parent);
+      // a DOM element was passed as a selector, so return it
+      result = [sel.selector];
+    } else if (Array.isArray(sel.parent)) {
+      sel.parent.forEach((parent) => {
+        // if the parent matches, keep it
+        if (parent.matches(sel.selector)) {
+          result.push(parent);
         }
+        // also keep any decendants that match
+        result.push(...Array.from(parent.querySelectorAll(sel.selector)));
+      });
+    } else {
+      const elements = sel.parent.querySelectorAll(sel.selector);
+      result = Array.from(elements);
+      if (sel.parent.matches && sel.parent.matches(sel.selector)) {
+        result.push(sel.parent);
       }
+    }
     return result;
   }
 
@@ -171,9 +171,9 @@ export class DOMUtils {
     const selectors = util.toArray(sel);
     let match = false;
     this.toElementArray(element).forEach((elem) => {
-      match
-        = match
-        || selectors.find((s) => {
+      match =
+        match ||
+        selectors.find((s) => {
           return typeof s == 'string' ? elem.matches(s) : element == s;
         });
     });
@@ -535,7 +535,7 @@ export class DOMUtils {
       if (element.tagName == 'TEXTAREA') {
         element.value = val;
       } else if (element.tagName == 'SELECT') {
-        let opt = this.first(element, `[value=${val}]`);
+        let opt = this.first(element, `[value="${val}"]`);
         if (opt == null) {
           opt = this.first(element, 'option');
         }
@@ -616,7 +616,11 @@ export class DOMUtils {
       const val = util.firstNotEmpty([opt.getValue, opt, value, op]);
 
       const label = util.firstNotEmpty([opt.getName, opt.name, opt]);
-      const disabled = util.firstNotEmpty([opt.isDisabled, opt.disabled, false]);
+      const disabled = util.firstNotEmpty([
+        opt.isDisabled,
+        opt.disabled,
+        false
+      ]);
       const optElement = this.createElement('option', {
         '@value': val,
         innerHTML: label
@@ -756,9 +760,9 @@ export class DOMUtils {
 
   isElementIn(element, selectors) {
     if (
-      element == null
-      || selectors == null
-      || !(element instanceof HTMLElement)
+      element == null ||
+      selectors == null ||
+      !(element instanceof HTMLElement)
     ) {
       return false;
     }
@@ -784,9 +788,10 @@ export class DOMUtils {
     let height = 0;
     if (el != null) {
       const rect = el.getBoundingClientRect();
-      const scrollLeft
-        = window.pageXOffset || document.documentElement.scrollLeft;
-      const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+      const scrollLeft =
+        window.pageXOffset || document.documentElement.scrollLeft;
+      const scrollTop =
+        window.pageYOffset || document.documentElement.scrollTop;
       y = rect.top + scrollTop;
       x = rect.left + scrollLeft;
       height = el.clientHeight;

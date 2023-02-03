@@ -18,9 +18,9 @@ import {
 import { Settings } from '../modules/settings.js';
 
 export const ZoomChangeEventType = new ObjectEventType('zoomChange');
-export const ZoomEvent = new EventEmitter(ZoomChangeEventType, this);
+export const ZoomEvent = new EventEmitter(ZoomChangeEventType);
 export const ExpandGroupsEventType = new ObjectEventType('ExpandGroups');
-export const ExpandGroupsEvent = new EventEmitter(ExpandGroupsEventType, this);
+export const ExpandGroupsEvent = new EventEmitter(ExpandGroupsEventType);
 const MAX_ZOOM = 800;
 const DEFAULT_SETTINGS = {
   zoom: 100,
@@ -89,8 +89,29 @@ export class ViewOptionsComponent extends ComponentBase {
       BuildCustomEventHandler()
         .emitter(media.getSelectedItems().getUpdatedEvent())
         .onEvent(this, this.selectionInput)
+        .build(),
+      BuildInputHandler()
+        .selector("[name='theme']")
+        .onInput(this, this.changeTheme)
+        .build(),
+      BuildInputHandler()
+        .selector("[name='font']")
+        .onInput(this, this.setFont)
+        .build(),
+      BuildInputHandler()
+        .selector("[name='layout-type']")
+        .onInput(this, this.setLayoutType)
         .build()
     );
+    const theme = this.settings.get('theme', 'theme-light');
+    dom.addClass('body', theme);
+    this.dom.setValue('[name="theme"]', theme);
+    const font = this.settings.get('font', 'sans-serif');
+    this.setFont(font);
+    this.dom.setValue('[name="font"]', font);
+    const layoutType = this.settings.get('layout-type', 'normal');
+    this.setLayoutType(layoutType);
+    this.dom.setValue('[name="layout-type"]', layoutType);
     this.zoomInput = this.dom.first('[name="zoom"]');
     this.zoomSlider = this.dom.first('[name="zoom-slider"]');
     this.dom.setAttribute(this.zoomInput, 'max', MAX_ZOOM);
@@ -124,6 +145,41 @@ export class ViewOptionsComponent extends ComponentBase {
   async sort(sortType) {
     log.debug('sort change ', sortType);
     await this.setSort(sortType);
+  }
+
+  async changeTheme(theme) {
+    log.debug('theme change ', theme);
+    const classList = dom.getBody().classList;
+    for (const name of [...classList]) {
+      if (name.startsWith('theme-')) {
+        classList.remove(name);
+      }
+    }
+    classList.add(theme);
+    this.settings.set('theme', theme);
+  }
+
+  async setFont(font) {
+    log.debug('font change ', font);
+    const classList = dom.getBody().classList;
+    for (const name of [...classList]) {
+      if (name.startsWith('font-')) {
+        classList.remove(name);
+      }
+    }
+    classList.add(font);
+    this.settings.set('font', font);
+  }
+
+  async setLayoutType(layoutType) {
+    const classList = dom.getBody().classList;
+    for (const name of [...classList]) {
+      if (name.startsWith('layout-')) {
+        classList.remove(name);
+      }
+    }
+    classList.add(layoutType);
+    this.settings.set('layout-type', layoutType);
   }
 
   async setSort(sortType) {

@@ -43,5 +43,33 @@ function toDate(val) {
   }
 }
 
+let seed = 0;
 
-export  { compareIds, compareDates, compareNames, toDate };
+function seedRandom() {
+  let now = Date.now();
+  now = (now % 255) - 128;
+  seed = now;
+}
+seedRandom();
+
+function hash(s) {
+  const hash = s.split('').reduce((a, b) => {
+    a = (a << 5) - a + b.charCodeAt(0);
+    return a & a;
+  }, s);
+  return (hash % 255) + seed;
+}
+function randomizeItems(a, b) {
+  const hashA = hash(a.Name);
+  const hashB = hash(b.Name);
+  return hashA - hashB;
+}
+
+export {
+  compareIds,
+  compareDates,
+  compareNames,
+  toDate,
+  randomizeItems,
+  seedRandom
+};

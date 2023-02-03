@@ -1,0 +1,20 @@
+@use "../common/mixins";
+
+#media-view {
+    user-select: none;
+    height: stretch;
+    width: stretch;
+        --cxbackground-color: hsl(0 100% 100%);
+            --fxoreground-color: hsl(0 50% 50%);
+    background: linear-gradient(142deg, var(--background-color),var(--foreground-color)),
+        linear-gradient(0deg, var(--background-color),
+           var(--foreground-color));
+    background-size: 3px 3px;
+    grid-template-areas:
+        "date-filter date-filter date-filter date-filter date-filter"
+        "media-filter grid-sizer-filter   media-items grid-sizer-details  media-details";
+    grid-template-columns: auto auto 1fr auto auto;
+    grid-template-rows: auto 1fr;
+
+    display: grid;
+}

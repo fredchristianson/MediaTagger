@@ -36,11 +36,11 @@ class InputHandlerBuilder extends EventHandlerBuilder {
     return this;
   }
   onFocusOut(...args) {
-    this.handlerInstance.setOnFocusOut(new HandlerMethod(...args, 'onBlur'));
+    this.handlerInstance.setOnFocusOut(new HandlerMethod(...args, 'onFocusOut'));
     return this;
   }
   onFocusIn(...args) {
-    this.handlerInstance.setOnFocusIn(new HandlerMethod(...args, 'onFocus'));
+    this.handlerInstance.setOnFocusIn(new HandlerMethod(...args, 'onFocusIn'));
     return this;
   }
   onEnter(...args) {
@@ -124,9 +124,9 @@ class InputHandler extends EventListener {
   callHandlers(event) {
     try {
       let method = null;
-      let target = this.getEventTarget(event);
-      let value = this.getValue(target);
-      let response = Continuation.Continue;
+      const target = this.getEventTarget(event);
+      const value = this.getValue(target);
+      const response = Continuation.Continue;
       if (event.type == 'input') {
         method = this.onInput;
       } else if (event.type == 'change') {
@@ -140,9 +140,9 @@ class InputHandler extends EventListener {
       } else if (event.type == 'focus') {
         method = this.onFocus;
       } else if (event.type == 'keydown') {
-        let handler = this.keyHandler[event.which];
+        const handler = this.keyHandler[event.which];
         if (handler) {
-          let key = event.which;
+          const key = event.which;
           response.combine(handler.call(target, event, key, value));
         }
       }

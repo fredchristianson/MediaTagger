@@ -31,15 +31,9 @@ class Navigation {
   }
 
   changeIndex(change, extendSelect = false) {
-    let index = media.getLastFocusIndex();
-
-    let newIndex = Math.max(
-      0,
-      Math.min(index + change, media.getVisibleItems().getLength() - 1)
-    );
-    let focusItem = media.getVisibleItems().getItemAt(newIndex);
+    media.moveFocus(change);
+    const focusItem = media.getFocus();
     if (focusItem != null) {
-      media.setFocus(focusItem);
       if (extendSelect) {
         media.selectToItem(focusItem);
       } else {
@@ -85,7 +79,7 @@ class Navigation {
     this.rotate(180);
   }
   rotate(degrees) {
-    let focus = media.getFocus();
+    const focus = media.getFocus();
     if (focus == null) {
       return;
     }

@@ -128,9 +128,10 @@ class MousePosition {
   }
 
   update(event) {
+    // todo: use the EventHandler target for position
     this.event = event;
     if (event != null) {
-      let target = event.currentTarget;
+      const target = event.currentTarget;
       this.width = target.clientWidth;
       this.height = target.clientHeight;
       this.x = event.offsetX;
@@ -196,7 +197,7 @@ class HandlerMethod {
   call(handler, event, ...args) {
     const continuation = handler.DefaultContinuation;
     try {
-      let target = handler.getEventTarget(event);
+      const target = handler.getEventTarget(event);
       if (this.handlerFunction) {
         if (handler.dataSource) {
           let data = handler.dataSource;

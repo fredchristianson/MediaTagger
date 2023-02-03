@@ -1,4 +1,18 @@
 :root {
-    --container-padding: 2px;
-    --gap-size: 10px;
+    --space: 2px;
+    --line-height: 1.5em;
+    --border-size: 1px;
+}
+
+#main-content {
+    --padding: calc(var(--space) * 2);
+    --margin: calc(var(--space) * 2);
+
+    line-height: var(--line-height);
+    font-size: var(--font-size);
+}
+
+.panel {
+    margin: 0;
+    padding: 0;
 }

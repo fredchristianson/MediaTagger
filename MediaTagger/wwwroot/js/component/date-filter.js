@@ -1,5 +1,5 @@
 import { ComponentBase } from '../../drjs/browser/component.js';
-import {media}  from '../modules/media.js';
+import { media } from '../modules/media.js';
 import { LOG_LEVEL, Logger } from '../../drjs/logger.js';
 const log = Logger.create('DateFilter', LOG_LEVEL.DEBUG);
 import {
@@ -74,19 +74,21 @@ export class DateFilterComponent extends ComponentBase {
     if (date == null || isNaN(date)) {
       return 0;
     }
-    let dist = date - this.startDate;
-    let total = this.endDate - this.startDate;
+    const dist = date - this.startDate;
+    const total = this.endDate - this.startDate;
     return Math.floor(total == 0 ? 0 : (dist * 100) / total);
   }
   createRect(item) {
-    let rect = this.dom.createElementNS('rect', {
+    const rect = this.dom.createElementNS('rect', {
       '@x': `${this.datePercent(item.getDateTaken())}%`
     });
-    //rect.style.left = `${this.datePercent(item.getDateTaken())}%`;
-    //rect.style.top = `0%`;
-    // rect.x = `${this.datePercent(item.getDateTaken())}%`;
-    // rect.y = "0";
-    // rect.width = "2px";
+    /*
+     * rect.style.left = `${this.datePercent(item.getDateTaken())}%`;
+     * rect.style.top = `0%`;
+     *  rect.x = `${this.datePercent(item.getDateTaken())}%`;
+     *  rect.y = "0";
+     *  rect.width = "2px";
+     */
     return rect;
   }
   fillSvg() {
@@ -105,9 +107,9 @@ export class DateFilterComponent extends ComponentBase {
       this.dateString(this.endDate || this.latestDate)
     );
 
-    let buckets = [...media.getVisibleItems()].reduce((bucket, item) => {
-      let date = item.getDateTaken();
-      let pct = this.datePercent(date);
+    const buckets = [...media.getVisibleItems()].reduce((bucket, item) => {
+      const date = item.getDateTaken();
+      const pct = this.datePercent(date);
       if (bucket[pct] == null) {
         bucket[pct] = {
           count: 1,
@@ -133,12 +135,14 @@ export class DateFilterComponent extends ComponentBase {
     }, []);
     this.buckets = buckets;
     this.dom.removeChildren(this.svg);
-    // for (let item of media.getVisibleItems()) {
-    //   this.dom.append(this.svg, this.createRect(item));
-    // }
-    for (let bucket of buckets) {
+    /*
+     * for (let item of media.getVisibleItems()) {
+     *   this.dom.append(this.svg, this.createRect(item));
+     * }
+     */
+    for (const bucket of buckets) {
       if (bucket != null) {
-        let rect = this.dom.createElementNS('rect', {
+        const rect = this.dom.createElementNS('rect', {
           '@x': `${bucket.percent}%`
         });
         rect.style.opacity = Math.max(50, Math.min(bucket.count, 100)) / 100;
@@ -177,10 +181,12 @@ export class DateFilterComponent extends ComponentBase {
   }
   startHover() {
     log.never('start hover');
-    let svgpos = this.dom.getPageOffset(this.svg);
+    const svgpos = this.dom.getPageOffset(this.svg.parentElement);
 
-    //this.popup.style.top = `${svgpos.bottom}px`;
-    // absolute position relative to date div, not body
+    /*
+     * this.popup.style.top = `${svgpos.bottom}px`;
+     *  absolute position relative to date div, not body
+     */
     this.popup.style.top = `${svgpos.height}px`;
   }
 
@@ -190,9 +196,9 @@ export class DateFilterComponent extends ComponentBase {
   }
 
   onMouseMove(pos, target, event, data, handler) {
-    log.never(`move: `, event.clientX);
-    let num = Math.floor(pos.pctX * 100);
-    let bucket = this.buckets[num];
+    log.never('move: ', event.clientX);
+    const num = Math.floor(pos.pctX * 100);
+    const bucket = this.buckets[num];
     log.never('show bucket ', num, bucket ? ' exists ' : 'empty');
     if (bucket && bucket.firstItem) {
       this.dom.first(this.popup, 'img').src =
@@ -213,9 +219,9 @@ export class DateFilterComponent extends ComponentBase {
   onItemsUpdated() {
     let start = null;
     let end = null;
-    let photosPerDay = {};
-    for (let item of media.getAllFiles()) {
-      let taken = item.getDateTaken();
+    const photosPerDay = {};
+    for (const item of media.getAllFiles()) {
+      const taken = item.getDateTaken();
       if (start == null || start > taken) {
         start = taken;
       }

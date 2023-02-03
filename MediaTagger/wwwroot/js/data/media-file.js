@@ -124,7 +124,7 @@ export class MediaFile extends MediaEntity {
     if (group.getPrimaryFile().getId() != this.fileSetPrimaryId) {
       this.setChanged();
     }
-      
+
     this._group = group;
     if (group == null) {
       this.fileSetPrimaryId = null;
@@ -171,6 +171,10 @@ export class MediaFile extends MediaEntity {
     return this.fileSize;
   }
 
+  get Extension() {
+    return this.getExtension();
+  }
+
   getExtension() {
     if (this._extension == null) {
       const dotPos = this.filename.lastIndexOf('.');
@@ -183,12 +187,16 @@ export class MediaFile extends MediaEntity {
     return this._extension;
   }
 
+  isBrowserImg() {
+    return ['.jpg', '.gif', '.png', '.jpeg', '.webp'].includes(this.Extension);
+  }
+
   getResolution() {
     if (
-      isNaN(this.width)
-      || isNaN(this.height)
-      || this.width == 0
-      || this.height == 0
+      isNaN(this.width) ||
+      isNaN(this.height) ||
+      this.width == 0 ||
+      this.height == 0
     ) {
       return 'unknown';
     }

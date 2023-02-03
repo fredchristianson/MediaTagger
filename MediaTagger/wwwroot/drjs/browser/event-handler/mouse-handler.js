@@ -115,9 +115,10 @@ export class MouseHandler extends EventListener {
     this.onMouseMove = handler;
   }
 
+  // eslint-disable-next-line complexity
   callHandlers(event) {
     this.mousePosition.update(event);
-    let target = this.getEventTarget(event);
+    const target = this.getEventTarget(event);
     log.never(`mouse ${target.id}:${target.className} - ${event.type}`);
 
     try {

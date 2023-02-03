@@ -9,7 +9,7 @@ import { Listeners, BuildClickHandler } from '../../drjs/browser/event.js';
 import MediaDetailsComponent from './media-details.js';
 import DateFilterComponent from './date-filter.js';
 import MediaFilterComponent from './media-filter.js';
-import {media}  from '../modules/media.js';
+import { media }  from '../modules/media.js';
 import { GridLayout } from '../modules/layout.js';
 import { RightGridSizer, LeftGridSizer } from '../modules/drag-drop.js';
 const log = Logger.create('MediaComponent', LOG_LEVEL.DEBUG);
@@ -29,11 +29,11 @@ export class MediaComponent extends ComponentBase {
     this.filterSizer = new RightGridSizer();
     this.detailsSizer = new LeftGridSizer();
 
-    let allItems = await media.getVisibleItems();
-    let template = new HtmlTemplate(this.dom.first('#media-item-template'));
+    const allItems = await media.getVisibleItems();
+    const template = new HtmlTemplate(this.dom.first('#media-item-template'));
 
     this.layout = new GridLayout('.items', allItems, (item) => {
-      let htmlItem = template.fill({
+      const htmlItem = template.fill({
         '.media-item': [new DataValue('media-id', item.getId())],
         '.name': item.name,
         '.thumbnail': new ReplaceTemplateValue(

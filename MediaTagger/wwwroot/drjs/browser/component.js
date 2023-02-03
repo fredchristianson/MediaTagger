@@ -12,6 +12,7 @@ class ComponentBase {
   constructor(selector, htmlName) {
     this.name = htmlName;
     this.loaded = false;
+    this.controls = [];
     if (!util.isEmpty(htmlName)) {
       this.load(selector, htmlName);
     }
@@ -30,6 +31,10 @@ class ComponentBase {
   }
   getSelector() {
     return this.selector;
+  }
+
+  addControl(control) {
+    this.controls.push(control);
   }
 
   load(selector, htmlName) {
@@ -74,17 +79,21 @@ class ComponentBase {
   }
 
   get dom() {
- return this.componentDom || dom; 
+    return this.componentDom || dom;
   }
-
 
   detach() {
     log.debug('detaching');
+
+    this.controls = [];
     if (this.parent == null) {
       return;
     }
     const component = this.parent.componentImplementation;
     if (component && component.onDetach) {
+      for (const control of component.controls) {
+        control.detach();
+      }
       component.onDetach();
     } else {
       log.debug('no component attached');

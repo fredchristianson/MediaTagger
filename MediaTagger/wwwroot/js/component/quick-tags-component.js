@@ -1,6 +1,10 @@
 import { ComponentBase } from '../../drjs/browser/component.js';
 import { Settings } from '../modules/settings.js';
-import { media } from '../modules/media.js';
+import {
+  media,
+  FocusChangeEvent,
+  FocusEntityChangeEvent
+} from '../modules/media.js';
 import {
   Listeners,
   BuildClickHandler,
@@ -27,7 +31,6 @@ import {
 import { Assert } from '../../drjs/assert.js';
 import { FocusView } from '../controls/focus-view.js';
 const log = Logger.create('QuickTags', LOG_LEVEL.DEBUG);
-
 
 function stopBrowserClose(event) {
   // Cancel the event as stated by the standard.
@@ -120,7 +123,6 @@ export class QuickTagsComponent extends ComponentBase {
         )
         .build(),
 
-
       BuildClickHandler()
         .setDefaultContinuation(Continuation.StopAll)
         .listenTo(this.dom, '.create-tag')
@@ -135,6 +137,14 @@ export class QuickTagsComponent extends ComponentBase {
         .setData(this, this.getTagForElement)
         .onChecked(this, this.selectTag)
         .onUnchecked(this, this.unselectTag)
+        .build(),
+      BuildCustomEventHandler()
+        .emitter(FocusChangeEvent)
+        .onEvent(this, this.onFocusChange)
+        .build(),
+      BuildCustomEventHandler()
+        .emitter(FocusEntityChangeEvent)
+        .onEvent(this, this.onFocusChange)
         .build()
     );
     media.clearFilter();
@@ -145,16 +155,20 @@ export class QuickTagsComponent extends ComponentBase {
     this.focusIndex = 0;
   }
 
+  onFocusChange() {
+    this.fillTree();
+  }
   async selectRecent(key) {
     log.debug('recent ', key);
     const tag = this.recent[key];
-    if (tag != null) {
-      if (this.currentImage.hasTag(tag)) {
+    const focus = media.getFocus();
+    if (tag != null && focus != null) {
+      if (focus.hasTag(tag)) {
         await this.unselectTag(tag);
       } else {
         await this.selectTag(tag);
       }
-      this.fillImages();
+
       return Continuation.StopAll;
     }
     return null;
@@ -164,13 +178,14 @@ export class QuickTagsComponent extends ComponentBase {
     event.preventDefault();
     log.debug('hotkey ', key);
     const tag = this.getTagForHotkey(key);
-    if (tag != null) {
-      if (this.currentImage.hasTag(tag)) {
+    const focus = media.getFocus();
+    if (tag != null && focus != null) {
+      if (focus.hasTag(tag)) {
         await this.unselectTag(tag);
       } else {
         await this.selectTag(tag);
       }
-      this.fillImages();
+
       return Continuation.StopAll;
     }
     return null;
@@ -193,9 +208,9 @@ export class QuickTagsComponent extends ComponentBase {
   }
   async selectTag(tag) {
     log.debug('select tag ', tag);
-    if (!this.currentImage.hasTag(tag)) {
-      await media.tagAddFile(tag, this.currentImage);
-      this.fillImageTags(this.currentImage);
+    const focus = media.getFocus();
+    if (focus && !focus.hasTag(tag)) {
+      await media.tagAddFile(tag, focus);
       this.resetSearch();
       this.addRecent(tag);
     }
@@ -203,17 +218,17 @@ export class QuickTagsComponent extends ComponentBase {
 
   async unselectTag(tag) {
     log.debug('unselect tag ', tag);
-    if (this.currentImage.hasTag(tag)) {
-      await media.tagRemoveFile(tag, this.currentImage);
+    const focus = media.getFocus();
+    if (focus && focus.hasTag(tag)) {
+      await media.tagRemoveFile(tag, focus);
       this.resetSearch();
-      this.fillImageTags(this.currentImage);
     }
   }
 
- 
   nextImage() {
     // save current tags to quickly tag next image
-    this.previousTags = this.currentImage?.Tags;
+    const focus = media.getFocus();
+    this.previousTags = focus?.Tags;
     media.moveFocus(1);
     return Continuation.PreventDefault;
   }
@@ -222,7 +237,6 @@ export class QuickTagsComponent extends ComponentBase {
     media.moveFocus(-1);
     return Continuation.PreventDefault;
   }
-  
 
   checkTagTree(image) {
     const tree = this.dom.first('.tag-tree');
@@ -240,19 +254,18 @@ export class QuickTagsComponent extends ComponentBase {
   }
 
   async rotateCW() {
-    if (this.currentImage) {
-      this.currentImage.rotate(90);
+    const focus = media.getFocus();
+    if (focus) {
+      focus.rotate(90);
       await media.updateDatabaseItems();
-      this.fillImages();
     }
   }
 
   async rotateCCW() {
-    if (this.currentImage) {
-      this.currentImage.rotate(-90);
+    const focus = media.getFocus();
+    if (focus) {
+      focus.rotate(-90);
       await media.updateDatabaseItems();
-
-      this.fillImages();
     }
   }
 
@@ -269,9 +282,11 @@ export class QuickTagsComponent extends ComponentBase {
     media.addFilter(this.filterItem.bind(this));
     this.createTags();
     this.focusIndex = 0;
-    this.fillImages();
   }
   filterItem(item) {
+    if (!item.isBrowserImg()) {
+      return false;
+    }
     if (!this.untaggedOnly) {
       return true;
     }
@@ -402,7 +417,7 @@ export class QuickTagsComponent extends ComponentBase {
         ],
         '.name': [new HtmlValue(tag.name)],
         '.hotkey .start.key': this.getHotkeyForTag(tag),
-        "input[type='checkbox']": new InputValue(tag.hasFile(this.currentImage))
+        "input[type='checkbox']": new InputValue(tag.hasFile(media.getFocus()))
       });
       this.dom.append(parent, element);
       const childTags = media.tags.getChildren(tag);
@@ -602,8 +617,9 @@ export class QuickTagsComponent extends ComponentBase {
     const node = this.dom.first('.tag.node.selected');
     const tagId = this.dom.getDataWithParent(node, 'id');
     const tag = media.getTagById(tagId);
-    if (tag != null) {
-      if (this.currentImage.hasTag(tag)) {
+    const focus = media.getFocus();
+    if (tag != null && focus) {
+      if (focus.hasTag(tag)) {
         this.unselectTag(tag);
       } else {
         this.selectTag(tag);
@@ -642,17 +658,17 @@ export class QuickTagsComponent extends ComponentBase {
     return Continuation.StopAll;
   }
   copy() {
-    this.copyTags = [].concat(this.currentImage?.Tags);
+    this.copyTags = [].concat(media.getFocus()?.Tags);
   }
   paste() {
-    if (this.copyTags && this.currentImage) {
+    if (this.copyTags && media.getFocus()) {
       this.copyTags.forEach((tag) => {
         this.selectTag(tag);
       });
     }
   }
   repeat() {
-    if (this.previousTags && this.currentImage) {
+    if (this.previousTags && media.getFocus()) {
       this.previousTags.forEach((tag) => {
         this.selectTag(tag);
       });

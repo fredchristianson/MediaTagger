@@ -1,0 +1,23 @@
+:root {
+    --background-color: hsl(220, 50%, 98%);
+    --foreground-color: hsl(0 100% 100%);
+    --border-color: hsl(0 0% 50%);
+    --component-background-color: hsl(216, 45%, 98%);
+    --component-foreground-color: hsl(180, 1%, 43%);
+    --edge-color: hsl(0, 0%, 88%);
+    --highlight-background-color: hsl(204, 100%, 88%);
+    --highlight-foreground-color: hsl(44, 1%, 53%);
+    --control-background-color: hsl(204, 88%, 53%);
+    --control-foreground-color: hsl(0, 100%, 100%);
+}
+
+body {
+    background-color: var(--background-color);
+    color: var(--foreground-color);
+}
+
+.component {
+    background-color: var(--component-background-color);
+    color: var(--component-foreground-color);
+    border: var(--border-size) solid var(--edge-color);
+}

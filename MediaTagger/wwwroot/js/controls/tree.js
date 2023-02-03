@@ -1,4 +1,4 @@
-import dom, { DOM } from '../../drjs/browser/dom.js';
+import dom from '../../drjs/browser/dom.js';
 import HtmlTemplate from '../../drjs/browser/html-template.js';
 import { LOG_LEVEL, Logger } from '../../drjs/logger.js';
 const log = Logger.create('Tree', LOG_LEVEL.DEBUG);
@@ -69,14 +69,14 @@ export class Tree {
 
   async fillTopItems() {
     dom.removeChildren(this.containerElement);
-    let template = new HtmlTemplate(ITEM_TEMPLATE);
-    let items = await this.dataProvider.getTopItems();
+    const template = new HtmlTemplate(ITEM_TEMPLATE);
+    const items = await this.dataProvider.getTopItems();
     this.topItems = items;
     items.forEach((item) => {
-      let element = template.fill({
+      const element = template.fill({
         '.name': item.name
       });
-      let added = dom.append(this.containerElement, element);
+      const added = dom.append(this.containerElement, element);
       //dom.setData(added,"tree-item",item);
       element.treeItem = item;
       item.element = element;
@@ -90,7 +90,7 @@ export class Tree {
     this.listeners.push(
       BuildClickHandler()
         .listenTo(element)
-        .handler(this, this.toggleOpen)
+        .onClick(this, this.toggleOpen)
         .exclude('input')
         .setData(item)
         .build(),
@@ -106,7 +106,7 @@ export class Tree {
 
   checkChange(item, isChecked, checkbox, event, handler) {
     item.isSelected = isChecked;
-    let checks = dom.find(
+    const checks = dom.find(
       dom.find(item.element, '.children'),
       'input[type="checkbox"]'
     );
@@ -122,8 +122,7 @@ export class Tree {
     log.debug('checkbox blur ');
   }
 
-  async toggleOpen(element, ignoreitem) {
-    let item = element.treeItem;
+  async toggleOpen(item, element, _event) {
     log.debug('toggleopen');
     log.debug('treeElement ', element, item);
     if (item == null) {
@@ -135,7 +134,7 @@ export class Tree {
   }
 
   async setupElement(element) {
-    let item = element.treeItem;
+    const item = element.treeItem;
     if (item == null) {
       log.error('element is not a tree item', element);
       return;
@@ -154,19 +153,19 @@ export class Tree {
   }
 
   async getChildren(element, treeItem) {
-    let childContainer = dom.first(element, '.children');
+    const childContainer = dom.first(element, '.children');
     await this.dataProvider.getChildren(treeItem);
-    let template = new HtmlTemplate(ITEM_TEMPLATE);
+    const template = new HtmlTemplate(ITEM_TEMPLATE);
     treeItem.children.forEach((item) => {
-      let child = template.fill({
+      const child = template.fill({
         '.name': item.name
       });
-      let added = dom.append(childContainer, child);
+      const added = dom.append(childContainer, child);
       //dom.setData(added,"tree-item",item);
       added.treeItem = item;
       item.element = added;
       if (item.hasSelectedParent()) {
-        let check = dom.first(added, 'input[type="checkbox"]');
+        const check = dom.first(added, 'input[type="checkbox"]');
         dom.setProperty(check, 'checked', true);
         dom.setProperty(check, 'disabled', true);
       }
@@ -189,7 +188,7 @@ export class Tree {
   }
 
   getSelectedValues() {
-    let items = [];
+    const items = [];
     this.getSelectedItems(this.topItems, items);
     return items.map((item) => {
       return item.value;

@@ -1,9 +1,9 @@
 import { ComponentBase } from '../../drjs/browser/component.js';
 import {
   BuildCustomEventHandler,
-  Listeners,
+  Listeners
 } from '../../drjs/browser/event.js';
-import { media }  from '../modules/media.js';
+import { media } from '../modules/media.js';
 
 export class StatusBarComponent extends ComponentBase {
   constructor(selector, htmlName = 'status-bar') {
@@ -16,10 +16,12 @@ export class StatusBarComponent extends ComponentBase {
     this.selectedItems = this.dom.first('.selectedItems');
     this.listeners.add(
       BuildCustomEventHandler()
+        .setDebounceMSecs(500)
         .emitter(media.getVisibleItems().getUpdatedEvent())
         .onEvent(this, this.onItemsUpdated)
         .build(),
       BuildCustomEventHandler()
+        .setDebounceMSecs(500)
         .emitter(media.getSelectedItems().getUpdatedEvent())
         .onEvent(this, this.onSelectionUpdate)
         .build()

@@ -1,5 +1,11 @@
 import { LOG_LEVEL, Logger } from '../../drjs/logger.js';
-import { compareDates, compareIds, compareNames } from '../data/helpers.js';
+import {
+  compareDates,
+  compareIds,
+  compareNames,
+  randomizeItems,
+  seedRandom
+} from '../data/helpers.js';
 import {
   Tag,
   MediaTag,
@@ -7,7 +13,8 @@ import {
   PropertyValue,
   MediaFile,
   Album,
-  MediaAlbum, EntityChangeEvent
+  MediaAlbum,
+  EntityChangeEvent
 } from '../data/items.js';
 import { runParallel, runSerial } from './task.js';
 import { dataAdder, dataLoader, dataUpdater } from '../data/data-loader.js';
@@ -36,8 +43,12 @@ export const FilterChangeEvent = new EventEmitter(FilterChangeEventType);
 export const FocusChangeEventType = new ObjectEventType('FocusChange');
 export const FocusChangeEvent = new EventEmitter(FocusChangeEventType);
 
-export const FocusEntityChangeEventType = new ObjectEventType('FocusEntityChange');
-export const FocusEntityChangeEvent = new EventEmitter(FocusEntityChangeEventType);
+export const FocusEntityChangeEventType = new ObjectEventType(
+  'FocusEntityChange'
+);
+export const FocusEntityChangeEvent = new EventEmitter(
+  FocusEntityChangeEventType
+);
 
 class Media {
   constructor() {
@@ -96,8 +107,7 @@ class Media {
       BuildCustomEventHandler()
         .emitter(this.visibleItems.getUpdatedEvent())
         .onEvent(this, this.onVisibleItemsChange)
-        .build(),
-      
+        .build()
     );
     this.filterIncludeFunctions = [];
   }
@@ -109,7 +119,7 @@ class Media {
   }
 
   onVisibleItemsChange() {
-    log.always('media onVisibleItemChange');
+    log.never('media onVisibleItemChange');
     const focus = this.visibleItems.getItemAt(this.focusIndex);
     if (focus == null) {
       this.focusIndex = 0;
@@ -217,12 +227,14 @@ class Media {
     log.debug('files ', this.files.getLength());
   }
   async loadItems() {
-    await runSerial(
-      this.loadItemsFromDatabase.bind(this),
-      this.createGroups.bind(this),
-      this.setupTags.bind(this),
-      this.setupAlbums.bind(this)
-    );
+    /*
+     * await runSerial(
+     *   this.loadItemsFromDatabase.bind(this),
+     *   this.createGroups.bind(this),
+     *   this.setupTags.bind(this),
+     *   this.setupAlbums.bind(this)
+     * );
+     */
     runSerial(
       this.loadItemsFromAPI.bind(this),
       this.createGroups.bind(this),
@@ -378,8 +390,7 @@ class Media {
     const lcText = text.toLowerCase();
     const num = Number.parseInt(lcText);
     this.searchFilterItems.setKeepFunction((item) => {
-      const nameMatch = item.getName().toLowerCase()
-        .includes(lcText);
+      const nameMatch = item.getName().toLowerCase().includes(lcText);
       if (nameMatch) {
         return true;
       }
@@ -396,8 +407,8 @@ class Media {
     const endtime = end ? end.getTime() : null;
     this.dateFilterItems.setKeepFunction((item) => {
       return (
-        (starttime == null || item.getDateTaken().getTime() >= starttime)
-        && (endtime == null || item.getDateTaken().getTime() <= endtime)
+        (starttime == null || item.getDateTaken().getTime() >= starttime) &&
+        (endtime == null || item.getDateTaken().getTime() <= endtime)
       );
     });
   }
@@ -407,6 +418,9 @@ class Media {
       this.sortedItems.setSortComparison(compareIds);
     } else if (type == 'date') {
       this.sortedItems.setSortComparison(compareDates);
+    } else if (type == 'random') {
+      seedRandom();
+      this.sortedItems.setSortComparison(randomizeItems);
     } else {
       this.sortedItems.setSortComparison(compareNames);
     }
@@ -519,7 +533,7 @@ class Media {
       return n.trim();
     });
     // remove last element (leaf tag name)
-    const leaf = parts.splice(-1)[0]; 
+    const leaf = parts.splice(-1)[0];
     let walk = null;
     for (const next of parts) {
       let child = this.tags.getChildByName(parentId, next);
@@ -578,7 +592,7 @@ class Media {
       const file = this.files.findById(sel.getId());
       if (file == null) {
         log.error('unknown file ', sel.getId());
-      // eslint-disable-next-line no-await-in-loop
+        // eslint-disable-next-line no-await-in-loop
       } else if (await API.addMediaTag(sel.getId(), tagId)) {
         file.addTag(tag);
         tag.addFile(file);
@@ -596,7 +610,7 @@ class Media {
       const file = this.files.findById(sel.getId());
       if (file == null) {
         log.error('unknown file ', sel.getId());
-      // eslint-disable-next-line no-await-in-loop
+        // eslint-disable-next-line no-await-in-loop
       } else if (await API.removeMediaTag(sel.getId(), tagId)) {
         file.removeTag(tag);
         tag.removeFile(file);
@@ -664,7 +678,7 @@ class Media {
       const file = this.files.findById(sel.getId());
       if (file == null) {
         log.error('unknown file ', sel.getId());
-      // eslint-disable-next-line no-await-in-loop
+        // eslint-disable-next-line no-await-in-loop
       } else if (await API.addMediaAlbum(sel.getId(), albumId)) {
         file.addAlbum(album);
         album.addFile(file);
@@ -682,7 +696,7 @@ class Media {
       const file = this.files.findById(sel.getId());
       if (file == null) {
         log.error('unknown file ', sel.getId());
-      // eslint-disable-next-line no-await-in-loop
+        // eslint-disable-next-line no-await-in-loop
       } else if (await API.removeMediaAlbum(sel.getId(), albumId)) {
         file.removeAlbum(album);
         album.removeFile(file);
@@ -694,5 +708,3 @@ class Media {
 const media = new Media();
 
 export { media };
-
-

@@ -1,0 +1,267 @@
+﻿@use 'common/reset';
+@use 'common/color';
+@use 'common/size';
+@use 'common/font';
+@use 'common/dialog';
+@use 'common/elements';
+@use 'panel/main';
+@use 'panel/date-filter';
+@use 'panel/media';
+@use 'panel/media-file-editor';
+@use 'panel/tag-panel';
+@use 'panel/details-panel';
+@use 'panel/album-filter';
+@use 'panel/property-filter-panel';
+@use 'panel/tag-manager';
+@use 'panel/quick-tags';
+
+.hidden {
+  display: none !important;
+}
+
+
+.invisible {
+  visibility: hidden;
+}
+
+.danger {
+  background-color: #ffaaaa;
+}
+
+.success {
+  background-color: #aaffaa;
+}
+
+button {
+  border-radius: 4px;
+}
+
+button:hover {
+  border-color: #ffff44;
+  outline: 2px #ffff77 outset;
+}
+
+.panel {
+  border: 1px solid #fafafa;
+  background-color: white;
+}
+
+#view-options {
+  height: 4em;
+}
+
+#status-bar {
+  top: unset;
+  height: 4em;
+}
+
+
+
+.name-value {
+  width: 100%;
+
+  >div {
+    margin-top: 1em;
+  }
+
+  label {
+    display: inline-block;
+    width: 12em;
+    margin-right: 2em;
+    vertical-align: top;
+  }
+
+  input,
+  .value {
+    width: calc(100% - 15em);
+    display: inline-block;
+  }
+}
+
+.settings-component {
+  padding: 2rem;
+  background-color: white;
+  color: black;
+  width: 100%;
+  height: 100%;
+}
+
+.tree {
+  display: block;
+  border: 1px solid #dddddd;
+  background-color: #f0f0f0;
+  padding: 2px;
+  max-height: calc(100% - 4rem);
+  height: 20rem;
+  overflow: auto;
+
+  .tree-item {
+    display: grid;
+    width: 100%;
+    grid-template-areas:
+      "open check name"
+      "children children children";
+    grid-template-columns: max-content max-content 1fr;
+    grid-template-rows: max-content;
+
+
+    .open-close {
+      grid-area: open;
+      width: 10px;
+      position: relative;
+    }
+
+    .children {
+      grid-area: children;
+      margin-left: 2rem;
+      border-left: 1px solid #aaa;
+      border-bottom: 0px solid red;
+    }
+
+    input[type='checkbox'] {
+      grid-area: check;
+      width: 16px;
+      height: 16px;
+      background-color: blue;
+      margin-left: 6px;
+    }
+
+    span.name {
+      grid-area: name;
+      white-space: nowrap;
+    }
+
+    >.open-close::after {
+      content: '';
+      position: absolute;
+      left: 4px;
+      right: 4px;
+      bottom: 4px;
+      top: 4px;
+      border: 0px solid #aaa;
+      border-width: 0 2px 2px 0;
+      transform: rotate(-45deg);
+      padding: 3px;
+    }
+
+    &.open {
+
+      >.open-close::after {
+        content: '';
+        position: absolute;
+        left: 4px;
+        right: 4px;
+        bottom: 4px;
+        top: 4px;
+        border: 0px solid #aaa;
+        border-width: 0 2px 2px 0;
+        transform: rotate(45deg);
+        padding: 3px;
+      }
+    }
+
+    &.closed .children {
+      display: none;
+
+    }
+
+
+  }
+}
+
+.folders.selected {
+  display: block;
+  border: 1px solid #dddddd;
+  background-color: #f0f0f0;
+  padding: 2px;
+  height: 5rem;
+  overflow: auto;
+
+  ul {
+    padding-left: 2rem;
+  }
+}
+
+.grid-sizer {
+  z-index: 1000;
+  position: relative;
+  margin: 0;
+  padding: 2px;
+  background-color: transparent;
+  &.left {
+    border-left: 1px solid #777;
+    border-right: 1px solid #777;
+    width: 4px;
+    cursor: col-resize;
+  }
+
+  &.right {
+    border-left: 1px solid #777;
+      border-right: 1px solid #777;
+      width: 4px;
+    cursor: col-resize;
+  }
+
+        &.bottom {
+          border-top: 1px solid #777;
+          border-bottom: 1px solid #777;
+          height: 4px;
+          cursor: row-resize;
+        }
+}
+
+.grid-sizer.dragging {
+  opacity: 0.0;
+}
+
+.toggle-next-sibling {
+  background-color: #dddddd;
+  padding: 8px 2em;
+  position: relative;
+
+  &~* {
+    transform: scaleY(1);
+    transform-origin: top;
+    height: unset;
+    transition: transform 500ms;
+  }
+  &.hide-next-sibling+* {
+      transform: scaleY(0);
+      transform-origin: top;
+      height: 0;
+      transition: transform 500ms,margin 200ms;
+      overflow: hidden;
+      margin:0;
+    }
+
+  border-top: 1px solid black;
+    &::after {
+        content: '';
+        position: absolute;
+        left: 4px;
+        width: 4px;
+        height: 4px;
+        top: 8px;
+        border: 0px solid #aaa;
+        border-width: 0 2px 2px 0;
+        transform: rotate(45deg);
+        padding: 3px;
+      }
+    
+    &.hide-next-sibling::after {
+    
+        position: absolute;
+        left: 4px;
+        width: 4px;
+        height: 4px;
+        top: 8px;
+        border: 0px solid #aaa;
+        border-width: 0 2px 2px 0;
+        transform: rotate(-45deg);
+        padding: 3px;
+      }
+
+      &+div {
+        padding: 4px;
+      }
+  }
