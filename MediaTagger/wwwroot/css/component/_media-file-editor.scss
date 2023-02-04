@@ -1,0 +1,60 @@
+#media-file-editor-container {
+    position: absolute;
+    border: 1px solid var(--border-color);
+    background-color: var(--background-color);
+    color: var(--foreground-color);
+    padding: var(--container-padding);
+    z-index: var(--z-index-popup);
+
+}
+
+#media-file-editor-container button.ungroup {
+    display: none;
+}
+
+#media-file-editor-container button.group {
+    display: none;
+}
+
+#media-file-editor-container.grouped button.ungroup {
+    display: inline-block;
+}
+
+#media-file-editor .selections {
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: row;
+    gap: var(--gap-size);
+}
+
+#media-file-editor .selections>div {
+    flex: 1 0 auto;
+    min-width: 200px;
+    max-width: 700px;
+    background-color: var(--light-background-color);
+}
+
+#media-file-editor .selections>div h1 {
+    padding: 2px;
+    background-color: var(--heading-background-color);
+}
+
+#media-file-editor .match {
+    font-weight: bold;
+    text-decoration: underline;
+}
+
+#media-file-editor label.highlight {
+    outline: 1px dashed #aaa;
+    display: block;
+}
+
+#media-file-editor .key {
+    width: 20px;
+    display: inline-block;
+    text-align: center;
+}
+
+#media-file-editor .key-modifier {
+    font-size: 10px;
+}

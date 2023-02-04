@@ -1,12 +1,15 @@
+:root {
+        --z-index-bottom: 0;
+            --z-index-medium: 100;
+            --z-index-high: 1000;
+        
+            --z-index-splitter: 2000;
+            --z-index-popup: 3000;
+            --z-index-top: 5000;
+}
 
 #main-content {
-    --z-index-bottom: 0;
-    --z-index-medium: 100;
-    --z-index-high: 1000;   
 
-    --z-index-splitter: 2000;
-    --z-index-popup: 3000;
-    --z-index-top: 5000;
     position: absolute;
     left: 0;
     right: 0;

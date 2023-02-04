@@ -6,9 +6,8 @@ import {
   Listeners
 } from '../../drjs/browser/event.js';
 
-import { FilterChangeEvent, media } from '../modules/media.js';
+import { media } from '../modules/media.js';
 import { Settings } from '../modules/settings.js';
-import { ClickHandlerBuilder } from '../../drjs/browser/event-handler/click-handler.js';
 
 const log = Logger.create('PropertyDetails', LOG_LEVEL.DEBUG);
 
@@ -23,7 +22,7 @@ export class PropertyDetailsComponent extends ComponentBase {
 
   async onHtmlInserted(elements) {
     this.settings = await Settings.load('property-details');
-    this.dom.show('.properties', false);
+    this.dom.removeClass('.properties', 'selected');
     this.externalWindow = null;
     this.listeners.add(
       BuildClickHandler()
@@ -43,7 +42,7 @@ export class PropertyDetailsComponent extends ComponentBase {
   }
 
   openExternalWindow() {
-    let focus = media.getFocus();
+    const focus = media.getFocus();
     if (focus == null) {
       return;
     }
@@ -66,13 +65,13 @@ export class PropertyDetailsComponent extends ComponentBase {
     }
   }
   focusChange() {
-    let focus = media.getFocus();
-    this.dom.show('.properties', focus != null);
+    const focus = media.getFocus();
+    this.dom.toggleClass('.properties', 'selected', focus != null);
     if (focus == null) {
       return;
     }
-    let sel = media.getSelectedItems();
-    if (sel.getLength() == 1) {
+    const sel = media.getSelectedItems();
+    if (sel.getLength() <= 1) {
       this.dom.setInnerHTML('h1 .name', focus.getName());
     } else {
       this.dom.show('h1 .name');
@@ -86,7 +85,7 @@ export class PropertyDetailsComponent extends ComponentBase {
       '.resolution',
       `${focus.getWidth()} x ${focus.getHeight()}`
     );
-    this.dom.setInnerHTML('.media-file-id', 'ID: ' + focus.getId());
+    this.dom.setInnerHTML('.media-file-id', `ID: ${focus.getId()}`);
     this.dom.setAttribute(
       '.preview img',
       'src',
@@ -95,29 +94,13 @@ export class PropertyDetailsComponent extends ComponentBase {
     if (this.externalWindow) {
       this.openExternalWindow();
     }
-    this.dom.removeClass('.preview', [`rotate-90`, 'rotate-180', 'rotate-270']);
-    let preview = this.dom.first('.preview');
-    let img = this.dom.first(preview, 'img');
+    this.dom.removeClass('.preview', ['rotate-90', 'rotate-180', 'rotate-270']);
+    const preview = this.dom.first('.preview');
+    const img = this.dom.first(preview, 'img');
 
     img.style.maxHeight = `${preview.offsetHeight}px`;
     img.style.maxWidth = `${preview.offsetWidth}px`;
     img.style.left = '0px';
-
-    // if (focus.RotationDegrees) {
-    //   this.dom.addClass(
-    //     ".preview",
-    //     `rotate-${(focus.RotationDegrees + 360) % 360}`
-    //   );
-    // }
-    // if (focus.RotationDegrees == 90 || focus.RotationDegrees == 270) {
-    //   img.style.maxWidth = `${preview.offsetHeight}px`;
-    //   img.style.maxHeight = `${preview.offsetWidth}px`;
-    //   img.style.left = `${(preview.offsetWidth - img.offsetWidth) / 2}px`;
-    // } else {
-    //   img.style.maxHeight = `${preview.offsetHeight}px`;
-    //   img.style.maxWidth = `${preview.offsetWidth}px`;
-    //   img.style.left = "0px";
-    // }
   }
 }
 

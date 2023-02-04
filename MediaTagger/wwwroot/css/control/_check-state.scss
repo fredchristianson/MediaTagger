@@ -1,6 +1,6 @@
 label.check-state {
     position: relative;
-    width: 16px;
+    width: 1em;
     height: 100%;
     display: inline-block;
     line-height: 16px;
@@ -19,8 +19,8 @@ label.check-state {
         left: 0;
         top: 50%;
         transform: translateY(-50%);
-        width: 16px;
-        height: 16px;
+        width: 1em;
+        height: 1em;
         background-size: cover;
         border-radius: 4px;
     }

@@ -56,8 +56,10 @@
         }
 
         .children {
+            border-left: 1px solid #aaa;
+                border-bottom: 0px solid red;
             grid-area: children;
-            margin-left: var(--margin);
+            margin-left: var(--space);
             max-height: 2000px;
             overflow: hidden;
             transition: transform 400ms, max-height 400ms;
