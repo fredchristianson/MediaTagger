@@ -9,6 +9,8 @@
     --highlight-foreground-color: hsl(44, 1%, 53%);
     --control-background-color: hsl(204, 88%, 53%);
     --control-foreground-color: hsl(0, 100%, 100%);
+    --color-debug-on: hsl(0,100%,50%);
+    --color-debug: var(--color-debug,transparent);
 }
 
 body {

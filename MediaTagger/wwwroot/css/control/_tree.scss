@@ -1,0 +1,101 @@
+.tag-tree {
+    background-color: transparent;
+    margin-bottom: 1em;
+
+    .tag {
+
+        position: relative;
+        display: grid;
+        grid-template-areas:
+            "toggle checkname"
+            ". children";
+        grid-template-columns: auto 1fr;
+        grid-template-rows: auto auto;
+
+        .toggle {
+            grid-area: toggle;
+            height: 100%;
+            width: 1em;
+            display: inline-block;
+            background-color: transparent;
+            z-index: 10;
+            cursor: pointer;
+
+            &+label {
+                margin-left: var(--small-gap);
+                white-space: nowrap;
+                text-overflow: ellipsis;
+
+                input {
+                    margin: 0;
+                }
+            }
+
+            &:hover {
+                outline: var(--color-debug) 1px solid;
+            }
+        }
+
+        .name {
+            margin-left: 0;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+        }
+
+        .add-child {
+            display: none;
+            position: absolute;
+            right: 4px;
+            background-color: var(--control-background-color);
+            color: var(--control-color);
+        }
+
+        &:not(.untagged)>label:hover>.add-child,
+        .add-child:hover {
+            display: inline-block;
+        }
+
+        .children {
+            grid-area: children;
+            margin-left: var(--margin);
+            max-height: 2000px;
+            overflow: hidden;
+            transition: transform 400ms, max-height 400ms;
+            transform-origin: top;
+            transform: scaleY(1);
+        }
+
+        &.has-children::after {
+            content: '▼';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 1em;
+            height: 1.5em;
+            line-height: 1.5em;
+            vertical-align: center;
+            z-index: var(--z-index-top);
+            pointer-events: none;
+            transform: rotate(0deg);
+            transition: transform 200ms;
+            outline: 1px dotted var(--color-debug);
+            transform-origin: center center;
+        }
+
+        &.has-children.closed {
+            .children {
+                max-height: 0px;
+                overflow: hidden;
+                transition: transform 400ms, max-height 400ms;
+                transform: scaleY(0);
+            }
+
+            &::after {
+                transform: rotate(-90deg);
+                transition: transform 200ms;
+            }
+        }
+    }
+
+    ;
+}

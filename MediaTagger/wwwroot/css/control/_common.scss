@@ -19,13 +19,72 @@
 
         .on-hover {
             visibility: hidden;
+            position: absolute;
+            right: var(--margin);
+            button {
+                width: 32px;
+                height: 32px;
+                padding: 0;
+                margin: 0;
+                border-radius: var(--space);
+            }
+        }
+
+        button {
+            border-radius: 0;
+            width: unset;
+            height: unset;
+            background-color: transparent;
+
+            &:hover {
+                background-color: var(--control-background-color);
+            }
+        }
+
+        .filter-op {
+            position: relative;
+            vertical-align: middle;
+            height: 24px;
+            width: 40px;
+            background-color: var(--highlight-background-color);
+            border-radius: var(--margin);
+            border: 0;
+
+            &:hover {
+                background-color: var(--control-background-color);
+            }
+        }
+
+        .filter-op button {
+            display: block;
+            width: 100%;
+            position: absolute;
+            left: 0;
+            top: 0;
+            padding: var(--space);
+            margin: 0;
+            padding: 0;
+            background-size: 80%;
+            background-position: center;
+            background-repeat: no-repeat;
+
+            &.any {
+                background-image: url(../image/any.png);
+            }
+
+            &.all {
+                background-image: url(../image/all.png);
+            }
         }
     }
 
     h1:hover {
+
         .on-hover {
             visibility: visible;
+
         }
+
     }
 
     h2 {
@@ -69,7 +128,6 @@ h2.toggle-next-sibling {
     width: var(--padding);
     height: var(--padding);
     top: calc(var(--padding));
-    transform: rotate(0deg);
 
 }
 

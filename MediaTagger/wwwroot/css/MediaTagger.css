@@ -160,6 +160,8 @@ table {
   --highlight-foreground-color: hsl(44, 1%, 53%);
   --control-background-color: hsl(204, 88%, 53%);
   --control-foreground-color: hsl(0, 100%, 100%);
+  --color-debug-on: hsl(0,100%,50%);
+  --color-debug: var(--color-debug,transparent);
 }
 
 body {
@@ -175,6 +177,7 @@ body {
 
 :root {
   --space: 2px;
+  --small-gap: 2px;
   --line-height: 1.5em;
   --border-size: 1px;
 }
@@ -197,6 +200,7 @@ body {
   --z-index-high: 1000;
   --z-index-splitter: 2000;
   --z-index-popup: 3000;
+  --z-index-top: 5000;
   position: absolute;
   left: 0;
   right: 0;
@@ -342,6 +346,7 @@ body.theme-dark {
   grid-area: media-filter;
   background-color: var(--background-color);
   overflow-y: auto;
+  overflow-x: hidden;
 }
 
 input, select, text-area, button {
@@ -394,6 +399,63 @@ input[type=text] {
 .component h1 .on-hover,
 .component h2 .on-hover {
   visibility: hidden;
+  position: absolute;
+  right: var(--margin);
+}
+.component h1 .on-hover button,
+.component h2 .on-hover button {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  margin: 0;
+  border-radius: var(--space);
+}
+.component h1 button,
+.component h2 button {
+  border-radius: 0;
+  width: unset;
+  height: unset;
+  background-color: transparent;
+}
+.component h1 button:hover,
+.component h2 button:hover {
+  background-color: var(--control-background-color);
+}
+.component h1 .filter-op,
+.component h2 .filter-op {
+  position: relative;
+  vertical-align: middle;
+  height: 24px;
+  width: 40px;
+  background-color: var(--highlight-background-color);
+  border-radius: var(--margin);
+  border: 0;
+}
+.component h1 .filter-op:hover,
+.component h2 .filter-op:hover {
+  background-color: var(--control-background-color);
+}
+.component h1 .filter-op button,
+.component h2 .filter-op button {
+  display: block;
+  width: 100%;
+  position: absolute;
+  left: 0;
+  top: 0;
+  padding: var(--space);
+  margin: 0;
+  padding: 0;
+  background-size: 80%;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+.component h1 .filter-op button.any,
+.component h2 .filter-op button.any {
+  background-image: url(../image/any.png);
+}
+.component h1 .filter-op button.all,
+.component h2 .filter-op button.all {
+  background-image: url(../image/all.png);
 }
 .component h1:hover .on-hover {
   visibility: visible;
@@ -437,7 +499,6 @@ h2.toggle-next-sibling {
   width: var(--padding);
   height: var(--padding);
   top: calc(var(--padding));
-  transform: rotate(0deg);
 }
 
 .toggle-next-sibling.hide-next-sibling::after {
@@ -447,6 +508,141 @@ h2.toggle-next-sibling {
   width: var(--padding);
   height: var(--padding);
   top: calc(var(--padding));
+}
+
+.tag-tree {
+  background-color: transparent;
+  margin-bottom: 1em;
+}
+.tag-tree .tag {
+  position: relative;
+  display: grid;
+  grid-template-areas: "toggle checkname" ". children";
+  grid-template-columns: auto 1fr;
+  grid-template-rows: auto auto;
+}
+.tag-tree .tag .toggle {
+  grid-area: toggle;
+  height: 100%;
+  width: 1em;
+  display: inline-block;
+  background-color: transparent;
+  z-index: 10;
+  cursor: pointer;
+}
+.tag-tree .tag .toggle + label {
+  margin-left: var(--small-gap);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.tag-tree .tag .toggle + label input {
+  margin: 0;
+}
+.tag-tree .tag .toggle:hover {
+  outline: var(--color-debug) 1px solid;
+}
+.tag-tree .tag .name {
+  margin-left: 0;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.tag-tree .tag .add-child {
+  display: none;
+  position: absolute;
+  right: 4px;
+  background-color: var(--control-background-color);
+  color: var(--control-color);
+}
+.tag-tree .tag:not(.untagged) > label:hover > .add-child,
+.tag-tree .tag .add-child:hover {
+  display: inline-block;
+}
+.tag-tree .tag .children {
+  grid-area: children;
+  margin-left: var(--margin);
+  max-height: 2000px;
+  overflow: hidden;
+  transition: transform 400ms, max-height 400ms;
+  transform-origin: top;
+  transform: scaleY(1);
+}
+.tag-tree .tag.has-children::after {
+  content: "▼";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1em;
+  height: 1.5em;
+  line-height: 1.5em;
+  vertical-align: center;
+  z-index: var(--z-index-top);
+  pointer-events: none;
+  transform: rotate(0deg);
+  transition: transform 200ms;
+  outline: 1px dotted var(--color-debug);
+  transform-origin: center center;
+}
+.tag-tree .tag.has-children.closed .children {
+  max-height: 0px;
+  overflow: hidden;
+  transition: transform 400ms, max-height 400ms;
+  transform: scaleY(0);
+}
+.tag-tree .tag.has-children.closed::after {
+  transform: rotate(-90deg);
+  transition: transform 200ms;
+}
+
+label.check-state {
+  position: relative;
+  width: 16px;
+  height: 100%;
+  display: inline-block;
+  line-height: 16px;
+  vertical-align: middle;
+}
+label.check-state input[type=checkbox] {
+  opacity: 0;
+}
+label.check-state::after {
+  content: "";
+  background-color: #777;
+  border: 1px solid #444;
+  z-index: 10;
+  display: inline-block;
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 16px;
+  background-size: cover;
+  border-radius: 4px;
+}
+
+label.check-state[data-state=checked]::after {
+  background-color: #27401d;
+  background-image: url(../image/check.png);
+}
+
+label.check-state[data-state=checked-and-children]::after {
+  background-color: #27401d;
+  background-image: url(../image/child-check.png);
+}
+
+label.check-state[data-state=checked-no-children]::after {
+  background-color: #27401d;
+  background-image: url(../image/child-uncheck.png);
+}
+
+label.check-state[data-state=child-only-check]::after {
+  background-color: #27401d;
+  background-image: url(../image/child-only-check.png);
+}
+
+label.check-state[data-state=unchecked]::after {
+  background-color: #eee;
+  background-image: url(../image/nocheck.png);
 }
 
 #content-view {

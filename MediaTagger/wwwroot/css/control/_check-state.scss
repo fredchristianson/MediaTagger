@@ -1,0 +1,75 @@
+label.check-state {
+    position: relative;
+    width: 16px;
+    height: 100%;
+    display: inline-block;
+    line-height: 16px;
+    vertical-align: middle;
+    input[type='checkbox'] {
+        opacity: 0;
+    }
+
+    &::after {
+        content: '';
+        background-color: #777;
+        border: 1px solid #444;
+        z-index: 10;
+        display: inline-block;
+        position: absolute;
+        left: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 16px;
+        height: 16px;
+        background-size: cover;
+        border-radius: 4px;
+    }
+}
+
+label.check-state[data-state='checked'] {
+
+    &::after {
+        background-color: #27401d;
+        background-image: url(../image/check.png);
+    }
+}
+
+
+label.check-state[data-state='checked-and-children'] {
+
+    &::after {
+        background-color: #27401d;
+        background-image: url(../image/child-check.png);
+    }
+}
+
+
+label.check-state[data-state='checked-no-children'] {
+
+    &::after {
+        background-color: #27401d;
+        background-image: url(../image/child-uncheck.png);
+
+    }
+}
+
+
+label.check-state[data-state='child-only-check'] {
+
+    &::after {
+        background-color: #27401d;
+        background-image: url(../image/child-only-check.png);
+
+    }
+}
+
+
+
+label.check-state[data-state='unchecked'] {
+
+    &::after {
+        background-color: #eee;
+        background-image: url(../image/nocheck.png);
+
+    }
+}
