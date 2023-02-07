@@ -84,14 +84,15 @@ export class GridSizer extends Draggable {
 export class LeftGridSizer extends GridSizer {
   constructor(sizer, target) {
     super(sizer, target);
+    this.parent = dom.getParent(target);
   }
   onOver(target, event) {
     log.debug('dragOver');
-    let offset = dom.getPageOffset(dom.getParent(this.target));
+    const offset = dom.getPageOffset(this.parent);
 
-    let pwidth = dom.getWidth(target);
-    let dragX = event.clientX;
-    let width = pwidth - (dragX - offset.left);
+    const pwidth = dom.getWidth(target);
+    const dragX = event.clientX;
+    const width = pwidth - (dragX - offset.left);
     dom.setWidth(this.target, width);
   }
 }
@@ -101,9 +102,9 @@ export class RightGridSizer extends GridSizer {
   }
   onOver(target, event) {
     log.debug('dragOver');
-    let offset = dom.getPageOffset(dom.getParent(this.target));
-    let pwidth = dom.getWidth(target);
-    let dragX = event.clientX;
+    const offset = dom.getPageOffset(dom.getParent(this.target));
+    const pwidth = dom.getWidth(target);
+    const dragX = event.clientX;
     dom.setWidth(this.target, dragX - offset.left);
   }
 }
@@ -114,11 +115,11 @@ export class BottomGridSizer extends GridSizer {
   onOver(target, event) {
     event.preventDefault();
     log.debug('dragOver');
-    let offset = dom.getPageOffset(dom.getParent(this.target));
+    const offset = dom.getPageOffset(dom.getParent(this.target));
 
-    let pwidth = dom.getHeight(target);
-    let dragY = event.clientY;
-    let height = dragY;
+    const pwidth = dom.getHeight(target);
+    const dragY = event.clientY;
+    const height = dragY;
     dom.setHeight(this.target, dragY - offset.top);
   }
 }

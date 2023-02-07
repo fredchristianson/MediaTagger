@@ -5,6 +5,7 @@ import {
   FocusChangeEvent,
   FocusEntityChangeEvent
 } from '../modules/media.js';
+import { RightGridSizer } from '../modules/drag-drop.js';
 import {
   Listeners,
   BuildClickHandler,
@@ -70,6 +71,11 @@ export class QuickTagsComponent extends ComponentBase {
     this.dom.check('[name="untagged"]');
     this.untaggedOnly = true;
     this.recent = [];
+
+    this.sizerSizer = new RightGridSizer(
+      '.grid-sizer.quick-tags-sizer',
+      '#quick-tags .media'
+    );
 
     this.listeners.add(
       BuildCheckboxHandler()

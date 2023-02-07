@@ -4,8 +4,7 @@
     user-select: none;
     height: stretch;
     width: stretch;
-        --cxbackground-color: hsl(0 100% 100%);
-            --fxoreground-color: hsl(0 50% 50%);
+
     background: linear-gradient(142deg, var(--background-color),var(--foreground-color)),
         linear-gradient(0deg, var(--background-color),
            var(--foreground-color));
