@@ -52,10 +52,10 @@ export class PropertyDetailsComponent extends ComponentBase {
         this.externalWindow = null;
         return;
       }
-      this.externalWindow.location = `/image/${focus.Id}?d=${Date.now()}`;
+      this.externalWindow.location = focus.getImageUrl();
     } else {
       this.externalWindow = window.open(
-        `/image/${focus.Id}`,
+        focus.getImageUrl(),
         'media-tagger-preview',
         'toolbar=false,resizeable=yes'
       );
@@ -86,11 +86,7 @@ export class PropertyDetailsComponent extends ComponentBase {
       `${focus.getWidth()} x ${focus.getHeight()}`
     );
     this.dom.setInnerHTML('.media-file-id', `ID: ${focus.getId()}`);
-    this.dom.setAttribute(
-      '.preview img',
-      'src',
-      `/image/${focus.getId()}?d=${Date.now()}`
-    );
+    this.dom.setAttribute('.preview img', 'src', focus.getImageUrl());
     if (this.externalWindow) {
       this.openExternalWindow();
     }

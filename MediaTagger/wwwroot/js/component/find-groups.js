@@ -1,5 +1,3 @@
-import Util from '../../drjs/util.js';
-
 import { ComponentBase } from '../../drjs/browser/component.js';
 import {
   HtmlTemplate,
@@ -10,7 +8,7 @@ import {
   BuildCustomEventHandler,
   Listeners
 } from '../../drjs/browser/event.js';
-import {media}  from '../modules/media.js';
+import { media } from '../modules/media.js';
 import { ObservableArray } from '../modules/collections.js';
 import { BackgroundTask } from '../../drjs/browser/task.js';
 import dom from '../../drjs/browser/dom.js';
@@ -71,7 +69,7 @@ export class FindGroupsComponent extends ComponentBase {
           test
         };
       } else if (test.getFileSize() == fsize) {
-        let ignorematch = {
+        const ignorematch = {
           reason: `size match ${test.getFileSize()}==${fsize}`,
           file,
           test
@@ -87,16 +85,10 @@ export class FindGroupsComponent extends ComponentBase {
       }
     }
     if (match != null) {
-      let element = this.matchTemplate.fill({
+      const element = this.matchTemplate.fill({
         '.reason': match.reason,
-        '.img1': new AttributeValue(
-          'src',
-          `/thumbnail/${match.file.getId()}?v=7`
-        ),
-        '.img2': new AttributeValue(
-          'src',
-          `/thumbnail/${match.test.getId()}?v=7`
-        )
+        '.img1': new AttributeValue('src', `/thumbnail/${match.file.getId()}`),
+        '.img2': new AttributeValue('src', `/thumbnail/${match.test.getId()}`)
       });
       dom.append(this.matches, element);
     }

@@ -4,6 +4,8 @@ import { toDate } from './helpers.js';
 import { Util } from '../../drjs/util.js';
 const log = Logger.create('MediaFile', LOG_LEVEL.DEBUG);
 
+const CACHE_VERSION = 4;
+
 export class MediaFile extends MediaEntity {
   constructor(data = {}) {
     super(data);
@@ -151,13 +153,13 @@ export class MediaFile extends MediaEntity {
    * }
    */
   getThumbnailUrl() {
-    return `/thumbnail/${this.getId()}?v=1.0`;
+    return `/thumbnail/${this.getId()}`;
   }
   getImageUrl() {
-    return `/image/${this.getId()}?v=1.0`;
+    return `/image/${this.getId()}`;
   }
   getImageReloadUrl() {
-    return `/image/${this.getId()}?v=1.0&time=${Date.now()}`;
+    return `/image/${this.getId()}`;
   }
 
   getName() {

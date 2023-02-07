@@ -163,6 +163,7 @@ table {
   --color-debug-on: hsl(0,100%,50%);
   --color-debug: var(--color-debug,transparent);
   --accent-color-foreground: hsl(45, 97%, 50%);
+  --tree-control-color: var(--border-color);
 }
 
 body {
@@ -211,7 +212,7 @@ body {
   top: 0;
   height: -webkit-fill-available;
   height: -moz-available;
-  height: stretch;
+  height: 100%;
   overflow: hidden;
   display: grid;
   grid-template-areas: "view-options" "content" "status";
@@ -305,13 +306,34 @@ body.theme-dark {
   --line-height: 1.75em;
 }
 
+body.theme-happy {
+  --Brand: #AE1365;
+  --Darkest: #2E2E2E;
+  --Dark: #4C4646;
+  --Mid: #9ED4F8;
+  --Light: #D3EEF9;
+  --Lightest: #F0F9FF;
+  --foreground-color: var(--Dark);
+  --background-color: var(--Light);
+  --component-foreground-color: var(--Mid);
+  --component-background-color: var(--Darkest);
+  --border-color: var(--Mid);
+  --edge-color: var(--Mid);
+  --highlight-background-color: var(--Lightest);
+  --highlight-foreground-color: var(--Darkest);
+  --control-background-color: var(--Mid);
+  --control-foreground-color: var(--Dark);
+  --accent-color-foreground: var(--Brand);
+  --tree-control-color: var(--Brand);
+}
+
 .media-items {
   height: -webkit-fill-available;
   height: -moz-available;
-  height: stretch;
+  height: 100%;
   width: -webkit-fill-available;
   width: -moz-available;
-  width: stretch;
+  width: 100%;
   grid-area: media-items;
   background-color: var(--background-color);
   color: var(--foreground-color);
@@ -460,6 +482,12 @@ body.theme-dark {
   overflow-x: hidden;
 }
 
+.album-filter h1 button {
+  border-radius: var(--space);
+  background-color: var(--accent-color-foreground);
+  color: var(--control-foreground-color);
+}
+
 input, select, text-area, button {
   font-family: var(--font);
   padding: var(--padding);
@@ -524,14 +552,16 @@ input[type=text] {
 }
 .component h1 button,
 .component h2 button {
-  border-radius: 0;
+  border-radius: var(--space);
   width: unset;
   height: unset;
-  background-color: transparent;
+  color: var(--control-foreground-color);
+  background-color: var(--control-background-color);
 }
 .component h1 button:hover,
 .component h2 button:hover {
-  background-color: var(--control-background-color);
+  background-color: var(--control-foreground-color);
+  color: var(--control-background-color);
 }
 .component h1 .filter-op,
 .component h2 .filter-op {
@@ -539,13 +569,8 @@ input[type=text] {
   vertical-align: middle;
   height: 24px;
   width: 40px;
-  background-color: var(--highlight-background-color);
   border-radius: var(--margin);
   border: 0;
-}
-.component h1 .filter-op:hover,
-.component h2 .filter-op:hover {
-  background-color: var(--control-background-color);
 }
 .component h1 .filter-op button,
 .component h2 .filter-op button {
@@ -622,6 +647,24 @@ h2.toggle-next-sibling {
   top: calc(var(--padding));
 }
 
+li {
+  overflow: hidden;
+}
+
+a, a:visited {
+  color: var(--accent-color-foreground);
+  background-color: var(--component-background-color);
+  text-decoration: none;
+  margin-right: var(--space);
+  padding: var(--space);
+}
+
+a:hover {
+  border-radius: var(--space);
+  background-color: var(--accent-color-foreground);
+  color: var(--component-background-color);
+}
+
 .tag-tree {
   background-color: transparent;
   margin-bottom: 1em;
@@ -663,15 +706,14 @@ h2.toggle-next-sibling {
   position: absolute;
   right: 4px;
   background-color: var(--control-background-color);
-  color: var(--control-color);
+  color: var(--tree-control-color);
 }
 .tag-tree .tag:not(.untagged) > label:hover > .add-child,
 .tag-tree .tag .add-child:hover {
   display: inline-block;
 }
 .tag-tree .tag .children {
-  border-left: 1px solid #aaa;
-  border-bottom: 0px solid red;
+  border-left: 1px solid var(--tree-control-color);
   grid-area: children;
   margin-left: var(--space);
   max-height: 2000px;
@@ -735,22 +777,22 @@ label.check-state::after {
 }
 
 label.check-state[data-state=checked]::after {
-  background-color: #27401d;
+  background-color: var(--tree-control-color);
   background-image: url(../image/check.png);
 }
 
 label.check-state[data-state=checked-and-children]::after {
-  background-color: #27401d;
+  background-color: var(--tree-control-color);
   background-image: url(../image/child-check.png);
 }
 
 label.check-state[data-state=checked-no-children]::after {
-  background-color: #27401d;
+  background-color: var(--tree-control-color);
   background-image: url(../image/child-uncheck.png);
 }
 
 label.check-state[data-state=child-only-check]::after {
-  background-color: #27401d;
+  background-color: var(--tree-control-color);
   background-image: url(../image/child-only-check.png);
 }
 
@@ -771,10 +813,10 @@ label.check-state[data-state=unchecked]::after {
           user-select: none;
   height: -webkit-fill-available;
   height: -moz-available;
-  height: stretch;
+  height: 100%;
   width: -webkit-fill-available;
   width: -moz-available;
-  width: stretch;
+  width: 100%;
   --cxbackground-color: hsl(0 100% 100%);
   --fxoreground-color: hsl(0 50% 50%);
   background: linear-gradient(142deg, var(--background-color), var(--foreground-color)), linear-gradient(0deg, var(--background-color), var(--foreground-color));
@@ -1398,6 +1440,92 @@ label.check-state[data-state=unchecked]::after {
 
 #quick-tags .tag > .self span.name div {
   display: inline-block;
+}
+
+.settings-component {
+  padding: 2rem;
+  background-color: white;
+  color: black;
+  width: 100%;
+  height: 100%;
+}
+.settings-component .tree {
+  display: block;
+  border: 1px solid #dddddd;
+  background-color: #f0f0f0;
+  padding: 2px;
+  max-height: calc(100% - 4rem);
+  height: 20rem;
+  overflow: auto;
+}
+.settings-component .tree .tree-item {
+  display: grid;
+  width: 100%;
+  grid-template-areas: "open check name" "children children children";
+  grid-template-columns: -webkit-max-content -webkit-max-content 1fr;
+  grid-template-columns: max-content max-content 1fr;
+  grid-template-rows: -webkit-max-content;
+  grid-template-rows: max-content;
+}
+.settings-component .tree .tree-item .open-close {
+  grid-area: open;
+  width: 10px;
+  position: relative;
+}
+.settings-component .tree .tree-item .children {
+  grid-area: children;
+  margin-left: 2rem;
+  border-left: 1px solid #aaa;
+  border-bottom: 0px solid red;
+}
+.settings-component .tree .tree-item input[type=checkbox] {
+  grid-area: check;
+  width: 16px;
+  height: 16px;
+  background-color: blue;
+  margin-left: 6px;
+}
+.settings-component .tree .tree-item span.name {
+  grid-area: name;
+  white-space: nowrap;
+}
+.settings-component .tree .tree-item > .open-close::after {
+  content: "";
+  position: absolute;
+  left: 4px;
+  right: 4px;
+  bottom: 4px;
+  top: 4px;
+  border: 0px solid #aaa;
+  border-width: 0 2px 2px 0;
+  transform: rotate(-45deg);
+  padding: 3px;
+}
+.settings-component .tree .tree-item.open > .open-close::after {
+  content: "";
+  position: absolute;
+  left: 4px;
+  right: 4px;
+  bottom: 4px;
+  top: 4px;
+  border: 0px solid #aaa;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+  padding: 3px;
+}
+.settings-component .tree .tree-item.closed .children {
+  display: none;
+}
+.settings-component .folders.selected {
+  display: block;
+  border: 1px solid #dddddd;
+  background-color: #f0f0f0;
+  padding: 2px;
+  height: 5rem;
+  overflow: auto;
+}
+.settings-component .folders.selected ul {
+  padding-left: 2rem;
 }
 
 /*# sourceMappingURL=MediaTagger.css.map *//*# sourceMappingURL=MediaTagger.css.map */

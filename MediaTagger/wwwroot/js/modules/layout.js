@@ -105,8 +105,8 @@ export class Layout {
     log.debug('create Layout');
     this.containerSelector = containerSelector;
     this.container = dom.first(this.containerSelector);
-    this.layoutScroll = dom.first(this.container, '.view'); 
-    this.layoutView = dom.first(this.container, '.view'); 
+    this.layoutScroll = dom.first(this.container, '.view');
+    this.layoutView = dom.first(this.container, '.view');
     this.htmlCreator = htmlCreator;
     this.list = list;
 
@@ -121,9 +121,7 @@ export class Layout {
         .emitter(ZoomEvent)
         .onEvent(this, this.onZoomChange)
         .build(),
-      BuildScrollHandler().listenTo(this.layoutScroll)
-.onScroll(this)
-.build(),
+      BuildScrollHandler().listenTo(this.layoutScroll).onScroll(this).build(),
 
       BuildCustomEventHandler()
         .emitter(this.list.getUpdatedEvent())
@@ -188,7 +186,7 @@ export class Layout {
     let firstVisibleRow = Math.floor(scrollPercent * totalRows);
     const lastVisibleRow = firstVisibleRow + this.layoutDetails.VisibleRows - 1;
 
-    if (itemRow <= firstVisibleRow) {
+    if (itemRow < firstVisibleRow) {
       firstVisibleRow = itemRow;
       this.scrollToRow(firstVisibleRow);
     } else if (itemRow > lastVisibleRow) {
@@ -221,13 +219,13 @@ export class Layout {
 
   onScroll(_target, _event) {
     const pos = this.layoutScroll.scrollTop;
-    const totalRows
-      = Math.floor(media.getVisibleItems().Length / this.layoutDetails.Columns)
-      + 1;
+    const totalRows =
+      Math.floor(media.getVisibleItems().Length / this.layoutDetails.Columns) +
+      1;
 
     const rowPercent = pos / this.layoutScroll.scrollHeight;
     // add .0005 for rounding error in percent
-    const row = Math.floor(totalRows * (rowPercent + 0.0005)); 
+    const row = Math.floor(totalRows * (rowPercent + 0.0005));
     this.firstVisibleIndex = row * this.layoutDetails.Columns;
     this.drawItems(this.firstVisibleIndex, this.layoutDetails, this.layoutView);
   }
@@ -250,7 +248,8 @@ export class Layout {
     this.layoutDetails = this.createLayoutDetails();
 
     const totalRows = this.list.Length / this.layoutDetails.Columns + 1;
-    const totalHeight = totalRows * this.layoutDetails.RowHeight;
+    const totalHeight =
+      (totalRows + 1) * (this.layoutDetails.RowHeight + this.layoutDetails.Gap);
     //this.layoutScroll.style.height = px(totalHeight);
     this.setScrollHeight(totalHeight);
     const item = media.getFocus();
@@ -312,7 +311,8 @@ export class GridLayout extends Layout {
     let itemIndex = firstItemIndex;
     let html = this.getItemHtml(itemIndex);
     const layoutChildren = [];
-    left = gap / 2;
+    left = gap;
+    top = view.scrollTop + gap;
     while (visible && html != null) {
       //fragment.appendChild(html);
       layoutChildren.push(html);
@@ -361,7 +361,8 @@ export class GridLayout extends Layout {
         fragment.appendChild(child);
       }
       const bottom = dom.first(view, '.bottom');
-      view.replaceChildren(fragment);
+      //view.replaceChildren(fragment);
+      view.replaceChildren(...layoutChildren);
       dom.append(view, bottom);
 
       /*

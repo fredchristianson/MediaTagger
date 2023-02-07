@@ -5,3 +5,13 @@
     overflow-y: auto;
     overflow-x: hidden;
 }
+
+.album-filter {
+    h1 {
+        button {
+            border-radius: var(--space);
+            background-color: var(--accent-color-foreground);
+            color: var(--control-foreground-color);
+        }
+    }
+}

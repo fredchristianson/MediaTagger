@@ -47,7 +47,7 @@
             position: absolute;
             right: 4px;
             background-color: var(--control-background-color);
-            color: var(--control-color);
+            color: var(--tree-control-color);
         }
 
         &:not(.untagged)>label:hover>.add-child,
@@ -56,8 +56,7 @@
         }
 
         .children {
-            border-left: 1px solid #aaa;
-                border-bottom: 0px solid red;
+            border-left: 1px solid var(--tree-control-color);
             grid-area: children;
             margin-left: var(--space);
             max-height: 2000px;

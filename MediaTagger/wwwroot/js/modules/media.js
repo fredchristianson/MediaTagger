@@ -35,7 +35,7 @@ import {
 } from '../../drjs/browser/event.js';
 import FileGroup from '../data/file-group.js';
 
-const log = Logger.create('Media', LOG_LEVEL.WARN);
+const log = Logger.create('Media', LOG_LEVEL.DEBUG);
 
 export const FilterChangeEventType = new ObjectEventType('FilterChange');
 export const FilterChangeEvent = new EventEmitter(FilterChangeEventType);
@@ -702,6 +702,16 @@ class Media {
         album.removeFile(file);
       }
     }
+  }
+
+  async rotateCCW() {
+    log.debug('rotateCCW');
+  }
+  async rotateCW() {
+    log.debug('rotateCW');
+  }
+  async rotate180() {
+    log.debug('rotate180');
   }
 }
 

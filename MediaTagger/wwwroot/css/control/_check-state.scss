@@ -29,7 +29,7 @@ label.check-state {
 label.check-state[data-state='checked'] {
 
     &::after {
-        background-color: #27401d;
+        background-color: var(--tree-control-color);
         background-image: url(../image/check.png);
     }
 }
@@ -38,7 +38,7 @@ label.check-state[data-state='checked'] {
 label.check-state[data-state='checked-and-children'] {
 
     &::after {
-        background-color: #27401d;
+        background-color: var(--tree-control-color);
         background-image: url(../image/child-check.png);
     }
 }
@@ -47,7 +47,7 @@ label.check-state[data-state='checked-and-children'] {
 label.check-state[data-state='checked-no-children'] {
 
     &::after {
-        background-color: #27401d;
+        background-color: var(--tree-control-color);
         background-image: url(../image/child-uncheck.png);
 
     }
@@ -57,7 +57,7 @@ label.check-state[data-state='checked-no-children'] {
 label.check-state[data-state='child-only-check'] {
 
     &::after {
-        background-color: #27401d;
+        background-color: var(--tree-control-color);
         background-image: url(../image/child-only-check.png);
 
     }

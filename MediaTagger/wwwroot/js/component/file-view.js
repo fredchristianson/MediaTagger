@@ -17,7 +17,7 @@ import {
 import MediaDetailsComponent from './media-details.js';
 import DateFilterComponent from './date-filter.js';
 import MediaFilterComponent from './media-filter.js';
-import  {
+import {
   FilterChangeEvent,
   FocusChangeEvent,
   media
@@ -25,7 +25,6 @@ import  {
 import { Navigation } from '../modules/navigation.js';
 import { GridLayout } from '../modules/layout.js';
 import { RightGridSizer, LeftGridSizer } from '../modules/drag-drop.js';
-
 
 import { ZoomEvent } from '../component/view-options.js';
 
@@ -96,9 +95,9 @@ export class FileViewComponent extends ComponentBase {
         .onMiddleClick(this, this.middleClick)
         .setData((element) => {
           return {
-            item: media.getAllFiles().findById(
-              this.dom.getData(element, 'file-id')
-            )
+            item: media
+              .getAllFiles()
+              .findById(this.dom.getData(element, 'file-id'))
           };
         })
         .build(),
@@ -117,8 +116,7 @@ export class FileViewComponent extends ComponentBase {
         .selector('button.ungroup')
         .onClick(this, this.ungroupItem)
         .build(),
-      BuildMouseHandler().onMouseDown(this, this.checkCancel)
-.build(),
+      BuildMouseHandler().onMouseDown(this, this.checkCancel).build(),
       BuildKeyHandler()
         .filterAllow(this.filterKeyEvent.bind(this))
         .onKeyDown(this, this.onKeypress)
@@ -150,8 +148,8 @@ export class FileViewComponent extends ComponentBase {
 
   checkCancel(position, target, event) {
     if (
-      this.isEditorVisible
-      && !this.dom.contains(this.editorElement, event.target)
+      this.isEditorVisible &&
+      !this.dom.contains(this.editorElement, event.target)
     ) {
       this.dom.hide(this.editorElement);
       this.isEditorVisible = false;
@@ -173,7 +171,7 @@ export class FileViewComponent extends ComponentBase {
       '.media-item': [new DataValue('file-id', item.getId())],
       '.thumbnail': [
         new DataValue('file-id', item.getId()),
-        new AttributeValue('src', `/thumbnail/${item.getId()}?v=7`)
+        new AttributeValue('src', `/thumbnail/${item.getId()}`)
       ]
     });
     return htmlItem;

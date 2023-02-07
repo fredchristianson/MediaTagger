@@ -31,14 +31,15 @@
         }
 
         button {
-            border-radius: 0;
+            border-radius: var(--space);
             width: unset;
             height: unset;
-            background-color: transparent;
-
+            //background-color: transparent;
+            color: var(--control-foreground-color);
+            background-color: var(--control-background-color);
             &:hover {
-                background-color: var(--control-background-color);
-            }
+                background-color: var(--control-foreground-color);
+                color: var(--control-background-color);            }
         }
 
         .filter-op {
@@ -46,13 +47,10 @@
             vertical-align: middle;
             height: 24px;
             width: 40px;
-            background-color: var(--highlight-background-color);
             border-radius: var(--margin);
             border: 0;
 
-            &:hover {
-                background-color: var(--control-background-color);
-            }
+            
         }
 
         .filter-op button {
@@ -139,4 +137,22 @@ h2.toggle-next-sibling {
     height: var(--padding);
     top: calc(var(--padding));
 
+}
+
+li {
+    overflow: hidden;
+}
+
+a, a:visited {
+    color: var(--accent-color-foreground);
+    background-color: var(--component-background-color);
+    text-decoration: none;
+    margin-right: var(--space);
+    padding: var(--space)
+}
+
+a:hover {
+    border-radius: var(--space);
+    background-color: var(--accent-color-foreground);
+    color: var(--component-background-color);
 }

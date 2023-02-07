@@ -22,9 +22,9 @@ class Navigation {
         .onKey(Key.Home, this, this.moveStart)
         .onKey(Key.End, this, this.moveEnd)
         .onKey(Key.Escape, this, this.clearSelection)
-        .onKey('[', this, this.rotate270)
-        .onKey(']', this, this.rotate90)
-        .onKey('\\', this, this.rotate180)
+        .onKey('[', media, media.rotateCCW)
+        .onKey(']', media, media.rotateCW)
+        .onKey('\\', media, media.rotate180)
         .onKeyDown(this, this.onKeyDown) // to log keypresses
         .build()
     );
@@ -67,24 +67,6 @@ class Navigation {
       media.getVisibleItems().getLength() - media.getFocusIndex(),
       event.hasShift
     );
-  }
-
-  rotate270() {
-    this.rotate(-90);
-  }
-  rotate90() {
-    this.rotate(90);
-  }
-  rotate180() {
-    this.rotate(180);
-  }
-  rotate(degrees) {
-    const focus = media.getFocus();
-    if (focus == null) {
-      return;
-    }
-    focus.rotate(degrees);
-    media.updateFocus();
   }
 
   detach() {

@@ -1,0 +1,23 @@
+body.theme-happy {
+
+    --Brand: #AE1365;
+    --Darkest: #2E2E2E;
+    --Dark: #4C4646;
+    --Mid: #9ED4F8;
+    --Light: #D3EEF9;
+    --Lightest: #F0F9FF;
+
+    --foreground-color: var(--Dark);
+    --background-color: var(--Light);
+    --component-foreground-color: var(--Mid);
+    --component-background-color: var(--Darkest);
+
+    --border-color: var(--Mid);
+    --edge-color: var(--Mid);
+    --highlight-background-color: var(--Lightest);
+    --highlight-foreground-color: var(--Darkest);
+    --control-background-color: var(--Mid);
+    --control-foreground-color: var(--Dark);
+    --accent-color-foreground: var(--Brand);
+    --tree-control-color: var(--Brand);
+}
