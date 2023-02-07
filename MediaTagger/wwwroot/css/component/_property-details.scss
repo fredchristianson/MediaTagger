@@ -1,0 +1,52 @@
+.panel.property.details {
+    background-color: var(--component-background-color);
+    color: var(--component-foreground-color);
+
+    width: 100%;
+    overflow: hidden;
+
+    .properties {
+        display: none;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        width: 100%;
+
+        h1 span {
+            text-overflow: ellipsis;
+            overflow: hidden;
+            display: block;
+
+        }
+        .props {
+            display: flex;
+            flex-wrap: wrap;
+            font-size: var(--font-size-small);
+
+            span {
+                display: block;
+                white-space: nowrap;
+                margin-right: var(--margin);
+            }
+        }
+        .preview {
+            flex: 1;
+
+            .center {
+                height: 100%;
+                position: relative;
+                left: 50%;
+                transform: translate(-50%);
+
+                img {
+                    position: relative;
+                    max-width: 100%;
+                }
+            }
+        }
+
+        &.selected {
+            display: flex;
+        }
+    }
+}

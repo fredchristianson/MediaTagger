@@ -1,19 +1,19 @@
-﻿import ENV from "../drjs/env.js";
-import Application from "../drjs/browser/application.js";
-import { Listeners, EventListener } from "../drjs/browser/event.js";
-import { ComponentLoadedEvent } from "../drjs/browser/component.js";
+﻿import '../drjs/env.js';
+import Application from '../drjs/browser/application.js';
+import { Listeners, EventListener } from '../drjs/browser/event.js';
+import { ComponentLoadedEvent } from '../drjs/browser/component.js';
 //import { DomLogWriter } from '../drjs/browser/log-writer-dom.js';
-import { LOG_LEVEL, Logger } from "../drjs/logger.js";
-const log = Logger.create("MTApp", LOG_LEVEL.WARN);
+import { media } from './modules/media.js';
+import { LOG_LEVEL, Logger } from '../drjs/logger.js';
+const log = Logger.create('MTApp', LOG_LEVEL.WARN);
 
-import Media from "./modules/media.js";
 
-import MainComponent from "./component/main.js";
-import { defaultFormatter } from "/drjs/log-formatter.js";
+import MainComponent from './component/main.js';
+import { defaultFormatter } from '/drjs/log-formatter.js';
 
 export class MediaTaggerApp extends Application {
   constructor() {
-    super("MediaTagger App");
+    super('MediaTagger App');
     defaultFormatter.MaxLength = 1000;
   }
 
@@ -21,13 +21,13 @@ export class MediaTaggerApp extends Application {
     this.listeners = new Listeners(
       new EventListener(ComponentLoadedEvent, this)
     );
-    await Media.loadItems();
+    await media.loadItems();
 
-    this.mainComponent = new MainComponent("#main-content");
+    this.mainComponent = new MainComponent('#main-content');
   }
 
   onComponentLoaded(component, data, type) {
-    log.info("loaded component ", component.getName());
+    log.info('loaded component ', component.getName());
   }
 }
 

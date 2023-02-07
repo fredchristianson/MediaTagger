@@ -1,27 +1,25 @@
-import Util from "../../drjs/util.js";
-
-import { ComponentBase } from "../../drjs/browser/component.js";
+import { ComponentBase } from '../../drjs/browser/component.js';
 import {
   HtmlTemplate,
-  AttributeValue,
-} from "../../drjs/browser/html-template.js";
-import { LOG_LEVEL, Logger } from "../../drjs/logger.js";
+  AttributeValue
+} from '../../drjs/browser/html-template.js';
+import { LOG_LEVEL, Logger } from '../../drjs/logger.js';
 import {
   BuildCustomEventHandler,
-  Listeners,
-} from "../../drjs/browser/event.js";
-import Media from "../modules/media.js";
-import { ObservableArray } from "../modules/collections.js";
-import { BackgroundTask } from "../../drjs/browser/task.js";
-import dom from "../../drjs/browser/dom.js";
-const log = Logger.create("FileGroup", LOG_LEVEL.DEBUG);
+  Listeners
+} from '../../drjs/browser/event.js';
+import { media } from '../modules/media.js';
+import { ObservableArray } from '../modules/collections.js';
+import { BackgroundTask } from '../../drjs/browser/task.js';
+import dom from '../../drjs/browser/dom.js';
+const log = Logger.create('FileGroup', LOG_LEVEL.DEBUG);
 
 class FileGroup {
   constructor() {}
 }
 
 export class FindGroupsComponent extends ComponentBase {
-  constructor(selector, htmlName = "find-groups") {
+  constructor(selector, htmlName = 'find-groups') {
     super(selector, htmlName);
     this.groups = new ObservableArray();
     this.listeners = new Listeners();
@@ -29,19 +27,19 @@ export class FindGroupsComponent extends ComponentBase {
   }
 
   async onGroupsUpdated(list) {
-    this.dom.setInnerHTML(".group-count", list.length);
+    this.dom.setInnerHTML('.group-count', list.length);
   }
 
   async onHtmlInserted(elements) {
-    this.matchTemplate = new HtmlTemplate(this.dom.first("#group-match"));
-    this.matches = dom.first(".matches");
+    this.matchTemplate = new HtmlTemplate(this.dom.first('#group-match'));
+    this.matches = dom.first('.matches');
     this.listeners.add(
       BuildCustomEventHandler()
         .emitter(this.groups.updatedEvent)
         .onEvent(this, this.onGroupsUpdated)
         .build()
     );
-    this.allFiles = await Media.getAllFiles();
+    this.allFiles = await media.getAllFiles();
     this.unattached = [...this.allFiles].filter((f) => {
       return f.fileSetPrimaryId == null;
     });
@@ -59,7 +57,7 @@ export class FindGroupsComponent extends ComponentBase {
     const fname = file.getName();
     const fsize = file.getFileSize();
     const msecs = file.getTakenMSecs();
-    var match = null;
+    let match = null;
     for (const test of this.allFiles) {
       if (test.getId() <= fid) {
         continue;
@@ -68,13 +66,13 @@ export class FindGroupsComponent extends ComponentBase {
         match = {
           reason: `${test.getId()}-${fid} name match ${test.getName()}==${fname}`,
           file,
-          test,
+          test
         };
       } else if (test.getFileSize() == fsize) {
-        var ignorematch = {
+        const ignorematch = {
           reason: `size match ${test.getFileSize()}==${fsize}`,
           file,
-          test,
+          test
         };
       } else if (msecs != null) {
         const tmsecs = test.getTakenMSecs();
@@ -87,16 +85,10 @@ export class FindGroupsComponent extends ComponentBase {
       }
     }
     if (match != null) {
-      var element = this.matchTemplate.fill({
-        ".reason": match.reason,
-        ".img1": new AttributeValue(
-          "src",
-          `/thumbnail/${match.file.getId()}?v=7`
-        ),
-        ".img2": new AttributeValue(
-          "src",
-          `/thumbnail/${match.test.getId()}?v=7`
-        ),
+      const element = this.matchTemplate.fill({
+        '.reason': match.reason,
+        '.img1': new AttributeValue('src', `/thumbnail/${match.file.getId()}`),
+        '.img2': new AttributeValue('src', `/thumbnail/${match.test.getId()}`)
       });
       dom.append(this.matches, element);
     }

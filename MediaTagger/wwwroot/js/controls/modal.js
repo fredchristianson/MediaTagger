@@ -1,13 +1,8 @@
-import dom, { DOM } from "../../drjs/browser/dom.js";
-import HtmlTemplate from "../../drjs/browser/html-template.js";
-import { LOG_LEVEL, Logger } from "../../drjs/logger.js";
-const log = Logger.create("Modal", LOG_LEVEL.DEBUG);
-import {
-  Listeners,
-  BuildClickHandler,
-  BuildCheckboxHandler,
-  BuildMouseHandler,
-} from "../../drjs/browser/event.js";
+import { dom } from '../../drjs/browser/dom.js';
+import { LOG_LEVEL, Logger } from '../../drjs/logger.js';
+const log = Logger.create('Modal', LOG_LEVEL.DEBUG);
+log.never();
+import { Listeners, BuildMouseHandler } from '../../drjs/browser/event.js';
 
 class Modal {
   constructor(onCancel = null) {
@@ -15,10 +10,10 @@ class Modal {
     this.onCancel = onCancel;
   }
   show() {
-    var modal = dom.first(".mt-modal");
+    let modal = dom.first('.mt-modal');
     if (modal == null) {
       modal = dom.createElement("<div class='mt-modal'></div>");
-      dom.append("body", modal);
+      dom.append('body', modal);
       this.listeners.add(
         BuildMouseHandler()
           .listenTo(modal)
@@ -37,7 +32,7 @@ class Modal {
     this.hide();
   }
   hide() {
-    var modal = dom.first(".mt-modal");
+    let modal = dom.first('.mt-modal');
     if (modal != null) {
       dom.remove(modal);
     }

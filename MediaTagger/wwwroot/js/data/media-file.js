@@ -1,8 +1,10 @@
-import { MediaEntity } from "./media-entity.js";
-import { LOG_LEVEL, Logger } from "../../drjs/logger.js";
-import { toDate } from "./helpers.js";
-import { Util } from "../../drjs/util.js";
-const log = Logger.create("MediaFile", LOG_LEVEL.DEBUG);
+import { MediaEntity } from './media-entity.js';
+import { LOG_LEVEL, Logger } from '../../drjs/logger.js';
+import { toDate } from './helpers.js';
+import { Util } from '../../drjs/util.js';
+const log = Logger.create('MediaFile', LOG_LEVEL.DEBUG);
+
+const CACHE_VERSION = 4;
 
 export class MediaFile extends MediaEntity {
   constructor(data = {}) {
@@ -26,7 +28,7 @@ export class MediaFile extends MediaEntity {
 
   setValue(name, newValue) {
     // don't set rotationDegrees to null in an update
-    if (name != "rotationDegrees" || newValue != null) {
+    if (name != 'rotationDegrees' || newValue != null) {
       this[name] = newValue;
     }
   }
@@ -35,10 +37,10 @@ export class MediaFile extends MediaEntity {
     return this.rotationDegrees;
   }
   rotate(degrees) {
-    var d = Util.toNumber(this.rotationDegrees, 0);
-    var change = Util.toNumber(degrees, 0);
+    const d = Util.toNumber(this.rotationDegrees, 0);
+    const change = Util.toNumber(degrees, 0);
     this.rotationDegrees = (d + change + 360) % 360;
-    this._changed = true;
+    this.setChanged();
   }
   setTags(tags) {
     this._tags = tags;
@@ -53,7 +55,7 @@ export class MediaFile extends MediaEntity {
   }
 
   removeTag(tags) {
-    var pos = this._tags.indexOf(tags);
+    const pos = this._tags.indexOf(tags);
     if (pos >= 0) {
       this._tags.splice(pos, 1);
     }
@@ -66,8 +68,8 @@ export class MediaFile extends MediaEntity {
     if (tag == null) {
       return true;
     }
-    var id = tag;
-    if (typeof tag == "object") {
+    let id = tag;
+    if (typeof tag == 'object') {
       id = tag.getId();
     }
     return this._tags.find((t) => {
@@ -89,7 +91,7 @@ export class MediaFile extends MediaEntity {
   }
 
   removeAlbum(albums) {
-    var pos = this._albums.indexOf(albums);
+    const pos = this._albums.indexOf(albums);
     if (pos >= 0) {
       this._albums.splice(pos, 1);
     }
@@ -99,8 +101,8 @@ export class MediaFile extends MediaEntity {
     if (album == null) {
       return true;
     }
-    var id = album;
-    if (typeof album == "object") {
+    let id = album;
+    if (typeof album == 'object') {
       id = album.getId();
     }
     return this._albums.find((t) => {
@@ -121,7 +123,10 @@ export class MediaFile extends MediaEntity {
       this.setChanged();
       return;
     }
-    this._changed = group.getPrimaryFile().getId() != this.fileSetPrimaryId;
+    if (group.getPrimaryFile().getId() != this.fileSetPrimaryId) {
+      this.setChanged();
+    }
+
     this._group = group;
     if (group == null) {
       this.fileSetPrimaryId = null;
@@ -140,19 +145,21 @@ export class MediaFile extends MediaEntity {
   isGroupSecondary() {
     return this.fileSetPrimaryId != null && this.fileSetPrimaryId != this.id;
   }
-  // update(data) {
-  //   super.update(data);
-  //   this.dateTaken = data.dateTaken;
-  //   this.fileSize = data.fileSize;
-  // }
+  /*
+   * update(data) {
+   *   super.update(data);
+   *   this.dateTaken = data.dateTaken;
+   *   this.fileSize = data.fileSize;
+   * }
+   */
   getThumbnailUrl() {
-    return `/thumbnail/${this.getId()}?v=1.0`;
+    return `/thumbnail/${this.getId()}`;
   }
   getImageUrl() {
-    return `/image/${this.getId()}?v=1.0`;
+    return `/image/${this.getId()}`;
   }
   getImageReloadUrl() {
-    return `/image/${this.getId()}?v=1.0&time=${Date.now()}`;
+    return `/image/${this.getId()}`;
   }
 
   getName() {
@@ -166,16 +173,24 @@ export class MediaFile extends MediaEntity {
     return this.fileSize;
   }
 
+  get Extension() {
+    return this.getExtension();
+  }
+
   getExtension() {
     if (this._extension == null) {
-      var dotPos = this.filename.lastIndexOf(".");
+      const dotPos = this.filename.lastIndexOf('.');
       if (dotPos < 0) {
-        this._extension = ".";
+        this._extension = '.';
       } else {
         this._extension = this.filename.substring(dotPos).toLowerCase();
       }
     }
     return this._extension;
+  }
+
+  isBrowserImg() {
+    return ['.jpg', '.gif', '.png', '.jpeg', '.webp'].includes(this.Extension);
   }
 
   getResolution() {
@@ -185,7 +200,7 @@ export class MediaFile extends MediaEntity {
       this.width == 0 ||
       this.height == 0
     ) {
-      return "unknown";
+      return 'unknown';
     }
     return `${this.width}x${this.height}`;
   }
@@ -215,11 +230,11 @@ export class MediaFile extends MediaEntity {
 
   static toJson(file) {
     if (file == null) {
-      log.warn("MediaFile.fromData called with null data");
+      log.warn('MediaFile.fromData called with null data');
       return null;
     }
     if (!(file instanceof MediaFile)) {
-      log.warn("MediaFile.fromData requires a MediaFile parameter");
+      log.warn('MediaFile.fromData requires a MediaFile parameter');
       return null;
     }
     return file.toJson();
@@ -227,7 +242,7 @@ export class MediaFile extends MediaEntity {
 
   toJson() {
     return Object.entries(this).reduce((props, val) => {
-      if (val[0][0] != "_") {
+      if (val[0][0] != '_') {
         props[val[0]] = val[1];
       }
       return props;
@@ -236,7 +251,7 @@ export class MediaFile extends MediaEntity {
 
   static fromJson(data) {
     if (data == null) {
-      log.warn("MediaFile.fromData called with null data");
+      log.warn('MediaFile.fromData called with null data');
       return null;
     }
     return new MediaFile(data);

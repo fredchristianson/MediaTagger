@@ -1,14 +1,14 @@
-import { Settings } from "./settings.js";
-import { default as DOM } from "../../drjs/browser/dom.js";
+import { Settings } from './settings.js';
+import { default as DOM } from '../../drjs/browser/dom.js';
 import {
   StyleChangeAction,
   ClassChangeAction,
   NewElementWatcher,
-  DOMWatcher,
-} from "./dom-watcher.js";
-import { LOG_LEVEL, Logger } from "../../drjs/logger.js";
+  DOMWatcher
+} from './dom-watcher.js';
+import { LOG_LEVEL, Logger } from '../../drjs/logger.js';
 
-const log = Logger.create("SettingWatcher", LOG_LEVEL.WARN);
+const log = Logger.create('SettingWatcher', LOG_LEVEL.WARN);
 
 class SettingWatcher {
   constructor() {
@@ -17,66 +17,66 @@ class SettingWatcher {
 
   async init() {
     if (this.settings == null) {
-      this.settings = await Settings.load("dom-settings");
+      this.settings = await Settings.load('dom-settings');
     }
     this.domWatcher = new DOMWatcher();
     this.classWatcher = new ClassChangeAction(
-      ".has-setting",
+      '.has-setting',
       this.classChange.bind(this)
     );
     this.styleWatcher = new StyleChangeAction(
-      ".has-setting",
+      '.has-setting',
       this.styleChange.bind(this)
     );
     this.newElementWatcher = new NewElementWatcher(
-      ".has-setting",
+      '.has-setting',
       this.newElement.bind(this)
     );
     this.domWatcher.addAction(this.classWatcher);
     this.domWatcher.addAction(this.styleWatcher);
     this.domWatcher.addAction(this.newElementWatcher);
-    var elements = DOM.find(".has-setting");
+    let elements = DOM.find('.has-setting');
     elements.forEach((e) => {
       this.updateSettings(e);
     });
   }
 
-  classChange(element, oldValue, newValue) {
-    log.debug("class change");
-    const classSettingName = DOM.getData(element, "class-setting-name");
+  classChange(element, _oldValue, _newValue) {
+    log.debug('class change');
+    const classSettingName = DOM.getData(element, 'class-setting-name');
     if (classSettingName != null) {
-      const value = DOM.getData(element, "class-value");
+      const value = DOM.getData(element, 'class-value');
       const isSet = DOM.hasClass(element, value);
       this.settings.set(classSettingName, isSet);
     }
   }
 
-  styleChange(element, oldValue, newValue) {
-    log.debug("style change");
-    const styleSettingName = DOM.getData(element, "style-setting-name");
+  styleChange(element, _oldValue, _newValue) {
+    log.debug('style change');
+    const styleSettingName = DOM.getData(element, 'style-setting-name');
     if (styleSettingName != null) {
-      const styleName = DOM.getData(element, "style");
+      const styleName = DOM.getData(element, 'style');
       const styleValue = element.style[styleName];
       this.settings.set(styleSettingName, styleValue);
     }
   }
   newElement(element) {
-    log.debug("new element");
+    log.debug('new element');
     this.updateSettings(element);
   }
 
   updateSettings(element) {
-    const styleName = DOM.getData(element, "style-setting-name");
+    const styleName = DOM.getData(element, 'style-setting-name');
     if (styleName != null) {
-      const style = DOM.getData(element, "style");
+      const style = DOM.getData(element, 'style');
       if (style != null) {
         const value = this.settings.get(styleName);
         element.style[style] = value;
       }
     }
-    const classSettingName = DOM.getData(element, "class-setting-name");
+    const classSettingName = DOM.getData(element, 'class-setting-name');
     if (classSettingName != null) {
-      const value = DOM.getData(element, "class-value");
+      const value = DOM.getData(element, 'class-value');
       const isSet = this.settings.get(classSettingName);
       DOM.toggleClass(element, value, isSet);
     }

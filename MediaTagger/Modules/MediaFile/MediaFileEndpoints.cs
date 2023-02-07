@@ -53,7 +53,7 @@ namespace MediaTagger.Modules.MediaFile
                 catch (Exception ex)
                 {
                     logger.LogError(ex, "failed to load files");
-                    throw ex;
+                    throw;
                 }
             });
 

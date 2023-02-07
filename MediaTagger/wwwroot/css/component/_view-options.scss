@@ -1,0 +1,18 @@
+#view-options {
+    grid-area: view-options;
+    .component {
+        padding: var(--padding);
+        display: flex;
+        flex-wrap: wrap;
+        flex-direction: row;
+        > div {
+            white-space: nowrap;
+            margin-right: calc( var(--margin) * 4);
+        }
+
+        div.right {
+            flex: 1 0 auto;
+            text-align: right;
+        }
+    }
+}

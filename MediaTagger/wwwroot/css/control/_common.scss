@@ -1,0 +1,158 @@
+.component {
+
+    h1,
+    h2 {
+        border: 0;
+        border-top: 1px solid var(--highlight-background-color);
+        padding: var(--padding);
+        color: var(--highlight-background-color);
+        background-color: var(--highlight-foreground-color);
+        position: relative;
+        cursor: pointer;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        overflow: hidden;
+
+        >* {
+            display: inline-block;
+        }
+
+        .on-hover {
+            visibility: hidden;
+            position: absolute;
+            right: var(--margin);
+            button {
+                width: 32px;
+                height: 32px;
+                padding: 0;
+                margin: 0;
+                border-radius: var(--space);
+            }
+        }
+
+        button {
+            border-radius: var(--space);
+            width: unset;
+            height: unset;
+            //background-color: transparent;
+            color: var(--control-foreground-color);
+            background-color: var(--control-background-color);
+            &:hover {
+                background-color: var(--control-foreground-color);
+                color: var(--control-background-color);            }
+        }
+
+        .filter-op {
+            position: relative;
+            vertical-align: middle;
+            height: 24px;
+            width: 40px;
+            border-radius: var(--margin);
+            border: 0;
+
+            
+        }
+
+        .filter-op button {
+            display: block;
+            width: 100%;
+            position: absolute;
+            left: 0;
+            top: 0;
+            padding: var(--space);
+            margin: 0;
+            padding: 0;
+            background-size: 80%;
+            background-position: center;
+            background-repeat: no-repeat;
+
+            &.any {
+                background-image: url(../image/any.png);
+            }
+
+            &.all {
+                background-image: url(../image/all.png);
+            }
+        }
+    }
+
+    h1:hover {
+
+        .on-hover {
+            visibility: visible;
+
+        }
+
+    }
+
+    h2 {
+        padding-left: calc(var(--padding) * 2);
+        background-color: var(--highlight-background-color);
+        color: var(--highlight-foreground-color);
+        border-top: 1px solid var(--highlight-foreground-color);
+        font-size: 0.75rem;
+    }
+}
+
+
+.toggle-next-sibling,
+h1.toggle-next-sibling,
+h2.toggle-next-sibling {
+    position: relative;
+    padding-left: 2em;
+}
+
+.toggle-next-sibling+* {
+    transform: scaleY(1);
+    margin-left: var(--margin);
+    transform-origin: top;
+    height: auto;
+    max-height: 999999px;
+    transition: transform 500ms, max-height 50ms;
+}
+
+.toggle-next-sibling.hide-next-sibling+* {
+    transform: scaleY(0);
+    max-height: 0;
+    overflow: hidden;
+    transform-origin: top;
+    transition: transform 500ms, max-height 500ms;
+}
+
+.toggle-next-sibling::after {
+    content: '▼';
+    position: absolute;
+    left: var(--padding);
+    width: var(--padding);
+    height: var(--padding);
+    top: calc(var(--padding));
+
+}
+
+.toggle-next-sibling.hide-next-sibling::after {
+    content: "▶";
+    position: absolute;
+    left: var(--padding);
+    width: var(--padding);
+    height: var(--padding);
+    top: calc(var(--padding));
+
+}
+
+li {
+    overflow: hidden;
+}
+
+a, a:visited {
+    color: var(--accent-color-foreground);
+    background-color: var(--component-background-color);
+    text-decoration: none;
+    margin-right: var(--space);
+    padding: var(--space)
+}
+
+a:hover {
+    border-radius: var(--space);
+    background-color: var(--accent-color-foreground);
+    color: var(--component-background-color);
+}

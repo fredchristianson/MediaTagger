@@ -1,0 +1,32 @@
+
+input, select, text-area, button {
+    font-family: var(--font);
+    padding: var(--padding);
+    margin: var(--space) var(--space);
+    border-radius: 9999px;
+    background-color: var(--control-background-color);
+    color: var(--control-foreground-color);
+    border-color: var(--border-color);
+    border: 0px;
+    vertical-align: middle;
+
+}
+
+input:focus,
+select:focus,
+text-area:focus,
+button:focus {
+    outline: 1px solid var(--highlight-foreground-color);
+}
+
+input:hover,
+select:hover,
+text-area:hover,
+button:hover {
+    background-color: var(--highlight-background-color);
+    color: var(--highlight-foreground-color);
+}
+
+input[type='text'] {
+    background-color: var(--background-color);
+}

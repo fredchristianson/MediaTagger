@@ -1,0 +1,40 @@
+.filter-sizer {
+    grid-area: grid-sizer-filter;
+}
+
+.details-sizer {
+    grid-area: grid-sizer-details;
+}
+
+.grid-sizer {
+    z-index: var(--z-index-splitter);
+    position: relative;
+    margin: 0;
+    padding: 2px;
+    background-color: transparent;
+}
+
+.grid-sizer.left {
+    border-left: 1px solid var(--border-color);
+    border-right: 1px solid var(--border-color);
+    width: 4px;
+    cursor: col-resize;
+}
+
+.grid-sizer.right {
+    border-left: 1px solid #777;
+    border-right: 1px solid #777;
+    width: 4px;
+    cursor: col-resize;
+}
+
+.grid-sizer.bottom {
+    border-top: 1px solid #777;
+    border-bottom: 1px solid #777;
+    height: 4px;
+    cursor: row-resize;
+}
+
+.grid-sizer.dragging {
+    opacity: 0;
+}

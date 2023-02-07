@@ -1,0 +1,114 @@
+#date-filter {
+    display: block;
+    grid-area: date-filter;
+
+
+    .date-select {
+        position: relative;
+        display: grid;
+        grid-template-areas: "start media end";
+        grid-template-columns: 10em 1fr 10em;
+        grid-template-rows: var(--line-height);
+
+        .start,
+        .end {
+            display: block;
+            text-align: center;
+            line-height: var(--line-height);
+            background-color: var(--highlight-background-color);
+            color: var(--highlight-foreground-color);
+        }
+
+        .start {
+            grid-area: start;
+        }
+
+        .end {
+            grid-area: end;
+        }
+
+        .svg-container {
+            grid-area: media;
+            background-color: var(--foreground-color);
+            padding: 2px;
+            height: var(--line-height);
+
+            svg {
+                width: 100%;
+                height: 100%;
+
+                rect {
+                    fill: hsla(230deg, 100%, 50%, 1);
+                    height: 100%;
+                    width: 20px;
+                    top: 0;
+
+                }
+            }
+        }
+    }
+
+    .popup-details {
+        position: absolute;
+        left: 50px;
+        top: 200px;
+        height: auto;
+        border: var(--border-size) solid var(--border-color);
+        padding: var(--margin);
+        z-index: 100;
+        background-color: #ffffff;
+        min-width: 300px;
+        z-index: var(--z-index-popup);
+        display:none;
+            background-color: var(--highlight-background-color);
+        .content {
+            display: grid;
+            gap: var(--margin);
+            grid-template-areas:
+                "left date date right"
+                "first first last last";
+
+            .date {
+                grid-area: date;
+            }
+
+            img {
+                display: block;
+                margin: auto auto;
+            }
+
+            .first {
+                grid-area: first;
+            }
+
+            .last {
+                grid-area: last;
+            }
+
+            .left {
+                grid-area: left;
+            }
+
+            .right {
+                grid-area: right;
+                text-align: right;
+            }
+
+            .date, .left, .right {
+                line-height: var(--line-height);
+                    text-align: center;
+                    padding-top: var(--margin);
+                            }
+            transform: scaleY(0);
+            transition: transform 200ms;
+        }
+    }
+
+    .popup-details.show {
+        display: block;
+        .content {
+            transform: scaleY(1);
+            transition: transform 200ms;
+        }
+    }
+}

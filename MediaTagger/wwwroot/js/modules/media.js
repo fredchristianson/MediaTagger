@@ -1,5 +1,11 @@
-import { LOG_LEVEL, Logger } from "../../drjs/logger.js";
-import { compareDates, compareIds, compareNames } from "../data/helpers.js";
+import { LOG_LEVEL, Logger } from '../../drjs/logger.js';
+import {
+  compareDates,
+  compareIds,
+  compareNames,
+  randomizeItems,
+  seedRandom
+} from '../data/helpers.js';
 import {
   Tag,
   MediaTag,
@@ -8,33 +14,41 @@ import {
   MediaFile,
   Album,
   MediaAlbum,
-} from "../data/items.js";
-import { runParallel, runSerial } from "./task.js";
-import { dataAdder, dataLoader, dataUpdater } from "../data/data-loader.js";
+  EntityChangeEvent
+} from '../data/items.js';
+import { runParallel, runSerial } from './task.js';
+import { dataAdder, dataLoader, dataUpdater } from '../data/data-loader.js';
 import {
   ObservableView,
   SortedObservableView,
   FilteredObservableView,
   ObservableArray,
-  ObservableTree,
-} from "./collections.js";
-import * as API from "./mt-api.js";
-import { dbGetMediaFiles, dbSaveMediaFiles } from "../data/database.js";
-import { Listeners } from "../../drjs/browser/event.js";
+  ObservableTree
+} from './collections.js';
+import * as API from './mt-api.js';
+import { dbGetMediaFiles, dbSaveMediaFiles } from '../data/database.js';
 import {
+  Listeners,
   BuildCustomEventHandler,
   EventEmitter,
-  ObjectEventType,
-} from "../../drjs/browser/event.js";
-import FileGroup from "../data/file-group.js";
+  ObjectEventType
+} from '../../drjs/browser/event.js';
+import FileGroup from '../data/file-group.js';
 
-const log = Logger.create("Media", LOG_LEVEL.WARN);
+const log = Logger.create('Media', LOG_LEVEL.DEBUG);
 
-export var FilterChangeEventType = new ObjectEventType("FilterChange");
-export var FilterChangeEvent = new EventEmitter(FilterChangeEventType, this);
+export const FilterChangeEventType = new ObjectEventType('FilterChange');
+export const FilterChangeEvent = new EventEmitter(FilterChangeEventType);
 
-export var FocusChangeEventType = new ObjectEventType("FocusChange");
-export var FocusChangeEvent = new EventEmitter(FocusChangeEventType, this);
+export const FocusChangeEventType = new ObjectEventType('FocusChange');
+export const FocusChangeEvent = new EventEmitter(FocusChangeEventType);
+
+export const FocusEntityChangeEventType = new ObjectEventType(
+  'FocusEntityChange'
+);
+export const FocusEntityChangeEvent = new EventEmitter(
+  FocusEntityChangeEventType
+);
 
 class Media {
   constructor() {
@@ -48,6 +62,7 @@ class Media {
     this.mediaTags = new ObservableArray();
     this.mediaAlbums = new ObservableArray();
     this.showAllGroupFiles = false;
+    this.focusIndex = 0;
     this.mediaFilterItems = new FilteredObservableView(
       this.files,
       this.mediaFilter.bind(this)
@@ -70,8 +85,9 @@ class Media {
     );
     this.visibleItems = new ObservableView(this.sortedItems);
     this.selectedItems = new ObservableView([]);
-    this.lastSelect = null; // lastSelect may be toggled off
-    this.focus = null;
+    // lastSelect may be toggled off
+    this.lastSelect = null;
+    this.focusItem = null;
     this.previousFocus = null;
 
     this.listeners = new Listeners(
@@ -83,11 +99,35 @@ class Media {
       BuildCustomEventHandler()
         .emitter(FilterChangeEvent)
         .onEvent(this, this.onFilterChanged)
+        .build(),
+      BuildCustomEventHandler()
+        .emitter(EntityChangeEvent)
+        .onEvent(this, this.onEntityChanged)
+        .build(),
+      BuildCustomEventHandler()
+        .emitter(this.visibleItems.getUpdatedEvent())
+        .onEvent(this, this.onVisibleItemsChange)
         .build()
     );
     this.filterIncludeFunctions = [];
   }
 
+  onEntityChanged(entity) {
+    if (entity === this.focusItem) {
+      FocusEntityChangeEvent.emit(entity);
+    }
+  }
+
+  onVisibleItemsChange() {
+    log.never('media onVisibleItemChange');
+    const focus = this.visibleItems.getItemAt(this.focusIndex);
+    if (focus == null) {
+      this.focusIndex = 0;
+      this.focusItem = this.visibleItems.getItemAt(0);
+    } else if (focus != this.focusItem) {
+      this.setFocus(focus);
+    }
+  }
   getFocusChangeEvent() {
     return FocusChangeEvent;
   }
@@ -97,56 +137,65 @@ class Media {
     this.selectedItems.clear();
   }
   clearFocus() {
-    if (this.focus != null) {
-      this.previousFocus = this.focus;
+    if (this.focusItem != null) {
+      this.previousFocus = this.focusItem;
     }
-    this.focus = null;
+    this.focusItem = null;
     this.focusIndex = null;
 
     FocusChangeEvent.emit(null);
   }
   getFocus() {
-    return this.focus;
+    return this.focusItem;
   }
   getFocusIndex() {
-    return this.focus == null ? 0 : this.visibleItems.indexOf(this.focus); //this.focusIndex;
+    return this.focusIndex;
   }
   getLastFocusIndex() {
     return this.focusIndex ?? this.visibleItems.indexOf(this.previousFocus);
   }
 
+  moveFocus(focusIndexOffset) {
+    let newIndex = Math.max(0, this.focusIndex + focusIndexOffset);
+    newIndex = Math.min(newIndex, this.visibleItems.Length - 1);
+    this.focusItem = this.visibleItems.getItemAt(newIndex);
+    this.focusIndex = newIndex;
+    FocusChangeEvent.emitNow(this.focusItem);
+  }
   setFocus(item) {
-    if (this.focus != null) {
-      this.previousFocus = this.focus;
+    if (item == this.focusItem) {
+      return;
     }
-    this.focus = item;
+    if (this.focusItem != null) {
+      this.previousFocus = this.focusItem;
+    }
+    this.focusItem = item;
     this.focusIndex = this.visibleItems.indexOf(item);
-    FilterChangeEvent.emit();
-    FocusChangeEvent.emit(item);
+    FocusChangeEvent.emitNow(item);
   }
 
   getLastFocus() {
-    return this.focus ?? this.previousFocus;
+    return this.focusItem ?? this.previousFocus;
   }
 
   // updateFocus happens when the item doesn't change, but an attribute does (e.g. rotation)
   async updateFocus() {
     await this.updateDatabaseItems();
-    FocusChangeEvent.emit(this.focus);
+    FocusChangeEvent.emitNow(this.focus);
   }
 
-  clearFilter(func) {
+  clearFilter() {
     this.filterIncludeFunctions = [];
-    FilterChangeEvent.emit();
+    FilterChangeEvent.emitNow();
   }
 
   addFilter(func) {
     this.filterIncludeFunctions.push(func);
-    FilterChangeEvent.emit();
+    FilterChangeEvent.emitNow();
   }
 
   onFilterChanged() {
-    log.info("media filter changed");
+    log.info('media filter changed');
     this.mediaFilterItems.filter();
   }
 
@@ -175,15 +224,17 @@ class Media {
   }
 
   step() {
-    log.debug("files ", this.files.getLength());
+    log.debug('files ', this.files.getLength());
   }
   async loadItems() {
-    await runSerial(
-      this.loadItemsFromDatabase.bind(this),
-      this.createGroups.bind(this),
-      this.setupTags.bind(this),
-      this.setupAlbums.bind(this)
-    );
+    /*
+     * await runSerial(
+     *   this.loadItemsFromDatabase.bind(this),
+     *   this.createGroups.bind(this),
+     *   this.setupTags.bind(this),
+     *   this.setupAlbums.bind(this)
+     * );
+     */
     runSerial(
       this.loadItemsFromAPI.bind(this),
       this.createGroups.bind(this),
@@ -194,18 +245,18 @@ class Media {
 
   createGroups() {
     this.groups.clear();
-    var primary = this.files.search((f) => {
+    const primary = this.files.search((f) => {
       return f.isInGroup() && f.isPrimary();
     });
-    var groupMap = {};
-    for (var f of primary) {
-      var group = new FileGroup(f);
+    const groupMap = {};
+    for (const f of primary) {
+      const group = new FileGroup(f);
       this.groups.insert(group);
       groupMap[f.getId()] = group;
     }
-    for (var s of this.files) {
+    for (const s of this.files) {
       if (s.isGroupSecondary()) {
-        var g = groupMap[s.fileSetPrimaryId];
+        const g = groupMap[s.fileSetPrimaryId];
         g.addFile(s);
       }
     }
@@ -225,12 +276,12 @@ class Media {
     }, {});
   }
   setupTags() {
-    var tagMap = this.getTagMap();
-    var fileMap = this.getFileMap();
-    for (var fileTags of this.mediaTags) {
-      var file = fileMap[fileTags.getMediaFileId()];
+    const tagMap = this.getTagMap();
+    const fileMap = this.getFileMap();
+    for (const fileTags of this.mediaTags) {
+      const file = fileMap[fileTags.getMediaFileId()];
       if (file == null) {
-        log.error("file not found for tag ", fileTags.getId());
+        log.error('file not found for tag ', fileTags.getId());
       } else {
         const tags = fileTags.getTagIds().map((id) => {
           return tagMap[id];
@@ -241,7 +292,7 @@ class Media {
         });
       }
     }
-    FilterChangeEvent.emit();
+    FilterChangeEvent.emitNow();
   }
 
   getAlbumMap() {
@@ -251,12 +302,12 @@ class Media {
     }, {});
   }
   setupAlbums() {
-    var albumMap = this.getAlbumMap();
-    var fileMap = this.getFileMap();
-    for (var fileAlbum of this.mediaAlbums) {
-      var file = fileMap[fileAlbum.getMediaFileId()];
+    const albumMap = this.getAlbumMap();
+    const fileMap = this.getFileMap();
+    for (const fileAlbum of this.mediaAlbums) {
+      const file = fileMap[fileAlbum.getMediaFileId()];
       if (file == null) {
-        log.error("file not found for album ", fileAlbum.getId());
+        log.error('file not found for album ', fileAlbum.getId());
       } else {
         const albums = fileAlbum.getAlbumIds().map((id) => {
           return albumMap[id];
@@ -267,18 +318,18 @@ class Media {
         });
       }
     }
-    FilterChangeEvent.emit();
+    FilterChangeEvent.emitNow();
   }
 
   async updateDatabaseItems() {
-    log.never("updateDatabaseItems");
-    var updates = [...this.files].filter((f) => {
+    log.never('updateDatabaseItems');
+    const updates = [...this.files].filter((f) => {
       return f.isChanged();
     });
-    log.never("\tcount=", updates.length);
+    log.never('\tcount=', updates.length);
     await dbSaveMediaFiles(updates);
     await API.saveMediaFiles(updates);
-    for (var update of updates) {
+    for (const update of updates) {
       update.unsetChanged();
     }
   }
@@ -289,14 +340,17 @@ class Media {
         dataLoader(dbGetMediaFiles, dataAdder(this.files, MediaFile), 10000)
       );
     } catch (ex) {
-      log.error(ex, "failed to get items");
+      log.error(ex, 'failed to get items');
+      return null;
     }
   }
 
   async loadItemsFromAPI() {
     try {
-      //await dataLoader(getMediaFiles, dataUpdater(this.files, MediaFile))();
-      // don't await.  UI works from indexedDB until load is finished
+      /*
+       * await dataLoader(getMediaFiles, dataUpdater(this.files, MediaFile))();
+       *  don't await.  UI works from indexedDB until load is finished
+       */
       return runParallel(
         dataLoader(API.getMediaFiles, dataUpdater(this.files, MediaFile)),
         dataLoader(API.getTags, dataUpdater(this.tags, Tag)),
@@ -313,17 +367,18 @@ class Media {
         dataLoader(API.getAlbums, dataUpdater(this.albums, Album))
       );
     } catch (ex) {
-      log.error(ex, "failed to get items");
+      log.error(ex, 'failed to get items');
+      return null;
     }
   }
 
   getVisibleItems() {
-    log.never("return visibleItems ");
+    log.never('return visibleItems ');
     return this.visibleItems;
   }
 
   getAllFiles() {
-    log.never("return all items ");
+    log.never('return all items ');
     return this.files;
   }
 
@@ -332,23 +387,24 @@ class Media {
   }
 
   setSearchText(text) {
-    var lcText = text.toLowerCase();
-    var num = Number.parseInt(lcText);
+    const lcText = text.toLowerCase();
+    const num = Number.parseInt(lcText);
     this.searchFilterItems.setKeepFunction((item) => {
-      var nameMatch = item.getName().toLowerCase().includes(lcText);
+      const nameMatch = item.getName().toLowerCase().includes(lcText);
       if (nameMatch) {
         return true;
       }
-      var idMatch = id.Id == num;
+      const idMatch = id.Id == num;
       if (idMatch) {
         return true;
       }
+      return false;
     });
   }
 
   setDateFilter(start, end) {
-    var starttime = start ? start.getTime() : null;
-    var endtime = end ? end.getTime() : null;
+    const starttime = start ? start.getTime() : null;
+    const endtime = end ? end.getTime() : null;
     this.dateFilterItems.setKeepFunction((item) => {
       return (
         (starttime == null || item.getDateTaken().getTime() >= starttime) &&
@@ -356,23 +412,26 @@ class Media {
       );
     });
   }
-  setSortType(type) {
-    type = type.toLowerCase();
-    if (type == "id") {
+  setSortType(sortType) {
+    const type = sortType.toLowerCase();
+    if (type == 'id') {
       this.sortedItems.setSortComparison(compareIds);
-    } else if (type == "date") {
+    } else if (type == 'date') {
       this.sortedItems.setSortComparison(compareDates);
+    } else if (type == 'random') {
+      seedRandom();
+      this.sortedItems.setSortComparison(randomizeItems);
     } else {
       this.sortedItems.setSortComparison(compareNames);
     }
   }
 
   selectItem(item) {
-    var index = this.visibleItems.indexOf(item);
-    log.debug("inserting index ", index);
+    const index = this.visibleItems.indexOf(item);
+    log.debug('inserting index ', index);
     this.selectedItems.clear();
     if (item == null) {
-      log.error("selecting null item");
+      log.error('selecting null item');
       return;
     }
     this.selectedItems.insertOnce(item);
@@ -382,7 +441,7 @@ class Media {
 
   addSelectItem(item) {
     if (item == null) {
-      log.error("selecting null item");
+      log.error('selecting null item');
       return;
     }
     this.selectedItems.insertOnce(item);
@@ -390,7 +449,7 @@ class Media {
   }
   toggleSelectItem(item) {
     if (item == null) {
-      log.error("selecting null item");
+      log.error('selecting null item');
       return;
     }
     if (this.selectedItems.indexOf(item) != null) {
@@ -405,22 +464,23 @@ class Media {
     if (this.lastSelect == null) {
       this.selectItem(item);
     }
-    var visible = this.getVisibleItems();
-    var idx1 = visible.indexOf(item);
-    var idx2 = visible.indexOf(this.lastSelect);
+    const visible = this.getVisibleItems();
+    const idx1 = visible.indexOf(item);
+    const idx2 = visible.indexOf(this.lastSelect);
     if (idx2 == null) {
       return this.selectItem(item);
     }
     log.debug(`select items ${idx1}-${idx2}`);
-    var start = Math.min(idx1, idx2);
-    var end = Math.max(idx1, idx2);
+    const start = Math.min(idx1, idx2);
+    const end = Math.max(idx1, idx2);
 
-    for (var i = start; i <= end; i++) {
+    for (let i = start; i <= end; i++) {
       // todo: an event is emitted each insert.  add a bulk insert so only 1 event results
       this.selectedItems.insertOnce(visible.getItemAt(i));
     }
     this.lastSelect = item;
     this.setFocus(item);
+    return item;
   }
 
   async ungroup(file, saveChange = true) {
@@ -434,18 +494,18 @@ class Media {
   }
 
   async groupSelectedItems(primary) {
-    var groupFiles = new ObservableArray([...this.selectedItems]);
-    for (var old of this.selectedItems) {
+    const groupFiles = new ObservableArray([...this.selectedItems]);
+    for (const old of this.selectedItems) {
       if (old.isInGroup()) {
-        for (var newSel of old.getGroup().getFiles()) {
+        for (const newSel of old.getGroup().getFiles()) {
           groupFiles.insertOnce(newSel);
         }
       }
       this.ungroup(old, false);
     }
-    var group = new FileGroup();
+    const group = new FileGroup();
     group.setPrimaryFile(primary);
-    for (var item of groupFiles) {
+    for (const item of groupFiles) {
       group.addFile(item);
     }
     this.groups.insert(group);
@@ -465,114 +525,115 @@ class Media {
   }
 
   async createTag(parent, newTag) {
-    var parentId = parent;
-    if (parent != null && typeof parent == "object") {
+    let parentId = parent;
+    if (parent != null && typeof parent == 'object') {
       parentId = parent.getId();
     }
-    var parts = newTag.split("/").map((n) => {
+    const parts = newTag.split('/').map((n) => {
       return n.trim();
     });
-    var leaf = parts.splice(-1)[0]; // remove last element (leaf tag name)
-    var walk = null;
-    for (var next of parts) {
-      var child = this.tags.getChildByName(parentId, next);
+    // remove last element (leaf tag name)
+    const leaf = parts.splice(-1)[0];
+    let walk = null;
+    for (const next of parts) {
+      let child = this.tags.getChildByName(parentId, next);
       if (child == null) {
+        // eslint-disable-next-line no-await-in-loop
         child = await this.createTag(walk, next);
       }
       walk = child;
       parentId = child.getId();
     }
 
-    var created = await API.createTag(parentId, leaf);
+    const created = await API.createTag(parentId, leaf);
     this.tags.insert(created);
     return created;
   }
 
   async updateTag(id, name, parentId, hidden = false) {
-    var tag = this.tags.findById(id);
+    const tag = this.tags.findById(id);
     if (tag == null) {
-      log.error("cannot find tag ", id);
+      log.error('cannot find tag ', id);
       return null;
     }
     tag.Name = name;
     tag.ParentId = parentId;
     tag.Hidden = hidden;
-    var updated = await API.updateTag(tag);
+    const updated = await API.updateTag(tag);
     if (tag.hidden) {
       this.tags.remove(tag);
     }
-    FilterChangeEvent.emit();
+    FilterChangeEvent.emitNow();
     return updated;
   }
 
   async tagAddFile(tag, file) {
-    var result = await API.addMediaTag(file.getId(), tag.getId());
+    const result = await API.addMediaTag(file.getId(), tag.getId());
     file.addTag(tag);
     tag.addFile(file);
-    FocusChangeEvent.emit(this.focus);
+    FocusChangeEvent.emitNow(this.focus);
     return result;
   }
   async tagRemoveFile(tag, file) {
-    var result = await API.removeMediaTag(file.getId(), tag.getId());
+    const result = await API.removeMediaTag(file.getId(), tag.getId());
     file.removeTag(tag);
     tag.removeFile(file);
-    FocusChangeEvent.emit(this.focus);
+    FocusChangeEvent.emitNow(this.focus);
     return result;
   }
 
   async tagSelected(tagId) {
-    var tag = this.tags.findById(tagId);
+    const tag = this.tags.findById(tagId);
     if (tag == null) {
-      log.error("unkown tag", tagId);
+      log.error('unkown tag', tagId);
       return;
     }
-    for (var sel of this.selectedItems) {
-      var file = this.files.findById(sel.getId());
+    for (const sel of this.selectedItems) {
+      const file = this.files.findById(sel.getId());
       if (file == null) {
-        log.error("unknown file ", sel.getId());
-      } else {
-        if (await API.addMediaTag(sel.getId(), tagId)) {
-          file.addTag(tag);
-          tag.addFile(file);
-        }
+        log.error('unknown file ', sel.getId());
+        // eslint-disable-next-line no-await-in-loop
+      } else if (await API.addMediaTag(sel.getId(), tagId)) {
+        file.addTag(tag);
+        tag.addFile(file);
       }
     }
   }
 
   async untagSelected(tagId) {
-    var tag = this.tags.findById(tagId);
+    const tag = this.tags.findById(tagId);
     if (tag == null) {
-      log.error("unkown tag", tagId);
+      log.error('unkown tag', tagId);
       return;
     }
-    for (var sel of this.selectedItems) {
-      var file = this.files.findById(sel.getId());
+    for (const sel of this.selectedItems) {
+      const file = this.files.findById(sel.getId());
       if (file == null) {
-        log.error("unknown file ", sel.getId());
-      } else {
-        if (await API.removeMediaTag(sel.getId(), tagId)) {
-          file.removeTag(tag);
-          tag.removeFile(file);
-        }
+        log.error('unknown file ', sel.getId());
+        // eslint-disable-next-line no-await-in-loop
+      } else if (await API.removeMediaTag(sel.getId(), tagId)) {
+        file.removeTag(tag);
+        tag.removeFile(file);
       }
     }
   }
 
   getTagPath(tag) {
     if (tag == null) {
-      return "";
+      return '';
     }
-    var tags = this.getTags();
-    if (typeof tag == "number") {
+    const tags = this.getTags();
+    if (typeof tag == 'number') {
+      // eslint-disable-next-line no-param-reassign
       tag = tags.findById(tag);
     }
     if (tag == null) {
-      return "--";
+      return '--';
     }
-    var path = tag.getName();
-    var parent = tags.findById(tag.getParentId());
+    let path = tag.getName();
+    const parent = tags.findById(tag.getParentId());
     if (parent != null) {
-      path = this.getTagPath(parent) + "/" + path;
+      path = `${this.getTagPath(parent)}/${path}`;
     }
     return path;
   }
@@ -585,7 +646,7 @@ class Media {
   }
 
   async createAlbum(name, description = null) {
-    var album = await API.createAlbum(name, description);
+    const album = await API.createAlbum(name, description);
     if (album != null) {
       this.albums.insertOnce(album);
     }
@@ -593,61 +654,67 @@ class Media {
   }
 
   async albumAddFile(album, file) {
-    var result = await API.addMediaAlbum(file.getId(), album.getId());
+    const result = await API.addMediaAlbum(file.getId(), album.getId());
     file.addAlbum(album);
     album.addFile(file);
-    FocusChangeEvent.emit(this.focus);
+    FocusChangeEvent.emitNow(this.focus);
     return result;
   }
   async albumRemoveFile(album, file) {
-    var result = await API.removeMediaAlbum(file.getId(), album.getId());
+    const result = await API.removeMediaAlbum(file.getId(), album.getId());
     file.removeAlbum(album);
     album.removeFile(file);
-    FocusChangeEvent.emit(this.focus);
+    FocusChangeEvent.emitNow(this.focus);
     return result;
   }
 
   async albumAddSelected(albumId) {
-    var album = this.albums.findById(albumId);
+    const album = this.albums.findById(albumId);
     if (album == null) {
-      log.error("unkown album", albumId);
+      log.error('unkown album', albumId);
       return;
     }
-    for (var sel of this.selectedItems) {
-      var file = this.files.findById(sel.getId());
+    for (const sel of this.selectedItems) {
+      const file = this.files.findById(sel.getId());
       if (file == null) {
-        log.error("unknown file ", sel.getId());
-      } else {
-        if (await API.addMediaAlbum(sel.getId(), albumId)) {
-          file.addAlbum(album);
-          album.addFile(file);
-        }
+        log.error('unknown file ', sel.getId());
+        // eslint-disable-next-line no-await-in-loop
+      } else if (await API.addMediaAlbum(sel.getId(), albumId)) {
+        file.addAlbum(album);
+        album.addFile(file);
       }
     }
   }
 
   async albumRemoveSelected(albumId) {
-    var album = this.albums.findById(albumId);
+    const album = this.albums.findById(albumId);
     if (album == null) {
-      log.error("unkown album", albumId);
+      log.error('unkown album', albumId);
       return;
     }
-    for (var sel of this.selectedItems) {
-      var file = this.files.findById(sel.getId());
+    for (const sel of this.selectedItems) {
+      const file = this.files.findById(sel.getId());
       if (file == null) {
-        log.error("unknown file ", sel.getId());
-      } else {
-        if (await API.removeMediaAlbum(sel.getId(), albumId)) {
-          file.removeAlbum(album);
-          album.removeFile(file);
-        }
+        log.error('unknown file ', sel.getId());
+        // eslint-disable-next-line no-await-in-loop
+      } else if (await API.removeMediaAlbum(sel.getId(), albumId)) {
+        file.removeAlbum(album);
+        album.removeFile(file);
       }
     }
+  }
+
+  async rotateCCW() {
+    log.debug('rotateCCW');
+  }
+  async rotateCW() {
+    log.debug('rotateCW');
+  }
+  async rotate180() {
+    log.debug('rotate180');
   }
 }
 
 const media = new Media();
 
 export { media };
-
-export default media;

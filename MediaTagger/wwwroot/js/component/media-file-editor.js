@@ -1,38 +1,29 @@
-import { ComponentBase } from "../../drjs/browser/component.js";
+import { ComponentBase } from '../../drjs/browser/component.js';
 
-import { LOG_LEVEL, Logger } from "../../drjs/logger.js";
+import { LOG_LEVEL, Logger } from '../../drjs/logger.js';
 import {
   Listeners,
-  BuildClickHandler,
-  BuildKeyHandler,
-  BuildScrollHandler,
-  BuildFocusHandler,
   BuildCheckboxHandler,
   Continuation,
-  BuildCustomEventHandler,
-} from "../../drjs/browser/event.js";
+  BuildCustomEventHandler
+} from '../../drjs/browser/event.js';
 
-var recentTags = [];
+let recentTags = [];
 
-import Media, { media } from "../modules/media.js";
+import {media} from '../modules/media.js';
 import HtmlTemplate, {
   ClassValue,
   DataValue,
-  PropertyValue,
-} from "../../drjs/browser/html-template.js";
-import { toggleClass } from "../modules/dom-watcher.js";
+  PropertyValue
+} from '../../drjs/browser/html-template.js';
 
-const log = Logger.create("MediaFileEditor", LOG_LEVEL.DEBUG);
+const log = Logger.create('MediaFileEditor', LOG_LEVEL.DEBUG);
 
 function matchScoreComparison(a, b) {
   if (a.Score == b.Score) {
     return a.Label.localeCompare(b.Label);
   }
   return b.Score - a.Score;
-}
-
-function lengthComparison(a, b) {
-  return a.length - b.length;
 }
 
 class Option {
@@ -55,8 +46,8 @@ class Option {
 
   calculateScore(words) {
     this.score = 0;
-    var found = [];
-    var rest = this.lowerCaseLabel;
+    let found = [];
+    let rest = this.lowerCaseLabel;
     words.forEach((word) => {
       const idx = rest.indexOf(word.toLowerCase());
       if (idx >= 0) {
@@ -72,7 +63,7 @@ class Option {
       }, 0);
 
     rest = this.label;
-    this.html = "";
+    this.html = '';
     found.forEach((word) => {
       const idx = rest.toLowerCase().indexOf(word);
       if (idx >= 0) {
@@ -80,7 +71,7 @@ class Option {
         this.html +=
           "<span class='match'>" +
           rest.substring(idx, idx + word.length) +
-          "</span>";
+          '</span>';
         rest = rest.substring(idx + word.length, rest.length);
       }
     });
@@ -94,10 +85,10 @@ class Option {
 
 class TagOption extends Option {
   constructor(id, label, item) {
-    super("tag", id, label, item);
+    super('tag', id, label, item);
   }
   getTypeScore() {
-    var pos = recentTags.indexOf(this.id);
+    let pos = recentTags.indexOf(this.id);
     if (pos > 0) {
       return pos;
     }
@@ -107,12 +98,12 @@ class TagOption extends Option {
 
 class AlbumOption extends Option {
   constructor(id, label, item) {
-    super("tag", id, label, item);
+    super('tag', id, label, item);
   }
 }
 
 export class MediaFileEditorComponent extends ComponentBase {
-  constructor(selector, htmlName = "media-file-editor") {
+  constructor(selector, htmlName = 'media-file-editor') {
     super(selector, htmlName);
     this.listeners = new Listeners();
     this.item = null;
@@ -121,7 +112,7 @@ export class MediaFileEditorComponent extends ComponentBase {
     this.highlightIndex = 0;
   }
 
-  async onHtmlInserted(elements) {
+  async onHtmlInserted(_elements) {
     this.listeners.add(
       BuildCheckboxHandler()
         .setDefaultContinuation(Continuation.StopAll)
@@ -130,7 +121,7 @@ export class MediaFileEditorComponent extends ComponentBase {
         .onChecked(this, this.selectTag)
         .onUnchecked(this, this.unselectTag)
         .setData((target) => {
-          return media.getTagById(this.dom.getData(target, "id"));
+          return media.getTagById(this.dom.getData(target, 'id'));
         })
         .build(),
       BuildCheckboxHandler()
@@ -139,7 +130,7 @@ export class MediaFileEditorComponent extends ComponentBase {
         .onChecked(this, this.selectAlbum)
         .onUnchecked(this, this.unselectAlbum)
         .setData((target) => {
-          return media.getAlbumById(this.dom.getData(target, "id"));
+          return media.getAlbumById(this.dom.getData(target, 'id'));
         })
         .build(),
       BuildCustomEventHandler()
@@ -152,9 +143,9 @@ export class MediaFileEditorComponent extends ComponentBase {
         .build()
     );
     this.optionTemplate = new HtmlTemplate(
-      this.dom.first(".editor-option-template")
+      this.dom.first('.editor-option-template')
     );
-    this.search = "";
+    this.search = '';
   }
 
   onTagChange() {
@@ -184,20 +175,20 @@ export class MediaFileEditorComponent extends ComponentBase {
     this.item = item;
     this.tagOptions = this.getTagOptions();
     this.albumOptions = this.getAlbumOptions();
-    this.dom.show(".group-buttons", false); // media.getSelectedItems().Length > 1);
-    this.search = "";
-    this.dom.setInnerHTML(".key-presses", "");
+    this.dom.show('.group-buttons', false); // media.getSelectedItems().Length > 1);
+    this.search = '';
+    this.dom.setInnerHTML('.key-presses', '');
     this.fillMatches();
   }
   async groupSelectedItems() {
-    log.debug("group selected items");
-    Media.groupSelectedItems(this.activeItem);
+    log.debug('group selected items');
+    media.groupSelectedItems(this.activeItem);
     this.hidePopup();
   }
 
   async ungroupItem() {
-    log.debug("ungroup item");
-    Media.ungroup(this.activeItem);
+    log.debug('ungroup item');
+    media.ungroup(this.activeItem);
     this.hidePopup();
   }
 
@@ -205,7 +196,7 @@ export class MediaFileEditorComponent extends ComponentBase {
     this.listeners.removeAll();
   }
 
-  sortMatches(list, counts) {
+  sortMatches(list) {
     const words = this.search.trim().split(/\s+/);
     list.forEach((item) => {
       item.calculateScore(words);
@@ -218,51 +209,51 @@ export class MediaFileEditorComponent extends ComponentBase {
 
     this.sortMatches(this.tagOptions, this.tagCounts);
     this.sortMatches(this.albumOptions, this.albumCounts);
-    this.dom.removeChildren(".tags ul");
-    this.dom.removeChildren(".albums ul");
-    this.fillOptions(this.dom.first(".tags ul"), this.tagOptions);
-    this.fillOptions(this.dom.first(".albums ul"), this.albumOptions);
+    this.dom.removeChildren('.tags ul');
+    this.dom.removeChildren('.albums ul');
+    this.fillOptions(this.dom.first('.tags ul'), this.tagOptions);
+    this.fillOptions(this.dom.first('.albums ul'), this.albumOptions);
   }
 
   fillOptions(parent, list) {
     this.dom.removeChildren(parent);
-    for (var i = 0; i < 20 && i < list.length; i++) {
+    for (let i = 0; i < 20 && i < list.length; i++) {
       const item = list[i];
       const checked = item.item.hasFile(media.getFocus());
-      const key = i < 10 ? i : "";
+      const key = i < 10 ? i : '';
       const highlight = i == this.highlightIndex % list.length;
       const option = this.optionTemplate.fill({
-        label: new ClassValue(highlight ? "highlight" : null),
-        ".key": key,
+        label: new ClassValue(highlight ? 'highlight' : null),
+        '.key': key,
         "input[type='checkbox']": [
-          new DataValue("id", item.id),
-          new PropertyValue("checked", checked),
+          new DataValue('id', item.id),
+          new PropertyValue('checked', checked)
         ],
-        ".name": item.html,
+        '.name': item.html
       });
       this.dom.append(parent, option);
     }
   }
   async searchKey(key, shift = false) {
-    if (key == "Backspace") {
+    if (key == 'Backspace') {
       this.search = this.search.substring(0, this.search.length - 1);
-    } else if (key == "Tab") {
+    } else if (key == 'Tab') {
       this.highlightIndex = (this.highlightIndex + (shift ? -1 : 1)) % 20;
-    } else if (key == "Enter") {
+    } else if (key == 'Enter') {
       if (shift) {
         await this.toggleHighlightedAlbum();
       } else {
         await this.toggleHighlightedTag();
       }
-      this.search = "";
+      this.search = '';
     } else if (key.length == 1) {
-      if ((key >= "a" && key <= "z") || (key >= "A" && key <= "Z")) {
+      if ((key >= 'a' && key <= 'z') || (key >= 'A' && key <= 'Z')) {
         this.search += key;
       } else {
-        this.search += " ";
+        this.search += ' ';
       }
     }
-    this.dom.setInnerHTML(".key-presses", this.search);
+    this.dom.setInnerHTML('.key-presses', this.search);
     this.fillMatches();
   }
 
@@ -293,16 +284,16 @@ export class MediaFileEditorComponent extends ComponentBase {
     }
   }
   async altKey(key) {
-    if (key < "0" || key > "9") {
+    if (key < '0' || key > '9') {
       return;
     }
-    var idx = Number.parseInt(key);
-    var opt = this.albumOptions[idx];
+    let idx = Number.parseInt(key);
+    let opt = this.albumOptions[idx];
     if (opt == null) {
       return;
     }
-    var album = opt.item;
-    var file = media.getFocus();
+    let album = opt.item;
+    let file = media.getFocus();
     if (file.hasAlbum(album)) {
       await this.unselectAlbum(album);
     } else {
@@ -312,16 +303,16 @@ export class MediaFileEditorComponent extends ComponentBase {
     this.fillMatches();
   }
   async ctrlKey(key) {
-    if (key < "0" || key > "9") {
+    if (key < '0' || key > '9') {
       return;
     }
-    var idx = Number.parseInt(key);
-    var opt = this.tagOptions[idx];
+    let idx = Number.parseInt(key);
+    let opt = this.tagOptions[idx];
     if (opt == null) {
       return;
     }
-    var tag = opt.item;
-    var file = media.getFocus();
+    let tag = opt.item;
+    let file = media.getFocus();
     if (file.hasTag(tag)) {
       await this.unselectTag(tag);
     } else {

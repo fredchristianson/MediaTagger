@@ -1,6 +1,6 @@
-"use strict";
+'use strict';
 
-var LoggerClassImplementation = null;
+let LoggerClassImplementation = null;
 
 export class LogLevel {
   constructor(value, name) {
@@ -14,13 +14,13 @@ export class LogLevel {
 }
 
 export const LOG_LEVEL = {
-  DEBUG: new LogLevel(100, "DEBUG"),
-  INFO: new LogLevel(80, "INFO"),
-  WARN: new LogLevel(60, "WARN"),
-  ERROR: new LogLevel(40, "ERROR"),
-  FATAL: new LogLevel(0, "FATAL"),
-  ALWAYS: new LogLevel(-1, "ALWAYS"),
-  NEVER: new LogLevel(-2, "NEVER"),
+  DEBUG: new LogLevel(100, 'DEBUG'),
+  INFO: new LogLevel(80, 'INFO'),
+  WARN: new LogLevel(60, 'WARN'),
+  ERROR: new LogLevel(40, 'ERROR'),
+  FATAL: new LogLevel(0, 'FATAL'),
+  ALWAYS: new LogLevel(-1, 'ALWAYS'),
+  NEVER: new LogLevel(-2, 'NEVER')
 };
 
 export class LoggerInterface {
@@ -44,7 +44,7 @@ export class LoggerInterface {
   write(messages) {
     this.checkImplementation();
     if (this.implementation == null) {
-      console.error("Logger implementation is not set");
+      console.error('Logger implementation is not set');
       return;
     }
     this.implementation.write(messages);
@@ -56,7 +56,7 @@ export class LoggerInterface {
     // results in messageParts = ["a",1,{foo:bar}]
     this.checkImplementation();
     if (this.implementation == null) {
-      console.error("Logger implementation is not set");
+      console.error('Logger implementation is not set');
       return;
     }
     this.implementation.log(level, messageParts);
@@ -80,7 +80,7 @@ export class LoggerInterface {
 
   fatal(...msg) {
     this.log(LOG_LEVEL.FATAL, msg);
-    if (typeof process !== "undefined" && typeof process.abort === "function") {
+    if (typeof process !== 'undefined' && typeof process.abort === 'function') {
       process.abort();
     }
     this.log(
@@ -97,5 +97,3 @@ export function setLoggerImplementation(implementation) {
 export function createLogger(moduleName, ...options) {
   return new LoggerInterface(moduleName, options);
 }
-
-export default LoggerInterface;

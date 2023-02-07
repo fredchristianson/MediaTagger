@@ -1,19 +1,19 @@
-import { LOG_LEVEL, Logger } from "../../logger.js";
-import Util from "../../util.js";
-import { DOM, default as dom } from "../dom.js";
-import { Continuation, HandlerMethod, DataHandlerMethod } from "./common.js";
-export * from "./common.js";
+import { LOG_LEVEL, Logger } from '../../logger.js';
+import Util from '../../util.js';
+import { DOMUtils, dom } from '../dom.js';
+import { Continuation, HandlerMethod, DataHandlerMethod } from './common.js';
+export * from './common.js';
 
-const log = Logger.create("EventListener", LOG_LEVEL.DEBUG);
+const log = Logger.create('EventListener', LOG_LEVEL.DEBUG);
 
 export class EventHandlerBuilder {
   constructor(eventHandlerClass) {
-    this.handlerClass = eventHandlerClass;
-    this.handlerInstance = new this.handlerClass();
+    this.HandlerClass = eventHandlerClass;
+    this.handlerInstance = new this.HandlerClass();
   }
 
   listenTo(element, selector = null) {
-    if (element instanceof DOM) {
+    if (element instanceof DOMUtils) {
       this.handlerInstance.listenElement = element.getRoot();
     } else {
       this.handlerInstance.listenElement = element;
@@ -53,8 +53,8 @@ export class EventHandlerBuilder {
     return this;
   }
   setData(...data) {
-    var method = null;
-    if (data.length < 2 && typeof data[0] != "function") {
+    let method = null;
+    if (data.length < 2 && typeof data[0] != 'function') {
       method = data[0];
     } else {
       method = new DataHandlerMethod(...data);
@@ -193,7 +193,7 @@ export class EventListener {
     const options = {
       passive: this.isPassive(),
       capture: this.isCapture(),
-      once: this.once,
+      once: this.once
     };
     this.typeNames.forEach((typeName) => {
       if (this.listenElement != null) {
@@ -212,7 +212,7 @@ export class EventListener {
           options
         );
       } else {
-        log.error("EventListener needs an element or selector");
+        log.error('EventListener needs an element or selector');
       }
     });
     return this;
@@ -223,7 +223,7 @@ export class EventListener {
       this.typeNames.forEach((typeName) => {
         dom.removeListener(this.listenElement, typeName, this.eventProcessor, {
           passive: this.isPassive,
-          capture: this.capture,
+          capture: this.capture
         });
       });
     }
@@ -255,7 +255,7 @@ export class EventListener {
   }
 
   eventProcessorMethod(event) {
-    var target = event.target;
+    let target = event.target;
     log.never(`eventHandler ${target.id}:${target.className} - ${event.type}`);
 
     if (this.selectorMismatch(event)) {
@@ -304,7 +304,7 @@ export class EventListener {
   }
 
   async invokeHandler(event) {
-    var result = this.defaultResponse.clone();
+    let result = this.defaultResponse.clone();
 
     // if there is a handlerMethod, call it.
     // in most cases, this is null and the derived class overrides callHandlers()
@@ -312,7 +312,7 @@ export class EventListener {
       try {
         await this.handlerMethod.call(this, event);
       } catch (ex) {
-        log.error(ex, "default handler method failed");
+        log.error(ex, 'default handler method failed');
       }
     }
     result.replace(this.callHandlers(event));

@@ -1,0 +1,31 @@
+
+.media-details {
+    grid-area: media-details;
+    background-color: transparent;
+    .component {
+        background-color: transparent;
+        display: grid;
+        grid-template-areas: 
+        "tag-album"
+        "sizer"
+        "properties";
+        grid-template-rows: auto auto 1fr;
+        height: 100%;
+    }
+
+    #tag-album-details {
+        background-color: var(--background-color);
+        color: var(--foreground-color);
+        overflow-y: auto;
+        overflow-x: hidden;
+        grid-area: tag-album;
+    }
+
+    .panel.property.details {
+        grid-area: properties;
+    }
+
+    .grid-sizer {
+        grid-area: sizer;
+    }
+}

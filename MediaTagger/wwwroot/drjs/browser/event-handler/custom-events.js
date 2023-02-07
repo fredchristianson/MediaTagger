@@ -1,11 +1,11 @@
-import { LOG_LEVEL, Logger } from "../../logger.js";
-import { default as dom } from "../dom.js";
-import { EventListener, EventHandlerBuilder } from "./handler.js";
-import { ObjectEventType, HandlerMethod, Continuation } from "./common.js";
-import { OnNextLoop } from "../timer.js";
-export * from "./common.js";
+import { LOG_LEVEL, Logger } from '../../logger.js';
+import { default as dom } from '../dom.js';
+import { EventListener, EventHandlerBuilder } from './handler.js';
+import { ObjectEventType, HandlerMethod, Continuation } from './common.js';
+import { OnNextLoop } from '../timer.js';
+export * from './common.js';
 
-const log = Logger.create("CustomEvents", LOG_LEVEL.WARN);
+const log = Logger.create('CustomEvents', LOG_LEVEL.WARN);
 
 function BuildCustomEventHandler() {
   return new CustomEventHandlerBuilder();
@@ -66,9 +66,9 @@ class CustomEventHandler extends EventListener {
 
   async callHandlers(event) {
     const detail = event.detail;
-    var continuation = this.DefaultContinuation;
+    let continuation = this.DefaultContinuation;
     if (this.matchSender(detail) && this.matchType(detail)) {
-      for (var onEventHandler of this.onEvent) {
+      for (let onEventHandler of this.onEvent) {
         continuation.combine(
           onEventHandler.call(
             this,
@@ -126,12 +126,12 @@ class AsyncEventDispatcher {
     if (this.queue == null) {
       return;
     }
-    var todo = this.queue;
+    let todo = this.queue;
     this.queue = null;
     while (todo.length > 0) {
       const def = todo.shift();
       const event = new CustomEvent(def.typeName, { detail: def.details });
-      log.info("dispatch ", def);
+      log.info('dispatch ', def);
       dom.getBody().dispatchEvent(event);
     }
   }
@@ -175,7 +175,7 @@ class EventEmitter {
       sender: this.sender,
       data: data,
       typeName: this.typeName,
-      type: this.type,
+      type: this.type
     };
     log.debug(`EventEmitter.emit ${this.typeName}`);
     if (
@@ -192,7 +192,7 @@ class EventEmitter {
       sender: this.sender,
       data: data,
       typeName: this.typeName,
-      type: this.type,
+      type: this.type
     };
     const event = new CustomEvent(this.typeName, { detail: detail });
     dom.getBody().dispatchEvent(event);
@@ -204,5 +204,5 @@ export {
   EventListener,
   BuildCustomEventHandler,
   CustomEventHandler,
-  CustomEventHandlerBuilder,
+  CustomEventHandlerBuilder
 };

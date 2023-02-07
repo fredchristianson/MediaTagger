@@ -1,17 +1,42 @@
-<div >
+<div class="component">
+  <div class="group">
   <button class="show-media">Media</button>
   <button class="show-quick-tags">Quick Tags</button>
   <button class="show-tag-manager">Tag Manager</button>
   <button class="show-settings">Settings</button>
-  <!--button class="find-groups">Group Files</button-->
-  <div style="display:inline-block">
-    <input name="zoom" value="100" min="25" max="300" type="number" placeholder="zoom"/>
-    <input type="range" name="zoom-slider" value="100" min="25" max="300" /></div>
-    <select name="sort">
-      <option value="Name">Name</option>
-      <option value="Date">Date</option>
-      <option value="ID">ID</option>
-    </select>
-    <input name="search" placeholder="search"/>
-    <label><input type='checkbox' name='expand-groups'>Expand Groups</label>
+  </div>
+  <div class="group">
+    <input name="zoom" value="100" min="25" max="300" type="number" placeholder="zoom" />
+    <input type="range" name="zoom-slider" value="100" min="25" max="300" />
+  </div>
+  <div class="group">
+  <select name="sort">
+    <option value="Name">Name</option>
+    <option value="Date">Date</option>
+    <option value="ID">ID</option>
+    <option value="Random">Random</option>
+  </select>
+  <input name="search" placeholder="search" />
+  <label><input type='checkbox' name='expand-groups'>Expand Groups</label>
+  </div>
+  <div class="group right">
+  <select name="theme">
+    <option value="theme-dark" selected>Dark</option>
+    <option value="theme-light">Light</option>
+    <option value="theme-happy">Happy</option>
+  </select>
+  <select name="font">
+    <option value="font-cursive">Cursive</option>
+
+    <option value="font-monospace">Monospace</option>
+    <option value="font-serif" selected>Serif</option>
+    <option value="font-san-serif">Sans-Serif</option>
+  </select>
+  <select name="layout-type">
+    <option value="layout-compact" selected>Compact</option>
+    <option value="layout-small" selected>Small</option>
+    <option value="layout-normal" selected>Normal</option>
+    <option value="layout-large" selected>Large</option>
+  </select>
+  </div>
 </div>

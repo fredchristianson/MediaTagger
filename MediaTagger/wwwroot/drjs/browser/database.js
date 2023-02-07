@@ -1,7 +1,7 @@
-import { LOG_LEVEL } from "../logger-interface.js";
-import Logger from "../logger.js";
+import { LOG_LEVEL } from '../logger-interface.js';
+import { Logger } from '../logger.js';
 
-const log = Logger.create("Database", LOG_LEVEL.INFO);
+const log = Logger.create('Database', LOG_LEVEL.INFO);
 
 function DBPromise(req) {
   return new Promise(function (resolve, reject) {
@@ -30,28 +30,28 @@ class Table {
   }
 
   async write(value) {
-    const transaction = this.store.transaction([this.name], "readwrite");
+    const transaction = this.store.transaction([this.name], 'readwrite');
     const store = transaction.objectStore(this.name);
     store.put(value);
     return DBPromise(transaction);
   }
   async writeItems(items) {
-    const transaction = this.store.transaction([this.name], "readwrite");
+    const transaction = this.store.transaction([this.name], 'readwrite');
     const store = transaction.objectStore(this.name);
-    for (var item of items) {
+    for (let item of items) {
       store.put(item);
     }
     return DBPromise(transaction);
   }
 
   async getAll() {
-    const transaction = this.store.transaction([this.name], "readonly");
+    const transaction = this.store.transaction([this.name], 'readonly');
     const store = transaction.objectStore(this.name);
     return DBPromise(store.getAll());
   }
 
   async read(key) {
-    const transaction = this.store.transaction([this.name], "readwrite");
+    const transaction = this.store.transaction([this.name], 'readwrite');
     const store = transaction.objectStore(this.name);
     return DBPromise(store.get(key));
   }
@@ -66,15 +66,15 @@ export class Database {
 
   async getDB() {
     if (this.indexedDB == null) {
-      var self = this;
-      var schema = this.schema;
-      log.info("opening indexedDB ", schema.name);
+      let self = this;
+      let schema = this.schema;
+      log.info('opening indexedDB ', schema.name);
       return new Promise(function (resolve, reject) {
         const req = window.indexedDB.open(schema.name, schema.version);
         req.onupgradeneeded = function (event) {
-          log.info("database upgrade needed");
-          for (var table of schema.tables) {
-            if (typeof table == "string") {
+          log.info('database upgrade needed');
+          for (let table of schema.tables) {
+            if (typeof table == 'string') {
               if (!this.result.objectStoreNames.contains(table)) {
                 req.result.createObjectStore(table);
               }
@@ -91,11 +91,11 @@ export class Database {
           };
         };
         req.onsuccess = function (event) {
-          log.info("database opened");
+          log.info('database opened');
           resolve(req.result);
         };
         req.onerror = function (event) {
-          log.error("database open failed");
+          log.error('database open failed');
           reject(req.result);
         };
       });

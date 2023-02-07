@@ -1,18 +1,11 @@
-import { LOG_LEVEL, Logger } from "../../drjs/logger.js";
-import {
-  EventEmitter,
-  ObjectEventType,
-  Listeners,
-  BuildClickHandler,
-  Continuation,
-} from "../../drjs/browser/event.js";
-import { media } from "./media.js";
-import UTIL from "../../drjs/util.js";
+import { LOG_LEVEL, Logger } from '../../drjs/logger.js';
+import { Listeners } from '../../drjs/browser/event.js';
+import { media } from './media.js';
 import {
   BuildKeyHandler,
-  Key,
-} from "../../drjs/browser/event-handler/key-handler.js";
-const log = Logger.create("Navigation", LOG_LEVEL.DEBUG);
+  Key
+} from '../../drjs/browser/event-handler/key-handler.js';
+const log = Logger.create('Navigation', LOG_LEVEL.DEBUG);
 
 class Navigation {
   constructor(layout) {
@@ -29,24 +22,18 @@ class Navigation {
         .onKey(Key.Home, this, this.moveStart)
         .onKey(Key.End, this, this.moveEnd)
         .onKey(Key.Escape, this, this.clearSelection)
-        .onKey("[", this, this.rotate270)
-        .onKey("]", this, this.rotate90)
-        .onKey("\\", this, this.rotate180)
+        .onKey('[', media, media.rotateCCW)
+        .onKey(']', media, media.rotateCW)
+        .onKey('\\', media, media.rotate180)
         .onKeyDown(this, this.onKeyDown) // to log keypresses
         .build()
     );
   }
 
   changeIndex(change, extendSelect = false) {
-    var index = media.getLastFocusIndex();
-
-    var newIndex = Math.max(
-      0,
-      Math.min(index + change, media.getVisibleItems().getLength() - 1)
-    );
-    var focusItem = media.getVisibleItems().getItemAt(newIndex);
+    media.moveFocus(change);
+    const focusItem = media.getFocus();
     if (focusItem != null) {
-      media.setFocus(focusItem);
       if (extendSelect) {
         media.selectToItem(focusItem);
       } else {
@@ -82,30 +69,12 @@ class Navigation {
     );
   }
 
-  rotate270() {
-    this.rotate(-90);
-  }
-  rotate90() {
-    this.rotate(90);
-  }
-  rotate180() {
-    this.rotate(180);
-  }
-  rotate(degrees) {
-    var focus = media.getFocus();
-    if (focus == null) {
-      return;
-    }
-    focus.rotate(degrees);
-    media.updateFocus();
-  }
-
   detach() {
     this.listeners.removeAll();
   }
 
   onKeyDown(key, target, event) {
-    log.debug("key down ", key);
+    log.debug('key down ', key);
   }
 }
 

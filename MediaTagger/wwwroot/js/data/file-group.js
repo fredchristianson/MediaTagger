@@ -1,8 +1,8 @@
-import { MediaEntity } from "./media-entity.js";
-import { LOG_LEVEL, Logger } from "../../drjs/logger.js";
-import { toDate } from "./helpers.js";
-import { ObservableArray } from "../modules/collections.js";
-const log = Logger.create("MediaFile", LOG_LEVEL.DEBUG);
+import { MediaEntity } from './media-entity.js';
+import { LOG_LEVEL, Logger } from '../../drjs/logger.js';
+import { toDate } from './helpers.js';
+import { ObservableArray } from '../modules/collections.js';
+const log = Logger.create('MediaFile', LOG_LEVEL.DEBUG);
 
 export class FileGroup {
   constructor(primary = null) {
@@ -35,7 +35,7 @@ export class FileGroup {
   }
   removeFile(file) {
     if (file == this._primaryFile) {
-      for (var member of this._files) {
+      for (let member of this._files) {
         member.setGroup(null);
       }
       this._files.clear();

@@ -1,4 +1,9 @@
-import { toDate } from "./helpers.js";
+import { EventEmitter, ObjectEventType } from '../../drjs/browser/event.js';
+import { toDate } from './helpers.js';
+
+export const EntityChangeEventType = new ObjectEventType('EntityChange');
+export const EntityChangeEvent = new EventEmitter(EntityChangeEventType);
+
 
 export class MediaEntity {
   static sort(array) {
@@ -12,8 +17,8 @@ export class MediaEntity {
     this.name = data.name;
     this.createdOn = toDate(data.createdOn);
     this.modifiedOn = toDate(data.modifiedOn);
-    this.hidden = !!data.hidden;
-    this._changed = typeof data._changed == "boolean" ? data._changed : false;
+    this.hidden = Boolean(data.hidden);
+    this._changed = typeof data._changed == 'boolean' ? data._changed : false;
   }
 
   isChanged() {
@@ -21,6 +26,7 @@ export class MediaEntity {
   }
 
   setChanged() {
+    EntityChangeEvent.emit(this);
     this._changed = true;
   }
   unsetChanged() {
@@ -39,29 +45,31 @@ export class MediaEntity {
     );
   }
   update(data) {
-    // this.id = data.id;
-    // this.name = data.name;
-    // this.createdOn = data.createdOn;
-    // this.modifiedOn = data.modifiedOn;
-    // this.hidden = data.hidden;
+    /*
+     * this.id = data.id;
+     * this.name = data.name;
+     * this.createdOn = data.createdOn;
+     * this.modifiedOn = data.modifiedOn;
+     * this.hidden = data.hidden;
+     */
     Object.entries(this).forEach(([key, value]) => {
-      if (key[0] == "_") {
+      if (key[0] == '_') {
         return;
       }
       if (value instanceof Date) {
-        var newDate = toDate(data[key]);
+        const newDate = toDate(data[key]);
         if (value.getTime() != newDate.getTime()) {
           this.setChanged();
           this[key] = newDate;
         }
-      } else if (typeof value == "boolean") {
-        var newBool = !!data[key];
+      } else if (typeof value == 'boolean') {
+        const newBool = Boolean(data[key]);
         if (value != newBool) {
           this.setChanged();
           this[key] = newBool;
         }
       } else {
-        var newValue = data[key];
+        const newValue = data[key];
         if (value != newValue) {
           this.setChanged();
           this.setValue(key, newValue);

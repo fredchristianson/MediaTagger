@@ -31,5 +31,14 @@
         "workspaceRoot": null,
         "workspacePath": null,
         "id": "nXiwtATydapO7xuv"
+    },
+    {
+        "type": "Directory",
+        "name": "d:\\dev\\media\\MediaTagger\\MediaTagger\\wwwroot\\js",
+        "parent_id": "hF593DoKCwNmjl0e",
+        "fsPath": "d:\\dev\\media\\MediaTagger\\MediaTagger\\wwwroot\\js",
+        "workspaceRoot": null,
+        "workspacePath": null,
+        "id": "VWXnC0z4EvTlRZeo"
     }
 ]

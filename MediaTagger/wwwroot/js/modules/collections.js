@@ -1,28 +1,27 @@
-import { LOG_LEVEL, Logger } from "../../drjs/logger.js";
+import { LOG_LEVEL, Logger } from '../../drjs/logger.js';
 import {
   EventEmitter,
   ObjectEventType,
   Listeners,
-  BuildCustomEventHandler,
-} from "../../drjs/browser/event.js";
-import UTIL from "../../drjs/util.js";
-import { Assert } from "../../drjs/assert.js";
-const log = Logger.create("Collections", LOG_LEVEL.INFO);
+  BuildCustomEventHandler
+} from '../../drjs/browser/event.js';
+import { Assert } from '../../drjs/assert.js';
+const log = Logger.create('Collections', LOG_LEVEL.INFO);
 
-var filteredEvent = new ObjectEventType("__collection-filtered");
-var sortedEvent = new ObjectEventType("__collection-sorted");
-var itemsAddedEvent = new ObjectEventType("__collection-itemsAdded");
-var itemsRemovedEvent = new ObjectEventType("__collection-itemsRemoved");
-var updatedEvent = new ObjectEventType("__collection-updated");
+const filteredEvent = new ObjectEventType('__collection-filtered');
+const sortedEvent = new ObjectEventType('__collection-sorted');
+const itemsAddedEvent = new ObjectEventType('__collection-itemsAdded');
+const itemsRemovedEvent = new ObjectEventType('__collection-itemsRemoved');
+const updatedEvent = new ObjectEventType('__collection-updated');
 
-var nextID = 1;
+let nextID = 1;
 /*
  * all items in a collection should have a getId() method
  */
 class ObservableCollection {
   constructor() {
     this._id = nextID++;
-    log.never("Create collection ", this._id, this.constructor.name);
+    log.never('Create collection ', this._id, this.constructor.name);
     this.sortedEvent = new EventEmitter(sortedEvent, this);
     this.filteredEvent = new EventEmitter(filteredEvent, this);
     this.itemsAddedEvent = new EventEmitter(itemsAddedEvent, this);
@@ -42,12 +41,12 @@ class ObservableCollection {
     return this.itemsRemovedEvent;
   }
   getUpdatedEvent() {
-    log.debug("getUpdateEvent");
+    log.debug('getUpdateEvent');
     return this.updatedEvent;
   }
 
   findById(id) {
-    for (var item of this) {
+    for (const item of this) {
       if (item.getId() == id) {
         return item;
       }
@@ -65,7 +64,7 @@ class ObservableCollection {
         } else {
           return { done: true };
         }
-      },
+      }
     };
   }
 }
@@ -79,7 +78,7 @@ class ObservableArray extends ObservableCollection {
       this.items = items;
     } else {
       throw new Error(
-        "ObservableArray parameter must be an ObservableCollection or Array"
+        'ObservableArray parameter must be an ObservableCollection or Array'
       );
     }
   }
@@ -101,8 +100,12 @@ class ObservableArray extends ObservableCollection {
   }
 
   getItemAt(index) {
-    if (this.items == null) return null;
-    if (this.items.length - 1 < index) return null;
+    if (this.items == null) {
+      return null;
+    }
+    if (this.items.length - 1 < index) {
+      return null;
+    }
     return this.items[index];
   }
 
@@ -112,9 +115,9 @@ class ObservableArray extends ObservableCollection {
     } else if (Array.isArray(items)) {
       this.items = items;
     } else if (items == null) {
-      this.items = "";
+      this.items = '';
     } else {
-      throw new Error("ObservableArray.items called with invalid parameter");
+      throw new Error('ObservableArray.items called with invalid parameter');
     }
     this.updatedEvent.emit(this.items);
   }
@@ -124,7 +127,7 @@ class ObservableArray extends ObservableCollection {
     this.updatedEvent.emit(items);
   }
   insertBatch(newItems) {
-    for (var item of newItems) {
+    for (const item of newItems) {
       this.items.push(item);
     }
     this.itemsAddedEvent.emitNow(newItems);
@@ -143,7 +146,7 @@ class ObservableArray extends ObservableCollection {
   }
 
   indexOf(item) {
-    for (var i = 0; i < this.items.length; i++) {
+    for (let i = 0; i < this.items.length; i++) {
       if (this.items[i] == item) {
         return i;
       }
@@ -152,9 +155,9 @@ class ObservableArray extends ObservableCollection {
   }
 
   remove(item) {
-    var idx = this.indexOf(item);
+    const idx = this.indexOf(item);
     if (idx != null) {
-      var removed = this.items.splice(idx, 1);
+      const removed = this.items.splice(idx, 1);
       this.itemsRemovedEvent.emitNow(removed);
       this.updatedEvent.emit(this.removed);
       return item;
@@ -163,8 +166,8 @@ class ObservableArray extends ObservableCollection {
   }
 
   removeMatch(matchFunc) {
-    for (var idx = 0; idx < this.getLength(); ) {
-      var item = this.getItemAt(idx);
+    for (let idx = 0; idx < this.getLength(); ) {
+      const item = this.getItemAt(idx);
       if (matchFunc(item)) {
         this.remove(item);
       } else {
@@ -174,7 +177,7 @@ class ObservableArray extends ObservableCollection {
   }
 
   contains(item) {
-    var found = this.items.find((i) => {
+    const found = this.items.find((i) => {
       return i == item;
     });
     return found != null;
@@ -201,11 +204,13 @@ class ObservableArray extends ObservableCollection {
   }
 }
 
-// a ObservableList requires an ObservableCollection it accesses.
-// ObservableLists can be chained.  For example
-//    baseArray --> FilteredList --> SortedList --> ObservableList
-// the final list in this chain is a filtered and sorted version of the base array.
-// items added/removed in the base array will trigger events in every list in the chain
+/*
+ * a ObservableList requires an ObservableCollection it accesses.
+ * ObservableLists can be chained.  For example
+ *    baseArray --> FilteredList --> SortedList --> ObservableList
+ * the final list in this chain is a filtered and sorted version of the base array.
+ * items added/removed in the base array will trigger events in every list in the chain
+ */
 class ObservableView extends ObservableCollection {
   constructor(collectionIn = null) {
     super();
@@ -276,22 +281,23 @@ class ObservableView extends ObservableCollection {
     try {
       return this.collectionIn.getItemAt(index);
     } catch (ex) {
-      var count = 0;
+      return null;
     }
   }
 
   setCollection(collectionIn) {
     if (collectionIn == null) {
-      throw new Error("ObservableList needs an input collection");
+      throw new Error('ObservableList needs an input collection');
     }
 
     if (Array.isArray(collectionIn)) {
-      collectionIn = new ObservableArray(collectionIn);
+      this.collectionIn = new ObservableArray(collectionIn);
+    } else {
+      this.collectionIn = collectionIn;
     }
-    this.collectionIn = collectionIn;
-    if (!(collectionIn instanceof ObservableCollection)) {
+    if (!(this.collectionIn instanceof ObservableCollection)) {
       throw new Error(
-        "ObservableLView constructor argument is not a collection"
+        'ObservableLView constructor argument is not a collection'
       );
     }
     if (this.listeners) {
@@ -300,23 +306,23 @@ class ObservableView extends ObservableCollection {
     this.listeners = new Listeners(
       BuildCustomEventHandler()
         .emitter(this.collectionIn.getSortedEvent())
-        .onEvent(this, "onBaseSorted")
+        .onEvent(this, 'onBaseSorted')
         .build(),
       BuildCustomEventHandler()
         .emitter(this.collectionIn.getFilteredEvent())
-        .onEvent(this, "onBaseFiltered")
+        .onEvent(this, 'onBaseFiltered')
         .build(),
       BuildCustomEventHandler()
         .emitter(this.collectionIn.getItemsAddedEvent())
-        .onEvent(this, "onBaseItemsAdded")
+        .onEvent(this, 'onBaseItemsAdded')
         .build(),
       BuildCustomEventHandler()
         .emitter(this.collectionIn.getItemsRemovedEvent())
-        .onEvent(this, "onBaseItemsRemoved")
+        .onEvent(this, 'onBaseItemsRemoved')
         .build(),
       BuildCustomEventHandler()
         .emitter(this.collectionIn.getUpdatedEvent())
-        .onEvent(this, "onBaseUpdated")
+        .onEvent(this, 'onBaseUpdated')
         .build()
     );
     this.updatedEvent.emit(this);
@@ -338,9 +344,11 @@ export class SortedObservableView extends ObservableView {
   onBaseUpdated() {
     this.sortedItems = new ObservableArray(this.collectionIn);
     this.sort();
-    // sort() emited events
-    //this.sortedEvent.emit(this.sortedItems);
-    //this.updatedEvent.emit(this.updatedEvent);
+    /*
+     *  sort() emited events
+     * this.sortedEvent.emit(this.sortedItems);
+     * this.updatedEvent.emit(this.updatedEvent);
+     */
   }
 
   getItemAt(index) {
@@ -372,7 +380,7 @@ export class SortedObservableView extends ObservableView {
   }
 }
 
-function defaultKeepFilter(item) {
+function defaultKeepFilter(_item) {
   return true;
 }
 
@@ -445,8 +453,8 @@ export class ObservableTree extends ObservableArray {
   }
 
   getChildren(parent) {
-    var parentId = parent;
-    if (parent && typeof parent == "object") {
+    let parentId = parent;
+    if (parent && typeof parent == 'object') {
       parentId = parent.getId();
     }
     return [...this].filter((item) => {
@@ -455,27 +463,28 @@ export class ObservableTree extends ObservableArray {
   }
 
   getChildByName(parent, name) {
-    var parentId = parent;
-    if (parent && typeof parent == "object") {
+    let parentId = parent;
+    if (parent && typeof parent == 'object') {
       parentId = parent.getId();
     }
     return [...this].find((item) => {
       return item.getParentId() == parentId && item.getName() == name;
     });
   }
-  getPath(path, divider = "/") {
-    Assert.type(path, "string", "getPath() requires a string path");
+  // eslint-disable-next-line complexity
+  getPath(path, divider = '/') {
+    Assert.type(path, 'string', 'getPath() requires a string path');
     const levels = path.split(divider);
     let nodes = this.getTopNodes();
     let found = null;
     for (let idx = 0; idx < levels.length; idx++) {
-      let level = levels[idx];
-      let name = level.trim();
+      const level = levels[idx];
+      const name = level.trim();
       if (nodes != null && name.length > 0) {
         const next = nodes.find((node) => {
           return (
             node.Name.localeCompare(name, undefined, {
-              sensitivity: "accent",
+              sensitivity: 'accent'
             }) == 0
           );
         });

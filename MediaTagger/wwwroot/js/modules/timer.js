@@ -1,6 +1,7 @@
-import { LOG_LEVEL, Logger } from "../../drjs/logger.js";
+import { LOG_LEVEL, Logger } from '../../drjs/logger.js';
 
-const log = Logger.create("Timer", LOG_LEVEL.INFO);
+const log = Logger.create('Timer', LOG_LEVEL.INFO);
+log.never();
 
 export function OnNextLoop(func) {
   return setTimeout(func, 0);

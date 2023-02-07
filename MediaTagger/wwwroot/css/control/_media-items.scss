@@ -1,0 +1,86 @@
+
+.media-items {
+    height: stretch;
+    width: stretch;
+    grid-area: media-items;
+    background-color: var(--background-color);
+    color: var(--foreground-color);
+    overflow: hidden;
+    position: relative;
+    .layout {
+        height: 100%;
+        position: absolute;
+        left:0;
+        right: 0;
+        top:0;
+        bottom:0;
+        overflow-y: auto;
+
+       .media-item.unloaded {
+            background-image: url("../image/loading.gif");
+        }
+        
+        .media-item {
+            left: 0;
+            top: 0;
+            overflow: hidden;
+            border: 2px solid transparent;
+            background-color: rgba(255, 255, 255, 0.8);
+            display: block;
+            position: absolute;
+            aspect-ratio: 1/1;
+            background-size: 32px;
+            background-repeat: no-repeat;
+            background-position: center;
+
+            img {
+                    position: absolute;
+                    left: 0;
+                    top: 0;
+                    width: 100%;
+                    aspect-ratio: auto;
+                    max-width: 100%;
+                    max-height: 100%;
+                    z-index: 1;
+                    -o-object-fit: contain;
+                    object-fit: contain;
+            }
+            &.group.primary::after {
+                content: "";
+                position: absolute;
+                display: block;
+                right: 0;
+                bottom: 0;
+                width: 32px;
+                height: 32px;
+                background-image: url(../image/group-primary.png?v=1);
+                z-index: 100;
+                background-size: cover;
+            }
+
+            &.selected {
+                outline: 6px solid var(--accent-color-foreground);
+            }
+
+            &.focus {
+                background-color: var(--focus-background-color);
+            }
+
+            &.focus::after {
+                content: "";
+                position: absolute;
+                left: 0;
+                right: 0;
+                top: 0;
+                bottom: 0;
+                border: 2px solid var(--focus-background-color);
+                z-index: 999;
+            }
+
+            &.loaded {
+                background-image: unset;
+            }
+        }
+        
+    }
+}

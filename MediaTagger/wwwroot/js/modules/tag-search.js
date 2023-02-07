@@ -1,9 +1,10 @@
-import { LOG_LEVEL, Logger } from "../../drjs/logger.js";
+import { LOG_LEVEL, Logger } from '../../drjs/logger.js';
 
-const log = Logger.create("TagSearch", LOG_LEVEL.DEBUG);
+const log = Logger.create('TagSearch', LOG_LEVEL.DEBUG);
+log.never();
 
 class SearchWord {
-  constructor(word = "") {
+  constructor(word = '') {
     this.word = word;
     this.lowerCase = word.toLowerCase();
   }
@@ -39,9 +40,10 @@ class SearchLevel {
     return this.words.length;
   }
 
-  match(name, searchMatch) {
-    for (let word of this.words) {
-      let index = name.toLowerCase().indexOf(word.LowerCase);
+  match(tagName, searchMatch) {
+    let name = tagName;
+    for (const word of this.words) {
+      const index = name.toLowerCase().indexOf(word.LowerCase);
       if (index < 0) {
         searchMatch.skip(name);
         return null;
@@ -93,7 +95,7 @@ class SkipPart extends SearchPart {
 
 class LevelPart extends SearchPart {
   constructor() {
-    super("");
+    super('');
     this.match = false;
     this.level = true;
   }
@@ -112,28 +114,24 @@ class SearchMatch {
     return this.parts;
   }
   skip(chars) {
-    if (chars != null && chars.length > 0) {
-      let levels = chars.split("/");
-      this.parts.push(new SkipPart(levels.shift()));
+    const levels = chars?.split('/') ?? '';
+    this.parts.push(new SkipPart(levels.shift()));
 
-      for (let level of levels) {
-        this.parts.push(new LevelPart());
-        if (level != "") {
-          this.parts.push(new SkipPart(level));
-        }
+    for (const level of levels) {
+      this.parts.push(new LevelPart());
+      if (level != '') {
+        this.parts.push(new SkipPart(level));
       }
     }
   }
 
   match(chars) {
-    if (chars != null && chars.length > 0) {
-      let levels = chars.split("/");
-      this.parts.push(new MatchPart(levels.shift()));
-      for (let level of levels) {
-        this.parts.push(new LevelPart());
-        if (level != "") {
-          this.parts.push(new MatchPart(level));
-        }
+    const levels = chars?.split('/') ?? '';
+    this.parts.push(new MatchPart(levels.shift()));
+    for (const level of levels) {
+      this.parts.push(new LevelPart());
+      if (level != '') {
+        this.parts.push(new MatchPart(level));
       }
     }
   }
@@ -147,7 +145,7 @@ class SearchMatch {
 
   get NameMatch() {
     let levelMatch = false;
-    for (let part of this.parts) {
+    for (const part of this.parts) {
       if (part.IsMatch) {
         levelMatch = true;
       } else if (part.IsDivider) {
@@ -178,33 +176,28 @@ class SearchPhrase {
   }
   format() {
     let html = "<span class='phrase'>";
-    for (let level of this.levels) {
+    for (const level of this.levels) {
       html += "<span class='level'>";
-      for (let word of level.Words) {
-        html += "<span class='word'>" + word.Value + "</span>";
+      for (const word of level.Words) {
+        html += `<span class='word'>${word.Value}</span>`;
       }
-      html += "</span>";
+      html += '</span>';
     }
-    html += "</span>";
+    html += '</span>';
     return html;
   }
 
   match(path) {
-    if (this.levels.length == 0) {
-      let sm = new SearchMatch();
-      sm.Success = true;
-      return sm;
-    }
     let rest = path;
-    let searchMatch = new SearchMatch(path);
+    const searchMatch = new SearchMatch(path);
     for (let index = 0; index < this.levels.length; index++) {
-      let level = this.levels[index];
-      let part = level.match(rest, searchMatch);
+      const level = this.levels[index];
+      const part = level.match(rest, searchMatch);
       if (part == null) {
         searchMatch.Success = false;
         return searchMatch;
       }
-      let slash = part.indexOf("/");
+      const slash = part.indexOf('/');
       if (slash < 0) {
         searchMatch.Remainder = this.combineLevels(
           this.levels.slice(index + 1)
@@ -222,13 +215,13 @@ class SearchPhrase {
   }
 
   combineLevels(levels) {
-    let combine = levels
+    const combine = levels
       .map((level) => {
         return level.Words.map((w) => {
           return w.Value;
-        }).join(" ");
+        }).join(' ');
       })
-      .join("/");
+      .join('/');
     return combine;
   }
 }

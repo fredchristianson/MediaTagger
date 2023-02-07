@@ -1,27 +1,15 @@
-import { LOG_LEVEL, Logger } from "../../drjs/logger.js";
-import { dom } from "../../drjs/browser/dom.js";
-import { ZoomEvent } from "../component/view-options.js";
-import { Listeners, BuildScrollHandler } from "../../drjs/browser/event.js";
-import Media, { media } from "./media.js";
-import { OnNextLoop } from "./timer.js";
-import { Assert } from "../../drjs/assert.js";
-import { BuildCustomEventHandler } from "../../drjs/browser/event.js";
-const log = Logger.create("Layout", LOG_LEVEL.INFO);
-
-/*
-
-    let options = {
-      root: null,
-      rootMargin: "0px",
-      threshold: 1.0,
-    };
-
-    let observer = new IntersectionObserver(
-      this.intersectionChange.bind(this),
-      options)
-
-            observer.observe(newNode);
-    );*/
+import { LOG_LEVEL, Logger } from '../../drjs/logger.js';
+import { dom } from '../../drjs/browser/dom.js';
+import { ZoomEvent } from '../component/view-options.js';
+import {
+  Listeners,
+  BuildScrollHandler,
+  BuildCustomEventHandler
+} from '../../drjs/browser/event.js';
+import { media } from './media.js';
+import { OnNextLoop } from './timer.js';
+import { Assert } from '../../drjs/assert.js';
+const log = Logger.create('Layout', LOG_LEVEL.INFO);
 
 function px(num) {
   return `${num.toString()}px`;
@@ -30,7 +18,7 @@ function px(num) {
 class LayoutDetails {
   constructor(container, zoom = 1) {
     this.container = dom.first(container);
-    Assert.notNull(this.container, "Layout requires and element");
+    Assert.notNull(this.container, 'Layout requires and element');
     this.containerWidth = dom.getWidth(this.container);
     this.containerHeight = dom.getHeight(this.container);
     this.zoom = zoom;
@@ -114,16 +102,17 @@ class LayoutDetails {
 
 export class Layout {
   constructor(containerSelector, list, htmlCreator) {
+    log.debug('create Layout');
     this.containerSelector = containerSelector;
     this.container = dom.first(this.containerSelector);
-    this.layoutScroll = dom.first(this.container, ".view"); // dom.createElement("div", { "@class": "layout" });
-    this.layoutView = dom.first(this.container, ".view"); //dom.createElement("div", { "@class": "layout-view" });
+    this.layoutScroll = dom.first(this.container, '.view');
+    this.layoutView = dom.first(this.container, '.view');
     this.htmlCreator = htmlCreator;
     this.list = list;
 
     this.zoomPercent = 1;
     if (this.container == null) {
-      throw new Error("Selector ", containerSelector, " not found");
+      throw new Error('Selector ', containerSelector, ' not found');
     }
     this.resizeObserver = new ResizeObserver(this.onContainerResize.bind(this));
     this.resizeObserver.observe(this.container);
@@ -140,12 +129,12 @@ export class Layout {
         .build(),
 
       BuildCustomEventHandler()
-        .emitter(Media.getSelectedItems().getUpdatedEvent())
+        .emitter(media.getSelectedItems().getUpdatedEvent())
         .onEvent(this, this.onSelectionChanged)
         .build(),
 
       BuildCustomEventHandler()
-        .emitter(Media.getFocusChangeEvent())
+        .emitter(media.getFocusChangeEvent())
         .onEvent(this, this.setFocus)
         .build()
     );
@@ -167,14 +156,14 @@ export class Layout {
   }
 
   setFocus(item) {
-    var oldFocus = dom.first(".focus");
-    dom.removeClass(oldFocus, "focus");
-    var focusItem = item;
+    const oldFocus = dom.first('.focus');
+    dom.removeClass(oldFocus, 'focus');
+    const focusItem = item;
     if (item != null) {
       this.ensureVisible(focusItem);
     }
-    if (item != null && item.__layout_element) {
-      dom.addClass(item.__layout_element, "focus");
+    if (item != null && item._layoutElement) {
+      dom.addClass(item._layoutElement, 'focus');
     }
     this.drawItems(this.firstVisibleIndex, this.layoutDetails, this.layoutView);
   }
@@ -187,19 +176,17 @@ export class Layout {
     if (this.list == null || this.list.Length == 0) {
       return;
     }
-    var index = this.list.indexOf(item);
-    var itemCount = this.list.Length;
-    var scrollHeight = this.layoutScroll.scrollHeight;
-    var scrollTop = this.layoutScroll.scrollTop;
-    var scrollPercent = scrollTop / scrollHeight;
-    var viewHeight = this.layoutView.offsetHeight;
-    var totalRows = Math.floor(itemCount / this.layoutDetails.Columns) + 1;
-    var itemRow = Math.floor(index / this.layoutDetails.Columns);
-    var scrollPos = this.layoutScroll.scrollTop;
-    var firstVisibleRow = Math.floor(scrollPercent * totalRows);
-    var lastVisibleRow = firstVisibleRow + this.layoutDetails.VisibleRows - 1;
+    const index = this.list.indexOf(item);
+    const itemCount = this.list.Length;
+    const scrollHeight = this.layoutScroll.scrollHeight;
+    const scrollTop = this.layoutScroll.scrollTop;
+    const scrollPercent = scrollTop / scrollHeight;
+    const totalRows = Math.floor(itemCount / this.layoutDetails.Columns) + 1;
+    const itemRow = Math.floor(index / this.layoutDetails.Columns);
+    let firstVisibleRow = Math.floor(scrollPercent * totalRows);
+    const lastVisibleRow = firstVisibleRow + this.layoutDetails.VisibleRows - 1;
 
-    if (itemRow <= firstVisibleRow) {
+    if (itemRow < firstVisibleRow) {
       firstVisibleRow = itemRow;
       this.scrollToRow(firstVisibleRow);
     } else if (itemRow > lastVisibleRow) {
@@ -209,34 +196,36 @@ export class Layout {
   }
 
   detach() {
+    log.debug('detach Layout');
     this.listeners.removeAll();
   }
 
   getItem(index) {
-    var item = this.list.getItemAt(index);
+    const item = this.list.getItemAt(index);
     return item;
   }
 
   getItemHtml(index) {
-    var item = this.list.getItemAt(index);
+    const item = this.list.getItemAt(index);
     if (item == null) {
       return null;
     }
-    if (item.__layout_element == null) {
-      var element = this.htmlCreator(item);
-      item.__layout_element = element;
+    if (item._layoutElement == null) {
+      const element = this.htmlCreator(item);
+      item._layoutElement = element;
     }
-    return item.__layout_element;
+    return item._layoutElement;
   }
 
-  onScroll(target, event) {
-    let pos = this.layoutScroll.scrollTop;
-    var totalRows =
+  onScroll(_target, _event) {
+    const pos = this.layoutScroll.scrollTop;
+    const totalRows =
       Math.floor(media.getVisibleItems().Length / this.layoutDetails.Columns) +
       1;
 
-    var rowPercent = pos / this.layoutScroll.scrollHeight;
-    var row = Math.floor(totalRows * (rowPercent + 0.0005)); // add .0005 for rounding error in percent
+    const rowPercent = pos / this.layoutScroll.scrollHeight;
+    // add .0005 for rounding error in percent
+    const row = Math.floor(totalRows * (rowPercent + 0.0005));
     this.firstVisibleIndex = row * this.layoutDetails.Columns;
     this.drawItems(this.firstVisibleIndex, this.layoutDetails, this.layoutView);
   }
@@ -247,22 +236,23 @@ export class Layout {
     //this.drawItems(this.firstVisibleIndex, this.layoutDetails, this.layoutView);
   }
 
-  onSelectionChanged(list) {
+  onSelectionChanged(_list) {
     this.drawItems(this.firstVisibleIndex, this.layoutDetails, this.layoutView);
   }
 
-  onListUpdated(list) {
+  onListUpdated(_list) {
     this.onContainerResize();
   }
 
   onContainerResize() {
     this.layoutDetails = this.createLayoutDetails();
 
-    var totalRows = this.list.Length / this.layoutDetails.Columns + 1;
-    var totalHeight = totalRows * this.layoutDetails.RowHeight;
+    const totalRows = this.list.Length / this.layoutDetails.Columns + 1;
+    const totalHeight =
+      (totalRows + 1) * (this.layoutDetails.RowHeight + this.layoutDetails.Gap);
     //this.layoutScroll.style.height = px(totalHeight);
     this.setScrollHeight(totalHeight);
-    var item = media.getFocus();
+    const item = media.getFocus();
     if (item) {
       this.ensureVisible(item);
     }
@@ -270,11 +260,11 @@ export class Layout {
   }
 
   setScrollHeight(height) {
-    var bottom = dom.first(this.layoutScroll, ".bottom");
+    let bottom = dom.first(this.layoutScroll, '.bottom');
     if (bottom == null) {
-      bottom = dom.createElement("div", {
-        class: "bottom",
-        style: "position:absolute;width:1px;height:1px",
+      bottom = dom.createElement('div', {
+        class: 'bottom',
+        style: 'position:absolute;width:1px;height:1px'
       });
       dom.append(this.layoutScroll, bottom);
     }
@@ -294,35 +284,35 @@ export class GridLayout extends Layout {
     this.itemHeight = 128;
     this.gap = 16;
     this.zoom = 100.0;
-    this.gridDataName = "data-layout-grid-visible";
+    this.gridDataName = 'data-layout-grid-visible';
   }
 
+  // eslint-disable-next-line complexity
   drawItems(firstItemIndex, layoutDetails, view) {
     if (firstItemIndex < 0) {
       firstItemIndex = 0;
     }
-    var selection = Media.getSelectedItems();
-    var visibleItems = Media.getVisibleItems();
-    var visible = true;
-    var left = 0;
-    var top = view.scrollTop;
-    var viewBottom = view.scrollTop + view.clientHeight;
-    var width = layoutDetails.ItemWidth;
-    var height = layoutDetails.ItemHeight;
-    var gap = layoutDetails.Gap;
-    var viewWidth = layoutDetails.ViewWidth;
-    var viewHeight = layoutDetails.ViewHeight;
+    const selection = media.getSelectedItems();
+    const visibleItems = media.getVisibleItems();
+    let visible = true;
+    let left = 0;
+    let top = view.scrollTop;
+    const viewBottom = view.scrollTop + view.clientHeight;
+    const width = layoutDetails.ItemWidth;
+    const height = layoutDetails.ItemHeight;
+    const gap = layoutDetails.Gap;
+    const viewWidth = layoutDetails.ViewWidth;
+    const viewHeight = layoutDetails.ViewHeight;
     if (viewWidth == 0 || viewHeight == 0) {
       return;
     }
-    var cols = layoutDetails.Columns;
-    var rows = layoutDetails.Rows;
 
-    this.itemStepCount = cols;
-    var itemIndex = firstItemIndex;
-    var html = this.getItemHtml(itemIndex);
-    var layoutChildren = [];
-    left = gap / 2;
+    this.itemStepCount = layoutDetails.Columns;
+    let itemIndex = firstItemIndex;
+    let html = this.getItemHtml(itemIndex);
+    const layoutChildren = [];
+    left = gap;
+    top = view.scrollTop + gap;
     while (visible && html != null) {
       //fragment.appendChild(html);
       layoutChildren.push(html);
@@ -336,48 +326,52 @@ export class GridLayout extends Layout {
         top += height + gap;
         visible = top < viewBottom;
       }
-      var item = visibleItems.getItemAt(itemIndex);
-      dom.toggleClass(html, "selected", selection.contains(item));
-      dom.toggleClass(html, "group", item.isInGroup());
-      dom.toggleClass(html, "primary", item.isPrimary());
+      const item = visibleItems.getItemAt(itemIndex);
+      dom.toggleClass(html, 'selected', selection.contains(item));
+      dom.toggleClass(html, 'group', item.isInGroup());
+      dom.toggleClass(html, 'primary', item.isPrimary());
 
-      dom.removeClass(html, [`rotate-90`, "rotate-180", "rotate-270"]);
+      dom.removeClass(html, ['rotate-90', 'rotate-180', 'rotate-270']);
       if (item.RotationDegrees) {
         dom.addClass(html, `rotate-${(item.RotationDegrees + 360) % 360}`);
       }
+      const img = dom.first(html, 'img');
       if (item.RotationDegrees == 90 || item.RotationDegrees == 270) {
-        dom.addClass(img, "portrait");
+        dom.addClass(img, 'portrait');
       } else {
-        dom.addClass(img, "landscape");
+        dom.addClass(img, 'landscape');
       }
       itemIndex += 1;
       html = this.getItemHtml(itemIndex);
     }
 
-    var change = true;
-    var children = view.children;
+    let change = true;
+    const children = view.children;
     if (layoutChildren.length == children.length) {
       change = false;
-      for (var i = 0; i < layoutChildren.length && !change; i++) {
+      for (let i = 0; i < layoutChildren.length && !change; i++) {
         if (layoutChildren[i] != children[i]) {
           change = true;
         }
       }
     }
     if (change) {
-      var fragment = document.createDocumentFragment();
-      for (var child of layoutChildren) {
+      const fragment = document.createDocumentFragment();
+      for (const child of layoutChildren) {
         fragment.appendChild(child);
       }
-      var bottom = dom.first(view, ".bottom");
-      view.replaceChildren(fragment);
+      const bottom = dom.first(view, '.bottom');
+      //view.replaceChildren(fragment);
+      view.replaceChildren(...layoutChildren);
       dom.append(view, bottom);
 
-      // position top margin after image has been inserted into the body DOM
-      // before then the <img> has 0 size
-      for (var img of dom.find(view, "img")) {
+      /*
+       * position top margin after image has been inserted into the body DOM
+       * before then the <img> has 0 size
+       */
+      for (const img of dom.find(view, 'img')) {
         if (!img.complete) {
-          img.addEventListener("load", () => this.positionImage.bind(this));
+          img.addEventListener('load', () => this.positionImage.bind(this));
         } else {
           this.positionImage(img);
         }
@@ -386,8 +380,8 @@ export class GridLayout extends Layout {
   }
   positionImage(img) {
     const height = this.layoutDetails.ItemHeight;
-    var imgHeight = height;
-    if (dom.hasClass(img, "portrait")) {
+    let imgHeight = height;
+    if (dom.hasClass(img, 'portrait')) {
       imgHeight = dom.getWidth(img);
     } else {
       imgHeight = dom.getHeight(img);

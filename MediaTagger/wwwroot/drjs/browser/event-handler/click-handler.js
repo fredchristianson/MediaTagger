@@ -1,14 +1,12 @@
-import { LOG_LEVEL, Logger } from "../../logger.js";
-import { default as dom } from "../dom.js";
+import { LOG_LEVEL, Logger } from '../../logger.js';
 import {
   EventHandlerBuilder,
   EventListener,
   HandlerMethod,
-  DoNothing,
-  Continuation,
-} from "./handler.js";
+  DoNothing
+} from './handler.js';
 
-const log = Logger.create("ClickHandler", LOG_LEVEL.WARN);
+const log = Logger.create('ClickHandler', LOG_LEVEL.WARN);
 
 export function BuildClickHandler() {
   return new ClickHandlerBuilder(ClickHandler);
@@ -41,17 +39,17 @@ export class ClickHandler extends EventListener {
   constructor(...args) {
     super(...args);
     this.setTypeName([
-      "click",
-      "mouseup",
-      "mousedown",
-      "mouseover",
-      "mouseout",
+      'click',
+      'mouseup',
+      'mousedown',
+      'mouseover',
+      'mouseout'
     ]);
 
-    this.onClick = HandlerMethod.None();
-    this.onLeftClick = HandlerMethod.None();
-    this.onRightClick = HandlerMethod.None();
-    this.onMiddleClick = HandlerMethod.None();
+    this.onClick = HandlerMethod.None;
+    this.onLeftClick = HandlerMethod.None;
+    this.onRightClick = HandlerMethod.None;
+    this.onMiddleClick = HandlerMethod.None;
   }
 
   setOnClick(handler) {
@@ -69,30 +67,30 @@ export class ClickHandler extends EventListener {
 
   callHandlers(event) {
     try {
-      var response = this.defaultResponse.clone();
+      const response = this.defaultResponse.clone();
 
-      if (event.type == "mouseover") {
-        if (this.onRightClick) {
+      if (event.type == 'mouseover') {
+        if (this.onRightClick.IsValid) {
           document.oncontextmenu = DoNothing;
         }
         return;
-      } else if (event.type == "mouseout") {
+      } else if (event.type == 'mouseout') {
         if (this.onRightClick) {
           document.oncontextmenu = null;
         }
         return;
       }
-      if (event.type == "mousedown") {
+      if (event.type == 'mousedown') {
         if (event.button == 1 && this.onMiddleClick) {
           response.preventDefault = true;
           event.preventDefault(); // don't scroll if middle click handler exists
         }
       }
 
-      if (event.type == "click" && this.onClick != null) {
+      if (event.type == 'click' && this.onClick != null) {
         response.combine(this.onClick.call(this, event));
       }
-      if (event.type == "mouseup") {
+      if (event.type == 'mouseup') {
         if (event.button == 0) {
           response.combine(this.onLeftClick.call(this, event));
         }
@@ -105,7 +103,7 @@ export class ClickHandler extends EventListener {
       }
       return response;
     } catch (ex) {
-      log.error(ex, "event handler for ", this.typeName, " failed");
+      log.error(ex, 'event handler for ', this.typeName, ' failed');
     }
   }
 }
