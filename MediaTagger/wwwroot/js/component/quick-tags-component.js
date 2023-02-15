@@ -1,10 +1,6 @@
 import { ComponentBase } from '../../drjs/browser/component.js';
 import { Settings } from '../modules/settings.js';
-import {
-  media,
-  FocusChangeEvent,
-  FocusEntityChangeEvent
-} from '../modules/media.js';
+import { media, FocusChangeEvent } from '../modules/media.js';
 import { RightGridSizer } from '../modules/drag-drop.js';
 import {
   Listeners,
@@ -119,7 +115,7 @@ export class QuickTagsComponent extends ComponentBase {
         .onKey(Key.Tab.withoutShift(), this, this.nextTag)
         .onKey(Key.Tab.withShift(), this, this.prevTag)
         .onKey(Key.Enter, this, this.toggleTagSelect)
-        .onKey(Key.Regex(/[0-9]/).withAlt(), this, this.selectRecent)
+        .onKey(Key.Regex(/[0-9]/).withCtrl(), this, this.selectRecent)
         .onKey(Key.Regex(/[a-z]/).withAlt(), this, this.selectHotkey)
         .onKey(
           Key.Regex(/[a-zA-Z0-9\/\s]/)
@@ -147,10 +143,6 @@ export class QuickTagsComponent extends ComponentBase {
         .build(),
       BuildCustomEventHandler()
         .emitter(FocusChangeEvent)
-        .onEvent(this, this.onFocusChange)
-        .build(),
-      BuildCustomEventHandler()
-        .emitter(FocusEntityChangeEvent)
         .onEvent(this, this.onFocusChange)
         .build()
     );

@@ -61,8 +61,15 @@ class FocusView extends Control {
     this.fillImages();
   }
 
-  onFocusEntityUpdate() {
-    this.fillImageTags();
+  onFocusEntityUpdate(item) {
+    // this.fillImageTags();
+    const img = this.dom.first('img.image');
+    fetch(item.getThumbnailUrl(), {
+      cache: 'reload',
+      mode: 'no-cors'
+    }).then(() => {
+      img.src = item.getThumbnailUrl();
+    });
   }
   onSelectImage(target, _event, _handler) {
     const offset = this.dom.getData(target, 'offset', 'number');

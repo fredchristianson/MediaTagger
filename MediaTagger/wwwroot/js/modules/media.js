@@ -398,7 +398,7 @@ class Media {
       if (nameMatch) {
         return true;
       }
-      const idMatch = id.Id == num;
+      const idMatch = item.Id == num;
       if (idMatch) {
         return true;
       }

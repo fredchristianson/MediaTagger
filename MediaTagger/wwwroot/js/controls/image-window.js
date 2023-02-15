@@ -1,20 +1,42 @@
 import { Settings } from '../modules/settings.js';
 import { LOG_LEVEL, Logger } from '../../drjs/logger.js';
 const log = Logger.create('ImageWindow', LOG_LEVEL.DEBUG);
-
+import { FocusEntityChangeEvent } from '../modules/media.js';
+import { BuildCustomEventHandler } from '../../drjs/browser/event.js';
 class ImageWindow {
   constructor() {
     this.showing = false;
     this.window = null;
     this.externalWindow = null;
     this.settings = null;
+    this.url = null;
     window.addEventListener('beforeunload', this.close.bind(this), true);
+    BuildCustomEventHandler()
+      .emitter(FocusEntityChangeEvent)
+      .onEvent(this, this.onFocusEntityUpdate)
+      .build();
+  }
+
+  onFocusEntityUpdate() {
+    if (this.externalWindow && this.url) {
+      fetch(this.url, {
+        cache: 'reload',
+        mode: 'no-cors'
+      }).then(() => {
+        this.externalWindow.location.replace(this.url);
+
+        this.externalWindow.addEventListener('load', async (event) => {
+          this.externalWindow.location.reload();
+        });
+      });
+    }
   }
 
   close() {
     if (this.externalWindow) {
       this.externalWindow.close();
     }
+    this.url = null;
   }
   async open() {
     if (this.externalWindow == null || this.externalWindow.closed) {
@@ -26,9 +48,9 @@ class ImageWindow {
         pos = `,top=${settings.get('top')},left=${settings.get('left')}`;
       }
       this.externalWindow = window.open(
-        ``,
+        '',
         'media-tagger-preview',
-        'toolbar=false,resizeable=yes' + pos
+        `toolbar=false,resizeable=yes${pos}`
       );
       if (settings.get('width') != null && settings.get('height') != null) {
         log.debug('resize ', settings.get('width'), settings.get('height'));
@@ -50,12 +72,17 @@ class ImageWindow {
       settings.set('top', this.externalWindow.screenTop);
       settings.set('width', this.externalWindow.outerWidth);
       settings.set('height', this.externalWindow.outerHeight);
-      this.externalWindow.location.replace(image.getImageReloadUrl());
-      // may use a cached image.  if .reload() is called before loading
-      // finishes, it uses the previous (cached) version.  so wait for load then reload();
+      this.url = image.getImageReloadUrl();
+      this.externalWindow.location.replace(this.url);
+      /*
+       * may use a cached image.  if .reload() is called before loading
+       * finishes, it uses the previous (cached) version.  so wait for load then reload();
+       */
       this.externalWindow.addEventListener('load', async (event) => {
         this.externalWindow.location.reload();
       });
+    } else {
+      this.url = null;
     }
   }
   async getSettings() {
