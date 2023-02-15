@@ -1,0 +1,100 @@
+#tag-manager {
+    width: 800px;
+    margin: auto auto;
+    border-right: 1px solid #aaa;
+    border-left: 1px solid #aaa;
+    height: 100%;
+    display: flex;
+    flex-flow: column;
+    align-items: stretch;
+    height: 100%;
+}
+
+#tag-manager h1 {
+    flex: 0 0 auto;
+    width: 100%;
+    padding: 8px;
+    display: block;
+    background-color: #aaf;
+    text-align: center;
+}
+
+#tag-manager .tag-tree {
+    flex: 1 1 auto;
+    overflow: auto;
+    padding-left: 4px;
+    padding-top: 4px;
+    position: relative;
+}
+
+#tag-manager .tag-tree>.tag:last-child {
+    margin-bottom: 4rem;
+}
+
+#tag-manager .children {
+    position: relative;
+    padding-left: 4rem;
+}
+
+#tag-manager .tag {
+    position: relative;
+}
+
+#tag-manager .tag .on-hover {
+    display: none;
+}
+
+#tag-manager .tag .buttons {
+    display: none;
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    height: 2.5em;
+}
+
+#tag-manager .tag button {
+    margin-left: 8px;
+    border: 0px;
+    text-decoration: underline;
+    background-color: transparent;
+}
+
+#tag-manager .tag .self:hover {
+    border: 1px dashed #aaa;
+    height: 3em;
+}
+
+#tag-manager .tag .self:hover .on-hover {
+    display: block;
+}
+
+#tag-manager .tag.root .edit {
+    display: none !important;
+}
+
+#tag-manager .tag .self {
+    background-color: transparent;
+    transition: background-color 1s;
+}
+
+#tag-manager .tag.new .self {
+    background-color: yellow;
+    transition: background-color 1s;
+}
+
+#tag-manager .tag.dragging {
+    background-color: aqua;
+}
+
+#tag-manager .tag.dragging .button {
+    display: none !important;
+}
+
+#tag-manager .tag.dragging .children {
+    display: none;
+}
+
+#tag-manager .tag.drag-over:not(.dragging)>.self {
+    background-color: yellow;
+    border: 1px dashed #aaa;
+}

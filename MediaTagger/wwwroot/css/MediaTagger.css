@@ -163,6 +163,7 @@ table {
   --color-debug-on: hsl(0,100%,50%);
   --color-debug: var(--color-debug,transparent);
   --accent-color-foreground: hsl(45, 97%, 50%);
+  --accent-foreground-color: hsl(45, 97%, 50%);
   --tree-control-color: var(--border-color);
 }
 
@@ -210,9 +211,9 @@ body {
   left: 0;
   right: 0;
   top: 0;
-  height: -webkit-fill-available;
-  height: -moz-available;
-  height: stretch;
+  height: 100%;
+  height: 100vh;
+  height: 100dvh;
   overflow: hidden;
   display: grid;
   grid-template-areas: "view-options" "content" "status";
@@ -325,6 +326,27 @@ body.theme-happy {
   --control-foreground-color: var(--Dark);
   --accent-color-foreground: var(--Brand);
   --tree-control-color: var(--Brand);
+}
+
+body.theme-dolphin {
+  --brand-color: #25afd2;
+  --darkest-color: #1c0d29;
+  --dark-color: #4b216e;
+  --mid-color: #f1b24a;
+  --light-color: #cde6ec;
+  --lightest-color: #FFFFFF;
+  --foreground-color: var(--darkest-color);
+  --background-color: var(--lightest-color);
+  --component-foreground-color: var(--dark-color);
+  --component-background-color: var(--light-color);
+  --border-color: var(--mid-color);
+  --edge-color: var(--mid-color);
+  --highlight-background-color: var(--lightest-color);
+  --highlight-foreground-color: var(--darkest-color);
+  --control-background-color: var(--brand-color);
+  --control-foreground-color: var(--lightest-color);
+  --accent-color-foreground: var(--brand-color);
+  --tree-control-color: var(--brand-color);
 }
 
 .media-items {
@@ -1050,12 +1072,11 @@ label.check-state[data-state=unchecked]::after {
 
 #quick-tags {
   --border-color: #000;
-  --background-color: #ddd;
   --padding: 8px;
   height: 100%;
   background: linear-gradient(142deg, var(--background-color), var(--foreground-color)), linear-gradient(0deg, var(--background-color), var(--foreground-color));
   background-size: 3px 3px;
-  color: var(--foreground-color);
+  color: var(--component-foreground-color);
   display: grid;
   grid-template-areas: "media sizer select tree";
   grid-template-columns: auto auto auto 1fr;
@@ -1066,7 +1087,7 @@ label.check-state[data-state=unchecked]::after {
 }
 #quick-tags .media,
 #quick-tags .quick-select,
-#quick-tags .tag-tree {
+#quick-tags .quick-tag-tree {
   padding: 2px;
   border-right: 1px solid var(--border-color);
   height: 100%;
@@ -1074,11 +1095,11 @@ label.check-state[data-state=unchecked]::after {
 }
 #quick-tags .media {
   grid-area: media;
-  background-color: var(--background-color);
+  background-color: var(--component-background-color);
 }
 #quick-tags .quick-select {
   grid-area: select;
-  background-color: var(--background-color);
+  background-color: var(--component-background-color);
   min-width: 200px;
   padding: var(--padding);
 }
@@ -1129,7 +1150,7 @@ label.check-state[data-state=unchecked]::after {
 #quick-tags .quick-select .recent-tags .recent div {
   display: inline-block;
 }
-#quick-tags .tag-tree {
+#quick-tags .quick-tag-tree {
   --placeholder: "  search...";
   display: flex;
   flex-flow: column;
@@ -1139,36 +1160,36 @@ label.check-state[data-state=unchecked]::after {
   grid-area: tree;
   border-right: 0;
   padding: 0;
-  background-color: var(--background-color);
+  background-color: var(--component-background-color);
 }
-#quick-tags .tag-tree > div {
+#quick-tags .quick-tag-tree > div {
   padding: var(--padding);
 }
-#quick-tags .tag-tree div.search {
+#quick-tags .quick-tag-tree div.search {
   flex: 0 0 content;
 }
-#quick-tags .tag-tree div.search .input {
+#quick-tags .quick-tag-tree div.search .input {
   width: 50em;
   display: block;
   margin-bottom: 4px;
 }
-#quick-tags .tag-tree div.create {
+#quick-tags .quick-tag-tree div.create {
   flex: 0 0 content;
   border-bottom: 1px solid #444;
 }
-#quick-tags .tag-tree div.create .parent {
+#quick-tags .quick-tag-tree div.create .parent {
   display: inline-block;
   position: relative;
-  color: #777;
+  color: var(--accent-foreground-color);
 }
-#quick-tags .tag-tree div.create .parent::after {
+#quick-tags .quick-tag-tree div.create .parent::after {
   content: ":";
 }
-#quick-tags .tag-tree div.create .name {
-  color: #000;
+#quick-tags .quick-tag-tree div.create .name {
+  color: var(--component-foreground-color);
   margin-left: 2em;
 }
-#quick-tags .tag-tree div.tags {
+#quick-tags .quick-tag-tree div.tags {
   flex: 1 1 auto;
   overflow: auto;
   margin-top: var(--padding);
@@ -1212,12 +1233,6 @@ label.check-state[data-state=unchecked]::after {
   width: -moz-fit-content;
   width: fit-content;
 }
-#quick-tags .images img.rotate-270 {
-  transform: rotate(270deg);
-}
-#quick-tags .images img.rotate-90 {
-  transform: rotate(90deg);
-}
 #quick-tags .tag.node {
   position: relative;
 }
@@ -1257,7 +1272,7 @@ label.check-state[data-state=unchecked]::after {
 }
 #quick-tags .tag.node > .children {
   margin-left: 1em;
-  border-left: 1px dotted #777;
+  border-left: 1px dotted var(--accent-foreground-color);
   padding-left: 0px;
   position: relative;
 }
@@ -1271,7 +1286,7 @@ label.check-state[data-state=unchecked]::after {
   left: -6px;
   width: 8px;
   height: 1px;
-  border-top: 1px dotted #777;
+  border-top: 1px dotted var(--accent-foreground-color);
 }
 #quick-tags .no-items {
   font-style: italic;
@@ -1298,8 +1313,8 @@ label.check-state[data-state=unchecked]::after {
   vertical-align: top;
   text-align: left;
   border: 1px solid black;
-  color: 1px solid #777;
-  background-color: white;
+  color: var(--foreground-color);
+  background-color: var(--background-color);
   display: inline-block;
   width: 50em;
   position: relative;
@@ -1313,7 +1328,7 @@ label.check-state[data-state=unchecked]::after {
 }
 #quick-tags .input .start:empty::after {
   content: var(--placeholder);
-  color: #aaa;
+  color: var(--control-foreground-color);
   position: absolute;
   top: 0px;
   left: 4px;
@@ -1321,7 +1336,7 @@ label.check-state[data-state=unchecked]::after {
 #quick-tags .input .cursor {
   vertical-align: top;
   width: 2px;
-  background-color: #aaa;
+  background-color: var(--control-background-color);
   height: 12px;
   margin-top: 4px;
   display: none;
@@ -1356,30 +1371,28 @@ label.check-state[data-state=unchecked]::after {
 #quick-tags .search .phrase .level:last-child {
   padding-right: 0;
   padding-top: 2px;
-  color: #444;
 }
 #quick-tags .search .phrase .level:last-child::after {
   display: none;
 }
 #quick-tags .tag.match > .self {
-  color: blue;
+  color: var(--accent-color);
 }
 #quick-tags .tag.match.selected > .self .name {
-  outline: 1px dashed blue;
+  outline: 1px dashed var(--accent-color);
 }
 #quick-tags .tag > .self span.name {
   display: inline-block;
-  color: #444;
+  color: var(--accent-color-foreground);
 }
 #quick-tags .tag > .self span.name b {
-  color: blue;
+  color: var(--accent-color);
 }
 #quick-tags .tag > .self span.name .level {
   margin-right: 8px;
 }
 #quick-tags .tag > .self span.name .new {
-  background-color: white;
-  outline: 1px solid #444;
+  outline: 1px solid var(--accent-foreground-color);
   padding-left: 1em;
 }
 #quick-tags .tag > .self span.name .new button {
@@ -1473,6 +1486,107 @@ label.check-state[data-state=unchecked]::after {
 }
 .settings-component .folders.selected ul {
   padding-left: 2rem;
+}
+
+#tag-manager {
+  width: 800px;
+  margin: auto auto;
+  border-right: 1px solid #aaa;
+  border-left: 1px solid #aaa;
+  height: 100%;
+  display: flex;
+  flex-flow: column;
+  align-items: stretch;
+  height: 100%;
+}
+
+#tag-manager h1 {
+  flex: 0 0 auto;
+  width: 100%;
+  padding: 8px;
+  display: block;
+  background-color: #aaf;
+  text-align: center;
+}
+
+#tag-manager .tag-tree {
+  flex: 1 1 auto;
+  overflow: auto;
+  padding-left: 4px;
+  padding-top: 4px;
+  position: relative;
+}
+
+#tag-manager .tag-tree > .tag:last-child {
+  margin-bottom: 4rem;
+}
+
+#tag-manager .children {
+  position: relative;
+  padding-left: 4rem;
+}
+
+#tag-manager .tag {
+  position: relative;
+}
+
+#tag-manager .tag .on-hover {
+  display: none;
+}
+
+#tag-manager .tag .buttons {
+  display: none;
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  height: 2.5em;
+}
+
+#tag-manager .tag button {
+  margin-left: 8px;
+  border: 0px;
+  text-decoration: underline;
+  background-color: transparent;
+}
+
+#tag-manager .tag .self:hover {
+  border: 1px dashed #aaa;
+  height: 3em;
+}
+
+#tag-manager .tag .self:hover .on-hover {
+  display: block;
+}
+
+#tag-manager .tag.root .edit {
+  display: none !important;
+}
+
+#tag-manager .tag .self {
+  background-color: transparent;
+  transition: background-color 1s;
+}
+
+#tag-manager .tag.new .self {
+  background-color: yellow;
+  transition: background-color 1s;
+}
+
+#tag-manager .tag.dragging {
+  background-color: aqua;
+}
+
+#tag-manager .tag.dragging .button {
+  display: none !important;
+}
+
+#tag-manager .tag.dragging .children {
+  display: none;
+}
+
+#tag-manager .tag.drag-over:not(.dragging) > .self {
+  background-color: yellow;
+  border: 1px dashed #aaa;
 }
 
 /*# sourceMappingURL=MediaTagger.css.map *//*# sourceMappingURL=MediaTagger.css.map */

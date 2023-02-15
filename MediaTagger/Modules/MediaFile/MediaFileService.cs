@@ -3,8 +3,6 @@ using MediaTagger.Data;
 using MediaTagger.Modules.FileSystem;
 using Microsoft.EntityFrameworkCore;
 using System.Globalization;
-using System.Linq;
-using System.Net.Http.Headers;
 using System.Text.Json;
 
 namespace MediaTagger.Modules.MediaFile
@@ -20,6 +18,7 @@ namespace MediaTagger.Modules.MediaFile
         Task UpdateMediaFileProperties(long id);
         bool IsVideoType(MediaFileModel mediaFile);
         bool IsRawImage(MediaFileModel mediaFile);
+        Task<MediaFileModel?> Rotate(long id, int degrees);
     }
     public class MediaFileService : IMediaFileService
     {
@@ -42,6 +41,17 @@ namespace MediaTagger.Modules.MediaFile
             return mediaFile;
 
 
+        }
+
+        public async Task<MediaFileModel?> Rotate(long id, int degrees)
+        {
+            var file = await this.GetMediaFileById(id);
+            if (file != null)
+            {
+                file.RotationDegrees += degrees;
+                await db.SaveChangesAsync();
+            }
+            return file;
         }
 
         public async Task<List<long>> GetAllMediaFileIds()
@@ -257,5 +267,7 @@ namespace MediaTagger.Modules.MediaFile
             }
             return null;
         }
+
+
     }
 }

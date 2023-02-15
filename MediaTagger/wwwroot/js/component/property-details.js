@@ -32,6 +32,10 @@ export class PropertyDetailsComponent extends ComponentBase {
       BuildCustomEventHandler()
         .emitter(media.getFocusChangeEvent())
         .onEvent(this, this.focusChange)
+        .build(),
+      BuildCustomEventHandler()
+        .emitter(media.getFocusEntityChangeEvent())
+        .onEvent(this, this.focusChange)
         .build()
     );
   }
@@ -86,13 +90,19 @@ export class PropertyDetailsComponent extends ComponentBase {
       `${focus.getWidth()} x ${focus.getHeight()}`
     );
     this.dom.setInnerHTML('.media-file-id', `ID: ${focus.getId()}`);
-    this.dom.setAttribute('.preview img', 'src', focus.getImageUrl());
-    if (this.externalWindow) {
-      this.openExternalWindow();
-    }
+
     this.dom.removeClass('.preview', ['rotate-90', 'rotate-180', 'rotate-270']);
     const preview = this.dom.first('.preview');
     const img = this.dom.first(preview, 'img');
+    fetch(focus.getImageUrl(), {
+      cache: 'reload',
+      mode: 'no-cors'
+    }).then(() => {
+      this.dom.setAttribute('.preview img', 'src', focus.getImageUrl());
+      if (this.externalWindow) {
+        this.openExternalWindow();
+      }
+    });
 
     img.style.maxHeight = `${preview.offsetHeight}px`;
     img.style.maxWidth = `${preview.offsetWidth}px`;

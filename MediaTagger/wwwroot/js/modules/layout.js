@@ -136,6 +136,10 @@ export class Layout {
       BuildCustomEventHandler()
         .emitter(media.getFocusChangeEvent())
         .onEvent(this, this.setFocus)
+        .build(),
+      BuildCustomEventHandler()
+        .emitter(media.getFocusEntityChangeEvent())
+        .onEvent(this, this.setFocus)
         .build()
     );
 
@@ -164,6 +168,19 @@ export class Layout {
     }
     if (item != null && item._layoutElement) {
       dom.addClass(item._layoutElement, 'focus');
+
+      const img = dom.first(item._layoutElement, 'img');
+      img.src = null;
+      fetch(item.getThumbnailUrl(), {
+        cache: 'reload',
+        mode: 'no-cors'
+      }).then(() => {
+        img.src = item.getThumbnailUrl();
+      });
+      /*
+       * const element = this.htmlCreator(item);
+       * item._layoutElement = element;
+       */
     }
     this.drawItems(this.firstVisibleIndex, this.layoutDetails, this.layoutView);
   }

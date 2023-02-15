@@ -1,13 +1,13 @@
 #quick-tags {
     --border-color: #000;
-    --background-color: #ddd;
+    //--background-color: #ddd;
     --padding: 8px;
     height: 100%;
     background: linear-gradient(142deg, var(--background-color), var(--foreground-color)),
         linear-gradient(0deg, var(--background-color),
             var(--foreground-color));
     background-size: 3px 3px;
-    color: var(--foreground-color);
+    color: var(--component-foreground-color);
     display: grid;
     grid-template-areas: "media sizer select tree";
     grid-template-columns: auto auto auto 1fr;
@@ -19,7 +19,7 @@
 
     .media,
     .quick-select,
-    .tag-tree {
+    .quick-tag-tree {
         padding: 2px;
         border-right: 1px solid var(--border-color);
         height: 100%;
@@ -28,12 +28,12 @@
 
     .media {
         grid-area: media;
-        background-color: var(--background-color);
+        background-color: var(--component-background-color);
     }
 
     .quick-select {
         grid-area: select;
-        background-color: var(--background-color);
+        background-color: var(--component-background-color);
         min-width: 200px;
         padding: var(--padding);
     }
@@ -93,7 +93,7 @@
         display: inline-block;
     }
 
-    .tag-tree {
+    .quick-tag-tree {
         --placeholder: "  search...";
         display: flex;
         flex-flow: column;
@@ -103,45 +103,45 @@
         grid-area: tree;
         border-right: 0;
         padding: 0;
-                background-color: var(--background-color);
+                background-color: var(--component-background-color);
 
     }
 
-    .tag-tree>div {
+    .quick-tag-tree>div {
         padding: var(--padding);
     }
 
-    .tag-tree div.search {
+    .quick-tag-tree div.search {
         flex: 0 0 content;
     }
 
-    .tag-tree div.search .input {
+    .quick-tag-tree div.search .input {
         width: 50em;
         display: block;
         margin-bottom: 4px;
     }
 
-    .tag-tree div.create {
+    .quick-tag-tree div.create {
         flex: 0 0 content;
         border-bottom: 1px solid #444;
     }
 
-    .tag-tree div.create .parent {
+    .quick-tag-tree div.create .parent {
         display: inline-block;
         position: relative;
-        color: #777;
+        color: var(--accent-foreground-color);
     }
 
-    .tag-tree div.create .parent::after {
+    .quick-tag-tree div.create .parent::after {
         content: ":";
     }
 
-    .tag-tree div.create .name {
-        color: #000;
+    .quick-tag-tree div.create .name {
+    color: var(--component-foreground-color);
         margin-left: 2em;
     }
 
-    .tag-tree div.tags {
+    .quick-tag-tree div.tags {
         flex: 1 1 auto;
         overflow: auto;
         margin-top: var(--padding);
@@ -193,14 +193,6 @@
         width: fit-content;
     }
 
-    .images img.rotate-270 {
-        transform: rotate(270deg);
-    }
-
-    .images img.rotate-90 {
-        transform: rotate(90deg);
-    }
-
     .tag.node {
         position: relative;
     }
@@ -249,7 +241,7 @@
 
     .tag.node>.children {
         margin-left: 1em;
-        border-left: 1px dotted #777;
+        border-left: 1px dotted var(--accent-foreground-color);
         padding-left: 0px;
         position: relative;
     }
@@ -265,7 +257,7 @@
         left: -6px;
         width: 8px;
         height: 1px;
-        border-top: 1px dotted #777;
+        border-top: 1px dotted var(--accent-foreground-color);
     }
 
     .no-items {
@@ -298,8 +290,8 @@
         vertical-align: top;
         text-align: left;
         border: 1px solid black;
-        color: 1px solid #777;
-        background-color: white;
+        color: var(--foreground-color);;
+        background-color: var(--background-color);
         display: inline-block;
         width: 50em;
         position: relative;
@@ -315,7 +307,7 @@
 
     .input .start:empty::after {
         content: var(--placeholder);
-        color: #aaa;
+        color: var(--control-foreground-color);
         position: absolute;
         top: 0px;
         left: 4px;
@@ -324,7 +316,7 @@
     .input .cursor {
         vertical-align: top;
         width: 2px;
-        background-color: #aaa;
+        background-color: var(--control-background-color);;
         height: 12px;
         margin-top: 4px;
         display: none;
@@ -364,7 +356,6 @@
     .search .phrase .level:last-child {
         padding-right: 0;
         padding-top: 2px;
-        color: #444;
     }
 
     .search .phrase .level:last-child::after {
@@ -372,20 +363,20 @@
     }
 
     .tag.match>.self {
-        color: blue;
+        color: var(--accent-color);
     }
 
     .tag.match.selected>.self .name {
-        outline: 1px dashed blue;
+        outline: 1px dashed var(--accent-color);
     }
 
     .tag>.self span.name {
         display: inline-block;
-        color: #444;
+        color: var(--accent-color-foreground);
     }
 
     .tag>.self span.name b {
-        color: blue;
+        color: var(--accent-color);
     }
 
     .tag>.self span.name .level {
@@ -393,8 +384,7 @@
     }
 
     .tag>.self span.name .new {
-        background-color: white;
-        outline: 1px solid #444;
+        outline: 1px solid var(--accent-foreground-color);
         padding-left: 1em;
     }
 

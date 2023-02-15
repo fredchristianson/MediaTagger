@@ -37,6 +37,8 @@ namespace MediaTagger.Modules.Image
             return path;
         }
 
+
+
         async private Task<FileInfo?> GetOrCreateThumbnailFile(long id)
         {
             var settings = settingsService.get();
@@ -96,6 +98,7 @@ namespace MediaTagger.Modules.Image
                                 }
                             }
                         }
+                        img.AutoOrient();
                         img.Thumbnail(new MagickGeometry(255, 255));
 
                         img.Write(thumbFile, MagickFormat.WebP);

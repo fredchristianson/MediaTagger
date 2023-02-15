@@ -15,14 +15,21 @@ export async function getMediaFiles(startPos, count) {
   );
 }
 
+export async function rotate(mediaFile, degrees) {
+  const url = `/image/${mediaFile.getId()}/rotate/${degrees}`;
+  const update = await httpAPI.post(url);
+  mediaFile.setRotationDegrees(update.rotationDegrees);
+  return update;
+}
+
 export async function getTags(startPos, count) {
   return await httpAPI.get('Tags', { start: startPos, count: count }, 'json');
 }
 
 export async function createTag(parentId, name) {
-  let url = `Tag/?name=${  name}`;
+  let url = `Tag/?name=${name}`;
   if (parentId != null) {
-    url += `&parentId=${  parentId}`;
+    url += `&parentId=${parentId}`;
   }
   const result = await httpAPI.put(url, null, 'json');
   if (result != null && result.success) {
@@ -64,7 +71,7 @@ export async function createAlbum(name, description) {
 export async function updateAlbum(parentId, Album) {
   let url = 'Album';
   if (parentId != null) {
-    url += `?parentId=${  parentId}`;
+    url += `?parentId=${parentId}`;
   }
   const data = {
     id: Album.getId(),
@@ -164,6 +171,7 @@ export async function saveMediaFiles(updates) {
       delete data.fileSize;
       delete data.filename;
       delete data.directory;
+      // eslint-disable-next-line no-await-in-loop
       const response = await httpAPI.post('MediaFile', data, 'json');
       log.info('updated ', update.getId());
     } catch (ex) {

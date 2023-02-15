@@ -1,0 +1,23 @@
+body.theme-dolphin {
+--brand-color: #25afd2;
+    --darkest-color: #1c0d29;
+    --dark-color: #4b216e;
+    --mid-color: #f1b24a;
+    --light-color: #cde6ec;
+    --lightest-color: #FFFFFF;
+
+
+    --foreground-color: var(--darkest-color);
+    --background-color: var(--lightest-color);
+    --component-foreground-color: var(--dark-color);
+    --component-background-color: var(--light-color);
+
+    --border-color: var(--mid-color);
+    --edge-color: var(--mid-color);
+    --highlight-background-color: var(--lightest-color);
+    --highlight-foreground-color: var(--darkest-color);
+    --control-background-color: var(--brand-color);
+    --control-foreground-color: var(--lightest-color);
+    --accent-color-foreground: var(--brand-color);
+    --tree-control-color: var(--brand-color);
+}

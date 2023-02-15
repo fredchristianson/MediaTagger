@@ -16,7 +16,7 @@ namespace MediaTagger.Modules.Image
 
             routes.MapGet("/image/{id}", async (IMediaFileService service,
             int id,
-            [FromHeader(Name = "If-None-Match")] string? ifNotMatch, 
+            [FromHeader(Name = "If-None-Match")] string? ifNotMatch,
             IHttpContextAccessor context) =>
             {
                 IResult response = null!;
@@ -36,6 +36,7 @@ namespace MediaTagger.Modules.Image
 
                         using (var img = new MagickImage(path))
                         {
+                            img.AutoOrient();
                             img.Rotate(file.RotationDegrees);
                             MemoryStream stream = new MemoryStream();
                             img.Write(stream, MagickFormat.Jpeg);
@@ -67,9 +68,21 @@ namespace MediaTagger.Modules.Image
                     }
                     else
                     {
-                        context.HttpContext.Response.Headers.Add("cache-control", "no-cache");
+                        using (var img = new MagickImage(fileInfo.FullName))
+                        {
+                            img.AutoOrient();
+                            var file = await mediaService.GetMediaFileById(id);
+                            if (file.RotationDegrees != 0)
+                            {
+                                img.Rotate(file.RotationDegrees);
+                            }
+                            MemoryStream stream = new MemoryStream();
+                            img.Write(stream, MagickFormat.Jpeg);
+                            stream.Seek(0, SeekOrigin.Begin);
+                            context.HttpContext.Response.Headers.Add("cache-control", "no-cache");
+                            return Results.Stream(stream, "image/jpeg", null, file.ModifiedOn, new EntityTagHeaderValue(etag));
 
-                        return Results.Stream(fileInfo.OpenRead(), service.GetMimeType(), null, fileInfo.LastWriteTime, new EntityTagHeaderValue(etag));
+                        }
                     }
                 }
                 catch (Exception ex)
@@ -77,6 +90,7 @@ namespace MediaTagger.Modules.Image
                     logger.LogError(ex, "unable to get thumbnail image");
                     //return Results.NoContent();
                     var file = await mediaService.GetMediaFileById(id);
+
                     if (file != null)
                     {
                         var video = mediaService.IsVideoType(file);
@@ -89,6 +103,52 @@ namespace MediaTagger.Modules.Image
 
                 }
             });
+
+            routes.MapPost(V1_URL_PREFIX + "/image/{id}/rotate/{degrees}", async (IMediaFileService service,
+            int id,
+            int degrees,
+            ThumbnailService thumbnailService,
+            ILogger<MediaFileModule> logger) =>
+            {
+                logger.LogDebug($"rotate {id} by {degrees}");
+                dynamic response = Results.NotFound();
+                var file = await service.Rotate(id, degrees);
+                if (file != null)
+                {
+                    await thumbnailService.GetThumbnailFileInfo(id);
+                    response = new
+                    {
+                        success = true,
+                        message = "rotated",
+                        data = new
+                        {
+                            id = file.Id,
+                            fileSetPrimaryId = file.FileSetPrimaryId,
+                            createdOn = file.CreatedOn,
+                            modifiedOn = file.ModifiedOn,
+                            name = file.Name,
+                            filename = file.Filename,
+                            fileCreatedOn = file.FileCreated,
+                            fileModifiedOn = file.FileModified,
+                            directory = file.Directory == null ? null : file.Directory.Value,
+                            fileSize = file.FileSize,
+                            width = file.Width,
+                            height = file.Height,
+                            hidden = file.Hidden,
+                            rotationDegrees = file.RotationDegrees
+                        }
+                    };
+
+
+
+
+                }
+
+                return response;
+
+
+            });
+
         }
 
     }

@@ -202,6 +202,9 @@ export class FileViewComponent extends ComponentBase {
     if (this.editor) {
       this.editor.detach();
     }
+    if (this.navigation) {
+      this.navigation.detach();
+    }
   }
 
   clickItem(data, element, event, handler) {

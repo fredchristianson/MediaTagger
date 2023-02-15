@@ -1,20 +1,12 @@
 import { ComponentBase } from '../../drjs/browser/component.js';
-import {
-  getAppSettings,
-  postAppSettings,
-  getTopFolders,
-  getFolders
-} from '../modules/mt-api.js';
-import { Tree, TreeDataProvider, TreeItem } from '../controls/tree.js';
+
 import { media } from '../modules/media.js';
-import {
-  Listeners,
-  BuildInputHandler,
-  BuildClickHandler,
-  Continuation
-} from '../../drjs/browser/event.js';
+
 import { LOG_LEVEL, Logger } from '../../drjs/logger.js';
 import {
+    Listeners,
+  BuildClickHandler,
+  Continuation,
   BuildDragHandler,
   BuildDropHandler
 } from '../../drjs/browser/event.js';
@@ -52,7 +44,7 @@ export class TagManagerComponent extends ComponentBase {
 
     this.listeners.add(
       BuildDragHandler()
-        .listenTo(this.dom.first('.tag-tree'), '.tag')
+        .listenTo(this.dom.first('.manager-tag-tree'), '.tag')
         .setDefaultContinuation(Continuation.Continue)
         .onStart(this, this.onDragStart)
         .onEnd(this, this.onDragEnd)
@@ -86,12 +78,12 @@ export class TagManagerComponent extends ComponentBase {
   createTags() {
     this.tags = media.getTags();
 
-    const scroll = this.dom.first('.tag-tree');
+    const scroll = this.dom.first('.manager-tag-tree');
     const scrollTop = scroll.scrollTop;
     const top = this.tags.search((tag) => {
       return tag.ParentId == null;
     });
-    const parent = this.dom.first('.tag-tree');
+    const parent = this.dom.first('.manager-tag-tree');
     this.dom.removeChildren(parent);
     const element = this.template.fill({
       '.tag': [new DataValue('id', 'root'), new ClassValue('root')],

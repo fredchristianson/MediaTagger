@@ -36,6 +36,10 @@ export class MediaFile extends MediaEntity {
   get RotationDegrees() {
     return this.rotationDegrees;
   }
+  setRotationDegrees(degrees) {
+    this.rotationDegrees = degrees;
+    this.setChanged();
+  }
   rotate(degrees) {
     const d = Util.toNumber(this.rotationDegrees, 0);
     const change = Util.toNumber(degrees, 0);

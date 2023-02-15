@@ -86,7 +86,7 @@ export class QuickTagsComponent extends ComponentBase {
         .build(),
 
       BuildHoverHandler()
-        .listenTo(this.dom, '.tag-tree .self')
+        .listenTo(this.dom, '.quick-tag-tree .self')
         .onStart(this, this.hoverStart)
         .onEnd(this, this.hoverEnd)
         .build(),
@@ -140,7 +140,7 @@ export class QuickTagsComponent extends ComponentBase {
         .onEvent(this, this.onFileChange)
         .build(),
       BuildCheckboxHandler()
-        .listenTo('.tag-tree', 'input[type="checkbox"]')
+        .listenTo('.quick-tag-tree', 'input[type="checkbox"]')
         .setData(this, this.getTagForElement)
         .onChecked(this, this.selectTag)
         .onUnchecked(this, this.unselectTag)
@@ -246,7 +246,7 @@ export class QuickTagsComponent extends ComponentBase {
   }
 
   checkTagTree(image) {
-    const tree = this.dom.first('.tag-tree');
+    const tree = this.dom.first('.quick-tag-tree');
     const tags = this.dom.find(
       tree,
       ".tag.node > .self input[type='checkbox']"
@@ -396,12 +396,12 @@ export class QuickTagsComponent extends ComponentBase {
   fillTree() {
     this.tags = media.getTags();
 
-    const scroll = this.dom.first('.tag-tree');
+    const scroll = this.dom.first('.quick-tag-tree');
     const scrollTop = scroll.scrollTop;
     const top = this.tags.search((tag) => {
       return tag.ParentId == null;
     });
-    const parent = this.dom.first('.tag-tree .tags');
+    const parent = this.dom.first('.quick-tag-tree .tags');
     this.dom.removeChildren(parent);
 
     this.insertTags(parent, top);
@@ -523,8 +523,8 @@ export class QuickTagsComponent extends ComponentBase {
 
   // eslint-disable-next-line complexity
   searchNodes(phrase) {
-    const tags = this.dom.find('.tag-tree .tags .tag');
-    this.dom.hide('.tag-tree div.create');
+    const tags = this.dom.find('.quick-tag-tree .tags .tag');
+    this.dom.hide('.quick-tag-tree div.create');
     this.dom.remove('.new');
     let firstMatch = true;
     for (const tag of tags) {
