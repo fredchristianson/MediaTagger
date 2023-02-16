@@ -362,12 +362,13 @@
         display: none;
     }
 
+
     .tag.match>.self {
-        color: var(--accent-color);
+        color: var(--accent-color-foreground);
     }
 
     .tag.match.selected>.self .name {
-        outline: 1px dashed var(--accent-color);
+        outline: 1px dashed var(--accent-color-foreground);
     }
 
     .tag>.self span.name {
@@ -376,7 +377,9 @@
     }
 
     .tag>.self span.name b {
-        color: var(--accent-color);
+        color: var(--accent-color-foreground);
+        text-decoration: underline;
+        border-bottom:1px solid black;
     }
 
     .tag>.self span.name .level {

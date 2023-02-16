@@ -27,6 +27,7 @@
     position: relative;
 }
 
+
 #tag-manager .tag-tree>.tag:last-child {
     margin-bottom: 4rem;
 }
@@ -97,4 +98,8 @@
 #tag-manager .tag.drag-over:not(.dragging)>.self {
     background-color: yellow;
     border: 1px dashed #aaa;
+}
+
+.manager-tag-tree {
+    overflow: auto;
 }

@@ -217,7 +217,6 @@ body {
   overflow: hidden;
   display: grid;
   grid-template-areas: "view-options" "content" "status";
-  grid-template-rows: -webkit-max-content 1fr -webkit-max-content;
   grid-template-rows: max-content 1fr max-content;
 }
 
@@ -831,7 +830,6 @@ label.check-state[data-state=unchecked]::after {
 #media-view {
   -webkit-user-select: none;
      -moz-user-select: none;
-      -ms-user-select: none;
           user-select: none;
   height: -webkit-fill-available;
   height: -moz-available;
@@ -1229,7 +1227,6 @@ label.check-state[data-state=unchecked]::after {
 }
 #quick-tags .images {
   margin: auto auto;
-  width: -webkit-fit-content;
   width: -moz-fit-content;
   width: fit-content;
 }
@@ -1293,14 +1290,6 @@ label.check-state[data-state=unchecked]::after {
   display: block;
   text-align: center;
 }
-@-webkit-keyframes cursorBlink {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
 @keyframes cursorBlink {
   from {
     opacity: 0;
@@ -1340,13 +1329,9 @@ label.check-state[data-state=unchecked]::after {
   height: 12px;
   margin-top: 4px;
   display: none;
-  -webkit-animation-duration: 1s;
   animation-duration: 1s;
-  -webkit-animation-name: cursorBlink;
   animation-name: cursorBlink;
-  -webkit-animation-iteration-count: infinite;
   animation-iteration-count: infinite;
-  -webkit-animation-direction: alternate;
   animation-direction: alternate;
 }
 #quick-tags .input.active .cursor {
@@ -1376,17 +1361,19 @@ label.check-state[data-state=unchecked]::after {
   display: none;
 }
 #quick-tags .tag.match > .self {
-  color: var(--accent-color);
+  color: var(--accent-color-foreground);
 }
 #quick-tags .tag.match.selected > .self .name {
-  outline: 1px dashed var(--accent-color);
+  outline: 1px dashed var(--accent-color-foreground);
 }
 #quick-tags .tag > .self span.name {
   display: inline-block;
   color: var(--accent-color-foreground);
 }
 #quick-tags .tag > .self span.name b {
-  color: var(--accent-color);
+  color: var(--accent-color-foreground);
+  text-decoration: underline;
+  border-bottom: 1px solid black;
 }
 #quick-tags .tag > .self span.name .level {
   margin-right: 8px;
@@ -1422,9 +1409,7 @@ label.check-state[data-state=unchecked]::after {
   display: grid;
   width: 100%;
   grid-template-areas: "open check name" "children children children";
-  grid-template-columns: -webkit-max-content -webkit-max-content 1fr;
   grid-template-columns: max-content max-content 1fr;
-  grid-template-rows: -webkit-max-content;
   grid-template-rows: max-content;
 }
 .settings-component .tree .tree-item .open-close {
@@ -1589,4 +1574,8 @@ label.check-state[data-state=unchecked]::after {
   border: 1px dashed #aaa;
 }
 
-/*# sourceMappingURL=MediaTagger.css.map *//*# sourceMappingURL=MediaTagger.css.map */
+.manager-tag-tree {
+  overflow: auto;
+}
+
+/*# sourceMappingURL=MediaTagger.css.map */

@@ -153,7 +153,6 @@ label.check-state[data-state=unchecked]::after {
   max-height: 100vh;
   display: grid;
   grid-template-areas: "view-options" "content" "status";
-  grid-template-rows: -webkit-max-content 1fr -webkit-max-content;
   grid-template-rows: max-content 1fr max-content;
 }
 #main-content #view-options {
@@ -231,7 +230,6 @@ label.check-state[data-state=unchecked]::after {
   background-size: 3px 3px;
   -webkit-user-select: none;
      -moz-user-select: none;
-      -ms-user-select: none;
           user-select: none;
   grid-area: content;
   display: grid;
@@ -554,9 +552,6 @@ label.check-state[data-state=unchecked]::after {
   width: 100%;
 }
 #tag-details .tag-tree .tag .children .new .tag-name:-moz-placeholder-shown ~ div .ok, .tag-filter .tag-tree .tag .children .new .tag-name:-moz-placeholder-shown ~ div .ok {
-  visibility: hidden;
-}
-#tag-details .tag-tree .tag .children .new .tag-name:-ms-input-placeholder ~ div .ok, .tag-filter .tag-tree .tag .children .new .tag-name:-ms-input-placeholder ~ div .ok {
   visibility: hidden;
 }
 #tag-details .tag-tree .tag .children .new .tag-name:placeholder-shown ~ div .ok,
@@ -960,7 +955,6 @@ label.check-state[data-state=unchecked]::after {
 }
 #quick-tags .images {
   margin: auto auto;
-  width: -webkit-fit-content;
   width: -moz-fit-content;
   width: fit-content;
 }
@@ -1030,14 +1024,6 @@ label.check-state[data-state=unchecked]::after {
   display: block;
   text-align: center;
 }
-@-webkit-keyframes cursorBlink {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
 @keyframes cursorBlink {
   from {
     opacity: 0;
@@ -1077,14 +1063,10 @@ label.check-state[data-state=unchecked]::after {
   height: 12px;
   margin-top: 4px;
   display: none;
-  -webkit-animation-duration: 1s;
-          animation-duration: 1s;
-  -webkit-animation-name: cursorBlink;
-          animation-name: cursorBlink;
-  -webkit-animation-iteration-count: infinite;
-          animation-iteration-count: infinite;
-  -webkit-animation-direction: alternate;
-          animation-direction: alternate;
+  animation-duration: 1s;
+  animation-name: cursorBlink;
+  animation-iteration-count: infinite;
+  animation-direction: alternate;
 }
 #quick-tags .input.active .cursor {
   display: inline-block;
@@ -1219,9 +1201,7 @@ button:hover {
   display: grid;
   width: 100%;
   grid-template-areas: "open check name" "children children children";
-  grid-template-columns: -webkit-max-content -webkit-max-content 1fr;
   grid-template-columns: max-content max-content 1fr;
-  grid-template-rows: -webkit-max-content;
   grid-template-rows: max-content;
 }
 .tree .tree-item .open-close {

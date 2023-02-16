@@ -307,6 +307,19 @@ export class QuickTagsComponent extends ComponentBase {
     }
   }
 
+  getRecentForTag(tagId) {
+    let searchId = tagId;
+    if (typeof tagId == 'object') {
+      searchId = tagId.Id;
+    }
+    for (const rtag of this.recent) {
+      if (rtag.Id == searchId) {
+        return rtag;
+      }
+    }
+    return null;
+  }
+
   getHotkeyForTag(tagId) {
     let searchId = tagId;
     if (typeof tagId == 'object') {
@@ -536,16 +549,24 @@ export class QuickTagsComponent extends ComponentBase {
     }
     let createParent = '/';
     let createName = this.searchText;
+    let isHotkey = false;
+    let isRecent = false;
     for (const checkMatch of tags) {
       this.dom.removeClass(checkMatch, 'selected');
       const isMatch = this.dom.hasClass(checkMatch, 'match');
       const childMatch = this.dom.first(checkMatch, '.match');
       if (childMatch || isMatch) {
         this.dom.show(checkMatch);
-        if (firstMatch && isMatch) {
-          this.dom.addClass(checkMatch, 'selected');
+        if (isMatch) {
+          const htag = this.getHotkeyForTag(checkMatch.Id);
+          const rtag = this.getRecentForTag(checkMatch.Id);
+          if (firstMatch || (!isHotkey && htag) || (!isRecent && rtag)) {
+            this.dom.addClass(checkMatch, 'selected');
 
-          firstMatch = false;
+            firstMatch = false;
+            isHotkey = htag;
+            isRecent = rtag;
+          }
         }
         const newChild = this.dom.getData(checkMatch, 'can_create');
         const path = this.dom.getData(checkMatch, 'path');
