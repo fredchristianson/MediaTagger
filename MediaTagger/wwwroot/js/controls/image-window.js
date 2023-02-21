@@ -38,6 +38,7 @@ class ImageWindow {
     }
     this.url = null;
   }
+  // eslint-disable-next-line complexity
   async open() {
     if (this.externalWindow == null || this.externalWindow.closed) {
       // chrome won't open on another monitor.
@@ -48,31 +49,44 @@ class ImageWindow {
         pos = `,top=${settings.get('top')},left=${settings.get('left')}`;
       }
       this.externalWindow = window.open(
-        '',
+        this.url,
         'media-tagger-preview',
         `toolbar=false,resizeable=yes${pos}`
       );
-      if (settings.get('width') != null && settings.get('height') != null) {
-        log.debug('resize ', settings.get('width'), settings.get('height'));
+      if (this.externalWindow) {
+        this.externalWindow.addEventListener('load', async (event) => {
+          //this.externalWindow.location.reload();
+          this.externalWindow.location = this.url;
 
-        this.externalWindow.resizeTo(
-          settings.get('width'),
-          settings.get('height')
-        );
-        this.externalWindow.moveTo(settings.get('left'), settings.get('top'));
+          if (settings.get('width') != null && settings.get('height') != null) {
+            log.debug('resize ', settings.get('width'), settings.get('height'));
+
+            this.externalWindow.resizeTo(
+              settings.get('width'),
+              settings.get('height')
+            );
+            this.externalWindow.moveTo(
+              settings.get('left'),
+              settings.get('top')
+            );
+          }
+        });
       }
     }
     this.showing = true;
   }
 
   async setImage(image) {
+    this.url = image?.getImageReloadUrl();
+
     if (image != null && this.externalWindow && !this.externalWindow.closed) {
       const settings = await this.getSettings();
       settings.set('left', this.externalWindow.screenLeft);
       settings.set('top', this.externalWindow.screenTop);
       settings.set('width', this.externalWindow.outerWidth);
       settings.set('height', this.externalWindow.outerHeight);
-      this.url = image.getImageReloadUrl();
+    }
+    if (this.externalWindow) {
       this.externalWindow.location.replace(this.url);
       /*
        * may use a cached image.  if .reload() is called before loading
@@ -81,8 +95,6 @@ class ImageWindow {
       this.externalWindow.addEventListener('load', async (event) => {
         this.externalWindow.location.reload();
       });
-    } else {
-      this.url = null;
     }
   }
   async getSettings() {

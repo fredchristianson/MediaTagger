@@ -10,7 +10,8 @@ import {
   BuildHoverHandler,
   BuildKeyHandler,
   BuildCustomEventHandler,
-  Key
+  Key,
+  BuildInputHandler
 } from '../../drjs/browser/event.js';
 import { LOG_LEVEL, Logger } from '../../drjs/logger.js';
 import {
@@ -57,6 +58,7 @@ export class QuickTagsComponent extends ComponentBase {
     this.searchCursorPosition = 0;
     this.searchPhrase = new SearchPhrase();
     this.focusView = new FocusView(this, '.images');
+    this.searchInput = this.dom.first('input.tag-search');
     this.nodeTemplate = new HtmlTemplate(
       this.dom.first('.quick-tag-tree-node-template')
     );
@@ -74,6 +76,10 @@ export class QuickTagsComponent extends ComponentBase {
     );
 
     this.listeners.add(
+      BuildInputHandler()
+        .listenTo(this.searchInput)
+        .onInput(this, this.searchChange)
+        .build(),
       BuildCheckboxHandler()
         .listenTo(this.dom, "[name='untagged']")
         .setData(this, this.getNodeTag)
@@ -439,14 +445,6 @@ export class QuickTagsComponent extends ComponentBase {
     }
   }
 
-  keyPress(key) {
-    if (this.hasHotkeyHover) {
-      return this.hoverKeyPress(key);
-    } else {
-      return this.searchKeyPress(key);
-    }
-  }
-
   hotkeyHover(target) {
     this.hasHotkeyHover = target;
   }
@@ -474,15 +472,6 @@ export class QuickTagsComponent extends ComponentBase {
     if (!this.hasHotkeyHover) {
       log.debug('lost hotkeyhover');
     }
-    return Continuation.StopAll;
-  }
-  searchKeyPress(key) {
-    if (key == 'Backspace') {
-      this.searchText = this.searchText.slice(0, -1);
-    } else {
-      this.searchText = this.searchText.concat(key);
-    }
-    this.fillSearch();
     return Continuation.StopAll;
   }
 
@@ -693,5 +682,36 @@ export class QuickTagsComponent extends ComponentBase {
         this.selectTag(tag);
       });
     }
+  }
+
+  searchKeyPress(key) {
+    if (key == 'Backspace') {
+      this.searchText = this.searchText.slice(0, -1);
+    } else {
+      this.searchText = this.searchText.concat(key);
+    }
+    this.fillSearch();
+    return Continuation.StopAll;
+  }
+
+  keyPress(key) {
+    const focus = document.activeElement;
+    if (focus == this.searchInput) {
+      return Continuation.Continue;
+    }
+    if (this.hasHotkeyHover) {
+      this.hoverKeyPress(key);
+      return Continuation.StopAll;
+    } else {
+      this.searchInput.focus();
+      return Continuation.Continue;
+      // this.searchKeyPress(key);
+    }
+  }
+  searchChange(val) {
+    log.debug('search change ', val);
+    this.searchText = val;
+    this.fillSearch();
+    return Continuation.StopAll;
   }
 }

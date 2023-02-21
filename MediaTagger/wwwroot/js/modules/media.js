@@ -711,20 +711,20 @@ class Media {
   async rotateCCW() {
     log.debug('rotateCCW');
     if (this.focusItem != null) {
-      API.rotate(this.focusItem, -90);
-
+      await API.rotate(this.focusItem, -90);
+      log.debug('\tdone rotate CCW');
       FocusEntityChangeEvent.emit(this.focusItem);
     }
   }
   async rotateCW() {
     if (this.focusItem != null) {
-      API.rotate(this.focusItem, 90);
+      await API.rotate(this.focusItem, 90);
       FocusEntityChangeEvent.emit(this.focusItem);
     }
   }
   async rotate180() {
     if (this.focusItem != null) {
-      API.rotate(this.focusItem, 180);
+      await API.rotate(this.focusItem, 180);
       FocusEntityChangeEvent.emit(this.focusItem);
     }
   }

@@ -9,6 +9,7 @@ import {
 import { media } from './media.js';
 import { OnNextLoop } from './timer.js';
 import { Assert } from '../../drjs/assert.js';
+import { ImageLoader } from './image-loader.js';
 const log = Logger.create('Layout', LOG_LEVEL.INFO);
 
 function px(num) {
@@ -170,13 +171,8 @@ export class Layout {
       dom.addClass(item._layoutElement, 'focus');
 
       const img = dom.first(item._layoutElement, 'img');
-      img.src = null;
-      fetch(item.getThumbnailUrl(), {
-        cache: 'reload',
-        mode: 'no-cors'
-      }).then(() => {
-        img.src = item.getThumbnailUrl();
-      });
+
+      ImageLoader.reload(img, item.getThumbnailUrl());
       /*
        * const element = this.htmlCreator(item);
        * item._layoutElement = element;

@@ -163,7 +163,7 @@ export class MediaFile extends MediaEntity {
     return `/image/${this.getId()}`;
   }
   getImageReloadUrl() {
-    return `/image/${this.getId()}`;
+    return `/image/${this.getId()}?time=${Date.now()}`;
   }
 
   getName() {

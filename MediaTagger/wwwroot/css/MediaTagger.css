@@ -349,12 +349,8 @@ body.theme-dolphin {
 }
 
 .media-items {
-  height: -webkit-fill-available;
-  height: -moz-available;
-  height: stretch;
-  width: -webkit-fill-available;
-  width: -moz-available;
-  width: stretch;
+  height: 100%;
+  width: 100%;
   grid-area: media-items;
   background-color: var(--background-color);
   color: var(--foreground-color);
@@ -831,12 +827,8 @@ label.check-state[data-state=unchecked]::after {
   -webkit-user-select: none;
      -moz-user-select: none;
           user-select: none;
-  height: -webkit-fill-available;
-  height: -moz-available;
-  height: stretch;
-  width: -webkit-fill-available;
-  width: -moz-available;
-  width: stretch;
+  height: 100%;
+  width: 100%;
   background: linear-gradient(142deg, var(--background-color), var(--foreground-color)), linear-gradient(0deg, var(--background-color), var(--foreground-color));
   background-size: 3px 3px;
   grid-template-areas: "date-filter date-filter date-filter date-filter date-filter" "media-filter grid-sizer-filter   media-items grid-sizer-details  media-details";
@@ -1077,7 +1069,7 @@ label.check-state[data-state=unchecked]::after {
   color: var(--component-foreground-color);
   display: grid;
   grid-template-areas: "media sizer select tree";
-  grid-template-columns: auto auto auto 1fr;
+  grid-template-columns: 25% auto 1fr 2fr;
   position: relative;
 }
 #quick-tags .quick-tags-sizer {
@@ -1166,7 +1158,7 @@ label.check-state[data-state=unchecked]::after {
 #quick-tags .quick-tag-tree div.search {
   flex: 0 0 content;
 }
-#quick-tags .quick-tag-tree div.search .input {
+#quick-tags .quick-tag-tree div.search input {
   width: 50em;
   display: block;
   margin-bottom: 4px;
@@ -1298,7 +1290,7 @@ label.check-state[data-state=unchecked]::after {
     opacity: 1;
   }
 }
-#quick-tags .input {
+#quick-tags input.tag-search {
   vertical-align: top;
   text-align: left;
   border: 1px solid black;
@@ -1310,32 +1302,6 @@ label.check-state[data-state=unchecked]::after {
   height: 24px;
   overflow: hidden;
   padding-left: 2px;
-}
-#quick-tags .input .start {
-  font-size: 1.2rem;
-  vertical-align: top;
-}
-#quick-tags .input .start:empty::after {
-  content: var(--placeholder);
-  color: var(--control-foreground-color);
-  position: absolute;
-  top: 0px;
-  left: 4px;
-}
-#quick-tags .input .cursor {
-  vertical-align: top;
-  width: 2px;
-  background-color: var(--control-background-color);
-  height: 12px;
-  margin-top: 4px;
-  display: none;
-  animation-duration: 1s;
-  animation-name: cursorBlink;
-  animation-iteration-count: infinite;
-  animation-direction: alternate;
-}
-#quick-tags .input.active .cursor {
-  display: inline-block;
 }
 #quick-tags .search .phrase .level {
   position: relative;

@@ -20,7 +20,7 @@ function imageError(event) {
 
 function checkNode(node) {
   if (dom.hasClass(node, 'unloaded')) {
-    let image = dom.first(node, 'img');
+    const image = dom.first(node, 'img');
     if (image.complete) {
       dom.removeClass(node, 'unloaded');
     } else {
@@ -32,16 +32,29 @@ function checkNode(node) {
 
 const callback = (mutationList, observer) => {
   for (const mutation of mutationList) {
-    let nodes = mutation.addedNodes;
+    const nodes = mutation.addedNodes;
     if (nodes != null && nodes.length > 0) {
     }
-    for (let node of nodes) {
+    for (const node of nodes) {
       checkNode(node);
     }
   }
 };
 
 export class ImageLoader {
+  static async reload(imgElement, url) {
+    //imgElement.setAttribute('src', '/image/error.png');
+    const response = await fetch(url, {
+      cache: 'reload',
+      mode: 'no-cors'
+    });
+    if (response.ok) {
+      const blob = await response.blob();
+      imgElement.setAttribute('src', URL.createObjectURL(blob));
+    } else {
+      imgElement.setAttribute('src', '/image/error.png');
+    }
+  }
   constructor(parent) {
     this.observer = new MutationObserver(callback);
     this.observer.observe(dom.first(parent), config);

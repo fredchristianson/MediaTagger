@@ -8,7 +8,8 @@ import {
 
 import { media } from '../modules/media.js';
 import { Settings } from '../modules/settings.js';
-
+import ImageLoader from '../modules/image-loader.js';
+import { imageWindow } from '../controls/image-window.js';
 const log = Logger.create('PropertyDetails', LOG_LEVEL.DEBUG);
 
 export class PropertyDetailsComponent extends ComponentBase {
@@ -41,31 +42,18 @@ export class PropertyDetailsComponent extends ComponentBase {
   }
 
   externalPreview() {
-    this.externalWindow = null;
-    this.openExternalWindow();
+    this.externalWindow = imageWindow;
+    this.externalWindow.open();
+    this.showExternalImage();
   }
 
-  openExternalWindow() {
+  showExternalImage() {
     const focus = media.getFocus();
     if (focus == null) {
       return;
     }
     if (this.externalWindow) {
-      if (this.externalWindow.closed) {
-        log.debug('preview window is closed');
-        this.externalWindow = null;
-        return;
-      }
-      this.externalWindow.location = focus.getImageUrl();
-    } else {
-      this.externalWindow = window.open(
-        focus.getImageUrl(),
-        'media-tagger-preview',
-        'toolbar=false,resizeable=yes'
-      );
-      this.externalWindow.onload = () => {
-        log.debug('loaded');
-      };
+      this.externalWindow.setImage(focus);
     }
   }
   focusChange() {
@@ -94,15 +82,10 @@ export class PropertyDetailsComponent extends ComponentBase {
     this.dom.removeClass('.preview', ['rotate-90', 'rotate-180', 'rotate-270']);
     const preview = this.dom.first('.preview');
     const img = this.dom.first(preview, 'img');
-    fetch(focus.getImageUrl(), {
-      cache: 'reload',
-      mode: 'no-cors'
-    }).then(() => {
-      this.dom.setAttribute('.preview img', 'src', focus.getImageUrl());
-      if (this.externalWindow) {
-        this.openExternalWindow();
-      }
-    });
+    ImageLoader.reload(img, focus.getImageUrl());
+    if (this.externalWindow) {
+      this.showExternalImage();
+    }
 
     img.style.maxHeight = `${preview.offsetHeight}px`;
     img.style.maxWidth = `${preview.offsetWidth}px`;

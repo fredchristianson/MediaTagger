@@ -17,7 +17,7 @@ namespace MediaTagger.Modules.Image
             routes.MapGet("/image/{id}", async (IMediaFileService service,
             int id,
             [FromHeader(Name = "If-None-Match")] string? ifNotMatch,
-            IHttpContextAccessor context) =>
+            IHttpContextAccessor context, ILogger<ImageModule> logger) =>
             {
                 IResult response = null!;
                 response = Results.StatusCode(StatusCodes.Status404NotFound);
@@ -29,14 +29,17 @@ namespace MediaTagger.Modules.Image
                     var etag = '\"' + file.ModifiedOn.Ticks.ToString() + '\"';
                     if (ifNotMatch == etag)
                     {
+                        logger.LogDebug($"image {file.Id} not modified");
                         response = Results.StatusCode(StatusCodes.Status304NotModified);
                     }
                     else
                     {
+                        logger.LogDebug($" return image {file.Id} If-None-Match={ifNotMatch}");
 
                         using (var img = new MagickImage(path))
                         {
                             img.AutoOrient();
+                            logger.LogDebug($"rotate image {file.RotationDegrees}");
                             img.Rotate(file.RotationDegrees);
                             MemoryStream stream = new MemoryStream();
                             img.Write(stream, MagickFormat.Jpeg);
@@ -55,7 +58,8 @@ namespace MediaTagger.Modules.Image
 
 
 
-            routes.MapGet("/thumbnail/{id}", async (ThumbnailService service, IMediaFileService mediaService, ILogger<ImageService> logger, int id,
+            routes.MapGet("/thumbnail/{id}", async (ThumbnailService service,
+            IMediaFileService mediaService, ILogger<ThumbnailService> logger, int id,
                 [FromHeader(Name = "If-None-Match")] string? ifNotMatch, IHttpContextAccessor context) =>
             {
                 try
@@ -64,6 +68,7 @@ namespace MediaTagger.Modules.Image
                     var etag = '\"' + fileInfo.LastWriteTime.Ticks.ToString() + '\"';
                     if (ifNotMatch == etag)
                     {
+                        logger.LogDebug($"thumbnail {id} not modified");
                         return Results.StatusCode(StatusCodes.Status304NotModified);
                     }
                     else
@@ -74,6 +79,7 @@ namespace MediaTagger.Modules.Image
                             var file = await mediaService.GetMediaFileById(id);
                             if (file.RotationDegrees != 0)
                             {
+                                logger.LogDebug($"rotate thumbnail {id} {file.RotationDegrees} degrees");
                                 img.Rotate(file.RotationDegrees);
                             }
                             MemoryStream stream = new MemoryStream();
@@ -108,11 +114,12 @@ namespace MediaTagger.Modules.Image
             int id,
             int degrees,
             ThumbnailService thumbnailService,
-            ILogger<MediaFileModule> logger) =>
+            ILogger<MediaFileService> logger) =>
             {
                 logger.LogDebug($"rotate {id} by {degrees}");
                 dynamic response = Results.NotFound();
                 var file = await service.Rotate(id, degrees);
+                logger.LogDebug($"\trotated={file.RotationDegrees} modified {file.ModifiedOn}");
                 if (file != null)
                 {
                     await thumbnailService.GetThumbnailFileInfo(id);

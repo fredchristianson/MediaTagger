@@ -49,6 +49,9 @@ namespace MediaTagger.Modules.MediaFile
             if (file != null)
             {
                 file.RotationDegrees += degrees;
+                if (file.RotationDegrees < 0) { file.RotationDegrees += 360; }
+                file.RotationDegrees = file.RotationDegrees % 360;
+                file.ModifiedOn = DateTime.Now;
                 await db.SaveChangesAsync();
             }
             return file;

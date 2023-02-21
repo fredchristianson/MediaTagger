@@ -112,7 +112,7 @@ class FocusView extends Control {
           );
         }
       } else {
-        this.dom.setAttribute(img, 'src', item.getImageReloadUrl());
+        this.dom.setAttribute(img, 'src', item.getImageUrl());
       }
     }
     this.imageWindow.setImage(media.getFocus());

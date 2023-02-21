@@ -2,8 +2,8 @@
 
 #media-view {
     user-select: none;
-    height: stretch;
-    width: stretch;
+    height: 100%;
+    width: 100%;
 
     background: linear-gradient(142deg, var(--background-color),var(--foreground-color)),
         linear-gradient(0deg, var(--background-color),
