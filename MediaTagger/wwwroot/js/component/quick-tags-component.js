@@ -445,12 +445,20 @@ export class QuickTagsComponent extends ComponentBase {
     }
   }
 
-  hotkeyHover(target) {
-    this.hasHotkeyHover = target;
+  hoverStart(target) {
+    this.oldFocus = document.activeElement;
+    this.hotkeyInput = this.dom.first(target, 'input[name="key"]');
+    this.hasHotkeyHover = this.hotkeyInput;
   }
 
-  hotkeyHoverEnd() {
-    this.hasHotkeyHover = null;
+  hoverEnd(target) {
+    if (this.hotkeyInput) {
+      this.hotkeyInput.blur();
+    }
+    if (this.oldFocus) {
+      this.oldFocus.focus();
+    }
+    this.hasHotkeyHover = false;
   }
 
   hoverKeyPress(key) {
@@ -458,13 +466,17 @@ export class QuickTagsComponent extends ComponentBase {
       return Continuation.Continue;
     }
     log.debug('hover keypress', key);
-    const tag = this.getTagForElement(this.hasHotkeyHover);
+    const tag = this.getTagForElement(this.hotkeyInput);
+    this.setHotkey(tag, null);
+
     if (key == 'Backspace') {
       this.setHotkey(tag, null);
+      this.hotkeyInput.value = '';
     } else {
       const lc = key.toLowerCase();
       if (lc >= 'a' && lc <= 'z') {
         this.setHotkey(tag, lc);
+        this.hotkeyInput.value = lc;
       }
     }
 

@@ -216,14 +216,32 @@
     .tag.node .self .on-hover {
         display: none;
         position: absolute;
-        top: 2px;
+        top: 0px;
         right: var(--padding);
     }
 
-    .tag.node .self .input {
+    .tag.node .self .buttons {
+        height: 100%;
+        position: absolute;
+
+    }
+    .tag.node .self input {
         width: 2em;
         margin-right: 1em;
         text-align: center;
+        height: 90%;
+        position: relative;
+        display: inline-block;
+    }
+
+    .tag.node .self button {
+        margin-right: 1em;
+        text-align: center;
+        vertical-align: middle;
+        height: 90%;
+        padding: 0 8px;
+        position: relative;
+        display: inline-block;
     }
 
     .tag.node .self:hover {

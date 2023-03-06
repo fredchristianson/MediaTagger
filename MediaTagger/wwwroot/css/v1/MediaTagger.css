@@ -202,7 +202,7 @@ label.check-state[data-state=unchecked]::after {
   height: 100%;
 }
 .date-select svg rect {
-  fill: hsl(230deg, 100%, 50%);
+  fill: hsl(230, 100%, 50%);
   height: 100%;
   width: 20px;
   top: 0;
@@ -983,13 +983,26 @@ label.check-state[data-state=unchecked]::after {
 #quick-tags .tag.node .self .on-hover {
   display: none;
   position: absolute;
-  top: 2px;
+  top: 0px;
   right: var(--padding);
+  height: 100%;
+  overflow: hidden;
+  vertical-align: middle;
+  line-height: 90%;
 }
 #quick-tags .tag.node .self .input {
   width: 2em;
   margin-right: 1em;
+  height: 1em;
   text-align: center;
+  border-radius: 0;
+}
+#quick-tags .tag.node .self button {
+  height: 1em;
+  text-align: center;
+  vertical-align: middle;
+  padding: 0px 8px;
+  margin: 0px;
 }
 #quick-tags .tag.node .self:hover {
   background-color: #ffa;

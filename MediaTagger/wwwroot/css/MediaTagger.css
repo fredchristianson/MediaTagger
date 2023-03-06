@@ -896,7 +896,7 @@ label.check-state[data-state=unchecked]::after {
   height: 100%;
 }
 #date-filter .date-select .svg-container svg rect {
-  fill: hsl(230deg, 100%, 50%);
+  fill: hsl(230, 100%, 50%);
   height: 100%;
   width: 20px;
   top: 0;
@@ -1241,13 +1241,29 @@ label.check-state[data-state=unchecked]::after {
 #quick-tags .tag.node .self .on-hover {
   display: none;
   position: absolute;
-  top: 2px;
+  top: 0px;
   right: var(--padding);
 }
-#quick-tags .tag.node .self .input {
+#quick-tags .tag.node .self .buttons {
+  height: 100%;
+  position: absolute;
+}
+#quick-tags .tag.node .self input {
   width: 2em;
   margin-right: 1em;
   text-align: center;
+  height: 90%;
+  position: relative;
+  display: inline-block;
+}
+#quick-tags .tag.node .self button {
+  margin-right: 1em;
+  text-align: center;
+  vertical-align: middle;
+  height: 90%;
+  padding: 0 8px;
+  position: relative;
+  display: inline-block;
 }
 #quick-tags .tag.node .self:hover {
   background-color: #ffa;
